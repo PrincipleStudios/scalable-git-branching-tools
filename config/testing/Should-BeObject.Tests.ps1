@@ -16,5 +16,9 @@ Describe 'Should-BeObject' {
         { @{ name = 'Bob' } | Should-BeObject @{ name = 'Bob'; age = 35 } } | Should -Throw
         { @{ name = 'Bob' } | Should-BeObject @{ name = 'Jim' } } | Should -Throw
         { @{ name = 'Bob'; age = 35 } | Should-BeObject @{ name = 'Bob' } } | Should -Throw
-    }    
+    }
+    
+    It 'rejects mismatched types' {
+        { 'Bob' | Should-BeObject @{ name = 'Bob' } } | Should -Throw
+    }
 }

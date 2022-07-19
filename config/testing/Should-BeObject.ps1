@@ -9,8 +9,8 @@ function Should-BeObject {
     } elseif ($a -eq $nil -OR $b -eq $nil) {
         throw 'One, but not both, arguments were null.'
     }
-    
-    $Property = (($a.PSObject.Properties | Select-Object -Expand Name) + ($b.PSObject.Properties | Select-Object -Expand Name)) | select -uniq
+
+    $Property = @(($a.PSObject.Properties | Select-Object -Expand Name), ($b.PSObject.Properties | Select-Object -Expand Name)) | ForEach-Object {$_} | select -uniq
     $Difference = Compare-Object $b $a -Property $Property
     if ($Difference.Length -ne 0) {
         throw "Expected objects to be the same, but got difference: $($a | ConvertTo-Json) expected to match $($b | ConvertTo-Json)"

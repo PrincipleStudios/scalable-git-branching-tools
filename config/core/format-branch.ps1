@@ -1,4 +1,3 @@
-. $PSScriptRoot/coalesce.ps1
 . $PSScriptRoot/to-kebab.ps1
 
 function Format-Branch {
