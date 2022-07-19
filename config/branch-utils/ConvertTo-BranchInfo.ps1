@@ -1,7 +1,7 @@
 . $PSScriptRoot/../Variables.ps1
 . $PSScriptRoot/../branch-types.ps1
 
-function To-BranchInfo($branchName) {
+function ConvertTo-BranchInfo($branchName) {
     return $branchTypes.Keys
         | Where-Object { $branchName -match $branchTypes[$_].regex }
         | ForEach-Object { & $branchTypes[$_].toInfo $branchName }

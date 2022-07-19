@@ -1,12 +1,12 @@
 . $PSScriptRoot/../Variables.ps1
-. $PSScriptRoot/../parsing/To-BranchInfo.ps1
+. $PSScriptRoot/../parsing/ConvertTo-BranchInfo.ps1
 
 function List-Branches() {
     return (git branch -r) | Foreach-Object {
         $split = $_.Trim().Split('/')
         $branchName = $split[1..($split.Length-1)] -join '/'
 
-        $info = To-BranchInfo $branchName
+        $info = ConvertTo-BranchInfo $branchName
         if ($info -eq $nil) {
             return $nil
         }

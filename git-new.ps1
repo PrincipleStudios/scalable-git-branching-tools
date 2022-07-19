@@ -8,19 +8,9 @@ Param(
 
 . $PSScriptRoot/config/Common.ps1
 
-$ticketNames = $ticketNames | Where-Object { $_ -ne '' }
-if ($ticketNames -ne $nil) {
-    $ticketNames | ForEach-Object { Assert-TicketName $_ }
-}
-Assert-BranchType $type -optional
-
 $type = Coalesce $type $defaultFeatureType
+$ticketNames = $ticketNames | Where-Object { $_ -ne '' }
 
-$typeName = Get-BranchType $type
-
-$branchName = & $branchTypes[$typeName].build $type $ticketNames $comment
-if ((& $branchTypes[$typeName].toInfo $branchName) -eq $nil) {
-    throw "Invalid arguments for branch of type $typeName (tried to name it $branchName). Please verify your inputs."
-}
+$branchName = Format-BranchName $type $ticketNames $comment
 
 echo $branchName
