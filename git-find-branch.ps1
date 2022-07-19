@@ -9,4 +9,4 @@ Param(
 Assert-TicketName $ticketName
 $remotes = git remote
 
-List-Branches | Where-Object { $_.ticket -eq $ticketName } | Format-Table
+Select-Branches | Select Branch,Remote,Type,Ticket,Tickets,Parents,Comment | Where-Object { $_.ticket -eq $ticketName } | Format-Table

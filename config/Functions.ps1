@@ -7,4 +7,4 @@
 . $PSScriptRoot/branch-utils/Format-BranchName.ps1
 . $PSScriptRoot/branch-utils/Get-BranchType.ps1
 . $PSScriptRoot/branch-utils/ConvertTo-BranchInfo.ps1
-. $PSScriptRoot/git/list-branches.ps1
+. $PSScriptRoot/git/Select-Branches.ps1

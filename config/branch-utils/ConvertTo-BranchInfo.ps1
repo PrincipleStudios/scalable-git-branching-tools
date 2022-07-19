@@ -1,4 +1,3 @@
-. $PSScriptRoot/../Variables.ps1
 . $PSScriptRoot/../branch-types.ps1
 
 function ConvertTo-BranchInfo($branchName) {
