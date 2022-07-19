@@ -2,7 +2,7 @@
 . $PSScriptRoot/../core/coalesce.ps1
 . $PSScriptRoot/../core/format-branch.ps1
 
-function Format-GitReleaseCandidate($type, $tickets, $comments) { return Format-Branch 'rc' @() $comments }
+function Format-GitReleaseCandidate($type, $tickets, $comments) { return Format-Branch 'rc' @() -m $comments }
 function ConvertTo-GitReleaseCandidateInfo($branchName) {
     if ($branchName -notmatch $branchTypeReleaseCandidate.regex) {
         return $nil
@@ -11,6 +11,7 @@ function ConvertTo-GitReleaseCandidateInfo($branchName) {
 }
 
 $branchTypeReleaseCandidate = @{
+    type = "^(rc|releaseCandidate|release-candidate)$"
     regex = "^rc/(?<comment>$commentPart)$"
     build = 'Format-GitReleaseCandidate'
     toInfo = 'ConvertTo-GitReleaseCandidateInfo'

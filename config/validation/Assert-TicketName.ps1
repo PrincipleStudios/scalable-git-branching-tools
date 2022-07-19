@@ -1,6 +1,6 @@
 . $PSScriptRoot/../Variables.ps1
 
-function Validate-Ticket($ticketName, [switch] $optional) {
+function Assert-TicketName($ticketName, [switch] $optional) {
     if ($optional -AND $ticketName -eq '') {
         return
     }

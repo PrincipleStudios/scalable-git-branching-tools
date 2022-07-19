@@ -2,7 +2,7 @@
 . $PSScriptRoot/../core/coalesce.ps1
 . $PSScriptRoot/../core/format-branch.ps1
 
-function Format-GitInfrastructure($type, $tickets, $comment) { return Format-Branch 'infra' $tickets $comment }
+function Format-GitInfrastructure($type, $tickets, $comment) { return Format-Branch 'infra' $tickets -m $comment }
 function ConvertTo-GitInfrastructureInfo($branchName) {
     if ($branchName -notmatch $branchTypeInfrastructure.regex) {
         return $nil
@@ -15,6 +15,7 @@ function ConvertTo-GitInfrastructureInfo($branchName) {
 }
 
 $branchTypeInfrastructure = @{
+    type = "^(infrastructure|infra)$"
     regex = "^infra/((?<tickets>($ticketPartialRegex$parentTicketDelimeter)*$ticketPartialRegex)-)?(?<comment>$commentPart)$"
     build = 'Format-GitInfrastructure'
     toInfo = 'ConvertTo-GitInfrastructureInfo'

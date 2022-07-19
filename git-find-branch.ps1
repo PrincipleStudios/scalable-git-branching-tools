@@ -6,7 +6,7 @@ Param(
 
 . $PSScriptRoot/config/Common.ps1
 
-Validate-Ticket $ticketName
+Assert-TicketName $ticketName
 $remotes = git remote
 
 List-Branches | Where-Object { $_.ticket -eq $ticketName } | Format-Table

@@ -13,6 +13,7 @@ function ConvertTo-GitIntegrationInfo($branchName) {
 }
 
 $branchTypeIntegration = @{
+    type = "^(integrate|integration|integ)$"
     regex = "^integrate/(?<tickets>($ticketPartialRegex$parentTicketDelimeter)*$ticketPartialRegex)"
     build = 'Format-GitIntegration'
     toInfo = 'ConvertTo-GitIntegrationInfo'

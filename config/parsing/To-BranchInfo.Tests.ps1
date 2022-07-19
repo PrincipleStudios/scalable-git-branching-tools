@@ -14,21 +14,21 @@ Describe 'To-BranchInfo' {
     }
     
     It 'identifies feature branches' {
-        To-BranchInfo 'feature/PS-123' | Should-BeObject @{ type = 'feature'; subtype = 'feature'; ticket='PS-123' }
-        To-BranchInfo 'feature/PS-123-with-comment' | Should-BeObject @{ type = 'feature'; subtype = 'feature'; ticket='PS-123'; comment='with-comment' }
-        To-BranchInfo 'feature/PS-123_PS-124' | Should-BeObject @{ type = 'feature'; subtype = 'feature'; ticket='PS-124'; parents=@('PS-123') }
-        To-BranchInfo 'feature/PS-123_PS-124-another-comment' | Should-BeObject @{ type = 'feature'; subtype = 'feature'; ticket='PS-124'; parents=@('PS-123'); comment='another-comment' }
-        To-BranchInfo 'feature/PS-123_PS-124_PS-125' | Should-BeObject @{ type = 'feature'; subtype = 'feature'; ticket='PS-125'; parents=@('PS-123','PS-124') }
-        To-BranchInfo 'feature/PS-123_PS-124_PS-125-longish' | Should-BeObject @{ type = 'feature'; subtype = 'feature'; ticket='PS-125'; parents=@('PS-123','PS-124'); comment='longish' }
+        To-BranchInfo 'feature/PS-123' | Should-BeObject @{ type = 'feature'; ticket='PS-123' }
+        To-BranchInfo 'feature/PS-123-with-comment' | Should-BeObject @{ type = 'feature'; ticket='PS-123'; comment='with-comment' }
+        To-BranchInfo 'feature/PS-123_PS-124' | Should-BeObject @{ type = 'feature'; ticket='PS-124'; parents=@('PS-123') }
+        To-BranchInfo 'feature/PS-123_PS-124-another-comment' | Should-BeObject @{ type = 'feature'; ticket='PS-124'; parents=@('PS-123'); comment='another-comment' }
+        To-BranchInfo 'feature/PS-123_PS-124_PS-125' | Should-BeObject @{ type = 'feature'; ticket='PS-125'; parents=@('PS-123','PS-124') }
+        To-BranchInfo 'feature/PS-123_PS-124_PS-125-longish' | Should-BeObject @{ type = 'feature'; ticket='PS-125'; parents=@('PS-123','PS-124'); comment='longish' }
     }
 
     It 'identifies bugfix branches' {
-        To-BranchInfo 'bugfix/PS-123' | Should-BeObject @{ type = 'feature'; subtype = 'bugfix'; ticket='PS-123' }
-        To-BranchInfo 'bugfix/PS-123-with-comment' | Should-BeObject @{ type = 'feature'; subtype = 'bugfix'; ticket='PS-123'; comment='with-comment' }
-        To-BranchInfo 'bugfix/PS-123_PS-124' | Should-BeObject @{ type = 'feature'; subtype = 'bugfix'; ticket='PS-124'; parents=@('PS-123') }
-        To-BranchInfo 'bugfix/PS-123_PS-124-another-comment' | Should-BeObject @{ type = 'feature'; subtype = 'bugfix'; ticket='PS-124'; parents=@('PS-123'); comment='another-comment' }
-        To-BranchInfo 'bugfix/PS-123_PS-124_PS-125' | Should-BeObject @{ type = 'feature'; subtype = 'bugfix'; ticket='PS-125'; parents=@('PS-123','PS-124') }
-        To-BranchInfo 'bugfix/PS-123_PS-124_PS-125-longish' | Should-BeObject @{ type = 'feature'; subtype = 'bugfix'; ticket='PS-125'; parents=@('PS-123','PS-124'); comment='longish' }
+        To-BranchInfo 'bugfix/PS-123' | Should-BeObject @{ type = 'bugfix'; ticket='PS-123' }
+        To-BranchInfo 'bugfix/PS-123-with-comment' | Should-BeObject @{ type = 'bugfix'; ticket='PS-123'; comment='with-comment' }
+        To-BranchInfo 'bugfix/PS-123_PS-124' | Should-BeObject @{ type = 'bugfix'; ticket='PS-124'; parents=@('PS-123') }
+        To-BranchInfo 'bugfix/PS-123_PS-124-another-comment' | Should-BeObject @{ type = 'bugfix'; ticket='PS-124'; parents=@('PS-123'); comment='another-comment' }
+        To-BranchInfo 'bugfix/PS-123_PS-124_PS-125' | Should-BeObject @{ type = 'bugfix'; ticket='PS-125'; parents=@('PS-123','PS-124') }
+        To-BranchInfo 'bugfix/PS-123_PS-124_PS-125-longish' | Should-BeObject @{ type = 'bugfix'; ticket='PS-125'; parents=@('PS-123','PS-124'); comment='longish' }
     }
 
     It 'identifies rc branches' {
