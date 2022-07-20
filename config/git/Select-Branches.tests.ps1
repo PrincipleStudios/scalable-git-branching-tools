@@ -12,6 +12,7 @@ Describe 'Select-Branches' {
             origin/feature/FOO-124_FOO-125
             origin/main
             origin/rc/2022-07-14
+            origin/integrate/FOO-125_XYZ-1
             "
         }
         
@@ -37,5 +38,9 @@ Describe 'Select-Branches' {
     It 'includes main' {
         $branches | Where-Object { $_.branch -eq 'main' } 
             | Should-BeObject @{ branch = 'main'; remote = 'origin'; type = 'service-line' }
+    }
+    It 'includes integrate/FOO-125_XYZ-1' {
+        $branches | Where-Object { $_.branch -eq 'integrate/FOO-125_XYZ-1' } 
+            | Should-BeObject @{ branch = 'integrate/FOO-125_XYZ-1'; remote = 'origin'; type = 'integration'; tickets = @('FOO-125', 'XYZ-1') }
     }
 }

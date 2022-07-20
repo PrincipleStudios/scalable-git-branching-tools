@@ -1,8 +1,7 @@
-# . $PSScriptRoot/../Variables.ps1
 . $PSScriptRoot/../branch-utils/ConvertTo-BranchInfo.ps1
 
 function Select-Branches() {
-    $temp =(git branch -r)
+    $temp = (git branch -r)
     return $temp | Foreach-Object { $_.split("`n") } | Foreach-Object {
         $split = $_.Trim().Split('/')
         $branchName = $split[1..($split.Length-1)] -join '/'
