@@ -18,13 +18,27 @@ function Select-ParentBranches([String]$branchName) {
     }
     $parentTickets = $parentTickets | ForEach-Object {$_} # flatten the array
     if ($parentTickets.Length -eq 0) {
-        return $branches | Where-Object { $_.type -eq 'service-line' } | ForEach-Object { $_.branch }
+        $serviceLines = @(,($branches | Where-Object { $_.type -eq 'service-line' } | ForEach-Object { $_.branch }))
+        if ($serviceLines.Length -gt 1) {
+            Write-Host (ConvertTo-Json $serviceLines)
+            $allLines = $serviceLines -join ' '
+            throw "Found more than one service line ($serviceLines) - please specify the base."
+        }
+        return $serviceLines
     } else {
-        return $branches | Where-Object {
+        $possibleResult = $branches | Where-Object {
             $tickets = (Get-Tickets $_)
             if ($tickets.Length -eq 0) { return $false }
             $intersection = $tickets | Where-Object { $parentTickets -contains $_ }
             return $intersection.Length -eq $tickets.Length -AND $_.branch -ne $branchName
         } | ForEach-Object { $_.branch }
+
+        do {
+            $len = $possibleResult.Length
+            $parents = $possibleResult | ForEach-Object { return Select-ParentBranches $_ } | ForEach-Object {$_} | select -uniq
+            $possibleResult = $possibleResult | Where-Object { $parents -notcontains $_ }
+        } until ($len -eq $possibleResult.Length)
+
+        return $possibleResult
     }
 }

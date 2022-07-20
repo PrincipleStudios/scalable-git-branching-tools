@@ -8,3 +8,4 @@
 . $PSScriptRoot/branch-utils/Get-BranchType.ps1
 . $PSScriptRoot/branch-utils/ConvertTo-BranchInfo.ps1
 . $PSScriptRoot/git/Select-Branches.ps1
+. $PSScriptRoot/git/Select-ParentBranches.ps1

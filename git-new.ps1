@@ -12,5 +12,6 @@ $type = Coalesce $type $defaultFeatureType
 $ticketNames = $ticketNames | Where-Object { $_ -ne '' }
 
 $branchName = Format-BranchName $type $ticketNames $comment
+$parentBranches = Select-ParentBranches $branchName
 
-echo $branchName
+($branchName, $parentBranches) | ConvertTo-Json | Write-Host
