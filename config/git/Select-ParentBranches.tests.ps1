@@ -41,6 +41,23 @@ Describe 'Select-ParentBranches' {
         It 'reports integration parents for integration branches' {
             Select-ParentBranches 'integrate/FOO-76_FOO-125_XYZ-1' | Should -Be @('feature/FOO-76','integrate/FOO-125_XYZ-1')
         }
+        
+        It 'reports origin/main for no parents when remote is requested' {
+            Select-ParentBranches 'feature/FOO-123' -includeRemote | Should -Be @('origin/main')
+        }
+        It 'reports parent for single-depth entries when remote is requested' {
+            Select-ParentBranches 'feature/FOO-124_FOO-125' -includeRemote | Should -Be @('origin/feature/FOO-124-comment')
+        }
+        It 'reports parent for multi-depth entries when remote is requested' {
+            Select-ParentBranches 'feature/FOO-124_FOO-125_FOO-126' -includeRemote | Should -Be @('origin/feature/FOO-124_FOO-125')
+        }
+        It 'reports parents for integration branches when remote is requested' {
+            Select-ParentBranches 'integrate/FOO-125_XYZ-1' -includeRemote | Should -Be @('origin/feature/FOO-124_FOO-125','origin/feature/XYZ-1-services')
+        }
+        It 'reports integration parents for integration branches when remote is requested' {
+            Select-ParentBranches 'integrate/FOO-76_FOO-125_XYZ-1' -includeRemote | Should -Be @('origin/feature/FOO-76','origin/integrate/FOO-125_XYZ-1')
+        }
+        
     }
     
     Context 'When Configured without an origin' {
