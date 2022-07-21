@@ -23,7 +23,7 @@ $type = Coalesce $type $defaultFeatureType
 $ticketNames = $ticketNames | Where-Object { $_ -ne '' }
 
 $branchName = Format-BranchName $type $ticketNames $comment
-$parentBranches = [System.Collections.Generic.List[String]](Select-ParentBranches $branchName -includeRemote)
+$parentBranches = [String[]](Select-ParentBranches $branchName -includeRemote)
 
 if ($parentBranches.Length -eq 0) {
     throw "No parents could be determined for new branch '$branchName'."

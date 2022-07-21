@@ -30,6 +30,26 @@ Describe 'Invoke-MergeBranches' {
         Should -Invoke -CommandName git -Times 0 -ParameterFilter $foo3Filter
         Should -Invoke -CommandName git -Times 1 -ParameterFilter $abortFilter
     }
+    It 'throws midway if exit code is non-zero but leaves the merge half-completed when -noAbort is passed' {
+        Mock git {
+            $Global:LASTEXITCODE = 0
+        } -ParameterFilter $foo1Filter -Verifiable
+        Mock git {
+            $Global:LASTEXITCODE = 1
+        } -ParameterFilter $foo2Filter -Verifiable
+        Mock git {
+            $Global:LASTEXITCODE = 0
+        } -ParameterFilter $foo3Filter -Verifiable
+        Mock git {
+            $Global:LASTEXITCODE = 0
+        } -ParameterFilter $abortFilter -Verifiable
+            
+        { Invoke-MergeBranches @('feature/FOO-1', 'feature/FOO-2', 'feature/FOO-3') -noAbort } | Should -Throw
+        Should -Invoke -CommandName git -Times 1 -ParameterFilter $foo1Filter
+        Should -Invoke -CommandName git -Times 1 -ParameterFilter $foo2Filter
+        Should -Invoke -CommandName git -Times 0 -ParameterFilter $foo3Filter
+        Should -Invoke -CommandName git -Times 0 -ParameterFilter $abortFilter
+    }
     It 'does not throw or abort if exit code is zero' {
         Mock git {
             $Global:LASTEXITCODE = 0
