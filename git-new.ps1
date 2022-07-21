@@ -7,7 +7,13 @@ Param(
     [Switch] $noFetch
 )
 
-. $PSScriptRoot/config/Common.ps1
+. $PSScriptRoot/config/git/Update-Git.ps1
+. $PSScriptRoot/config/branch-utils/Format-BranchName.ps1
+. $PSScriptRoot/config/git/Select-ParentBranches.ps1
+. $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
+. $PSScriptRoot/config/git/Invoke-CreateBranch.ps1
+. $PSScriptRoot/config/git/Invoke-CheckoutBranch.ps1
+. $PSScriptRoot/config/git/Invoke-MergeBranches.ps1
 
 if (-not $noFetch) {
     Update-Git
@@ -24,22 +30,7 @@ if ($parentBranches.Length -eq 0) {
 }
 
 Assert-CleanWorkingDirectory
-git branch $branchName $parentBranches[0] --quiet
-if ($LASTEXITCODE -ne 0) {
-    throw "Could not create new branch '$branchName' from '$($parentBranches[0])'"
-}
-
-git checkout $branchName --quiet
-if ($LASTEXITCODE -ne 0) {
-    throw "Could not checkout newly created branch '$branchName'"
-}
-
-Write-Host "Checked out new branch '$branchName'."
-
-$parentBranches | select -skip 1 | ForEach-Object {
-    git merge -q $_ --commit --no-squash
-    if ($LASTEXITCODE -ne 0) {
-        git merge --abort
-        throw "Could not merge all parent branches. Failed to merge '$_'."
-    }
-}
+Invoke-CreateBranch $branchName $parentBranches[0]
+Invoke-CheckoutBranch $branchName
+Assert-CleanWorkingDirectory # checkouts can change ignored files; reassert clean
+Invoke-MergeBranches ($parentBranches | select -skip 1)
