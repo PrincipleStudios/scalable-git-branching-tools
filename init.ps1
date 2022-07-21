@@ -11,11 +11,12 @@ git config alias.tool-config "!$dir/git-tool-config.ps1"
 # Create a new branch
 git config alias.new "!$dir/git-new.ps1"
 
-# Find a branch?? Is this useful?
-git config alias.find-branch "!$dir/git-find-branch.ps1"
+# Update current branch from its upstream/parent branches
+git config alias.pull-upstream "!$dir/git-pull-upstream.ps1"
 
-# TODO: 
-# - rc generation
-# - update branch process
-# - rc verification/release
-# - ???
+# Build a release candidate from other branches
+git config alias.rc "!$dir/git-rc.ps1"
+
+# Verify that a release candidate is ready to merge to the service line
+git config alias.verify-rc "!$dir/git-verify-rc.ps1"
+
