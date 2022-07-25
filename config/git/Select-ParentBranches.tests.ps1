@@ -3,7 +3,7 @@ BeforeAll {
     . $PSScriptRoot/../TestUtils.ps1
 }
 
-Describe 'Select-ParentBranches' {
+Describe 'Invoke-FindParentBranchesFromBranchName' {
     Context 'When Configured with an origin' {
         BeforeEach{
             Mock git {
@@ -23,60 +23,62 @@ Describe 'Select-ParentBranches' {
                 Write-Output "origin"
             } -ParameterFilter {($args -join ' ') -eq 'config scaled-git.remote'}
             
-            $branches = Select-Branches
+            Mock git {
+                Write-Output "feature/FOO-124_FOO-125"
+                Write-Output "feature/XYZ-1-services"
+            } -ParameterFilter {($args -join ' ') -eq 'cat-file -p origin/_upstream:integrate/FOO-125_XYZ-1'}
         }
 
         It 'reports main for no parents' {
-            Select-ParentBranches 'feature/FOO-123' | Should -Be @('main')
+            Invoke-FindParentBranchesFromBranchName 'feature/FOO-123' | Should -Be @('main')
         }
         It 'reports parent for single-depth entries' {
-            Select-ParentBranches 'feature/FOO-124_FOO-125' | Should -Be @('feature/FOO-124-comment')
+            Invoke-FindParentBranchesFromBranchName 'feature/FOO-124_FOO-125' | Should -Be @('feature/FOO-124-comment')
         }
         It 'reports parent for multi-depth entries' {
-            Select-ParentBranches 'feature/FOO-124_FOO-125_FOO-126' | Should -Be @('feature/FOO-124_FOO-125')
+            Invoke-FindParentBranchesFromBranchName 'feature/FOO-124_FOO-125_FOO-126' | Should -Be @('feature/FOO-124_FOO-125')
         }
         It 'reports parents for integration branches' {
-            Select-ParentBranches 'integrate/FOO-125_XYZ-1' | Should -Be @('feature/FOO-124_FOO-125','feature/XYZ-1-services')
+            Invoke-FindParentBranchesFromBranchName 'integrate/FOO-125_XYZ-1' | Should -Be @('feature/FOO-124_FOO-125','feature/XYZ-1-services')
         }
         It 'reports integration parents for integration branches' {
-            Select-ParentBranches 'integrate/FOO-76_FOO-125_XYZ-1' | Should -Be @('feature/FOO-76','integrate/FOO-125_XYZ-1')
+            Invoke-FindParentBranchesFromBranchName 'integrate/FOO-76_FOO-125_XYZ-1' | Should -Be @('feature/FOO-76','integrate/FOO-125_XYZ-1')
         }
         
         It 'reports origin/main for no parents when remote is requested' {
-            Select-ParentBranches 'feature/FOO-123' -includeRemote | Should -Be @('origin/main')
+            Invoke-FindParentBranchesFromBranchName 'feature/FOO-123' -includeRemote | Should -Be @('origin/main')
         }
         It 'reports parent for single-depth entries when remote is requested' {
-            Select-ParentBranches 'feature/FOO-124_FOO-125' -includeRemote | Should -Be @('origin/feature/FOO-124-comment')
+            Invoke-FindParentBranchesFromBranchName 'feature/FOO-124_FOO-125' -includeRemote | Should -Be @('origin/feature/FOO-124-comment')
         }
         It 'reports parent for multi-depth entries when remote is requested' {
-            Select-ParentBranches 'feature/FOO-124_FOO-125_FOO-126' -includeRemote | Should -Be @('origin/feature/FOO-124_FOO-125')
+            Invoke-FindParentBranchesFromBranchName 'feature/FOO-124_FOO-125_FOO-126' -includeRemote | Should -Be @('origin/feature/FOO-124_FOO-125')
         }
         It 'reports parents for integration branches when remote is requested' {
-            Select-ParentBranches 'integrate/FOO-125_XYZ-1' -includeRemote | Should -Be @('origin/feature/FOO-124_FOO-125','origin/feature/XYZ-1-services')
+            Invoke-FindParentBranchesFromBranchName 'integrate/FOO-125_XYZ-1' -includeRemote | Should -Be @('origin/feature/FOO-124_FOO-125','origin/feature/XYZ-1-services')
         }
         It 'reports integration parents for integration branches when remote is requested' {
-            Select-ParentBranches 'integrate/FOO-76_FOO-125_XYZ-1' -includeRemote | Should -Be @('origin/feature/FOO-76','origin/integrate/FOO-125_XYZ-1')
+            Invoke-FindParentBranchesFromBranchName 'integrate/FOO-76_FOO-125_XYZ-1' -includeRemote | Should -Be @('origin/feature/FOO-76','origin/integrate/FOO-125_XYZ-1')
         }
         
     }
     
-    Context 'When Configured without an origin' {
+    Context 'When Configured without a remote still finds the local main' {
         BeforeEach{
             Mock git {
                 Write-Output "
-                origin/main
-                other/main
+                main
                 "
-            } -ParameterFilter { ($args -join ' ') -eq 'branch -r' }
+            } -ParameterFilter { ($args -join ' ') -eq 'branch' }
             
             Mock git {
+            } -ParameterFilter {($args -join ' ') -eq 'remote'}
+            Mock git {
             } -ParameterFilter {($args -join ' ') -eq 'config scaled-git.remote'}
-            
-            $branches = Select-Branches
         }
 
-        It 'errors with multiple service lines' {
-            { Select-ParentBranches 'feature/FOO-123' } | Should -Throw
+        It 'finds main' {
+            Invoke-FindParentBranchesFromBranchName 'feature/FOO-123' | Should -Be @('main')
         }
     }
 }

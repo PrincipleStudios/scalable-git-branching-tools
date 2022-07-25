@@ -1,7 +1,8 @@
-. $PSScriptRoot/../core/Coalesce.ps1
 . $PSScriptRoot/../branch-utils/ConvertTo-BranchInfo.ps1
 . $PSScriptRoot/../branch-utils/Get-Tickets.ps1
+. $PSScriptRoot/Get-Configuration.ps1
 . $PSScriptRoot/Select-Branches.ps1
+. $PSScriptRoot/Get-GitFile.ps1
 
 function ConvertTo-BranchName($branchInfo, [switch] $includeRemote) {
     return $includeRemote ? "$($branchInfo.remote)/$($branchInfo.branch)" : $branchInfo.branch
@@ -12,8 +13,20 @@ function Select-ParentBranches([String]$branchName, [PSObject[]] $allBranchInfo,
         $allBranchInfo = Select-Branches
     }
 
-    # TODO: check "config branch" for things like RC branches
+    $config = Get-Configuration
+    $parentBranches = Get-GitFile $branchName "$($config.remote)/$($config.upstreamBranch)"
+    if ($includeRemote) {
+        return $parentBranches | ForEach-Object { "$($config.remote)/$_" }
+    } else {
+        return $parentBranches
+    }
+}
 
+function Invoke-FindParentBranchesFromBranchName([String]$branchName, [PSObject[]] $allBranchInfo, [switch] $includeRemote) {
+    if ($allBranchInfo -eq $nil) {
+        $allBranchInfo = Select-Branches
+    }
+    
     $info = ConvertTo-BranchInfo $branchName
 
     $parentTickets = $info.tickets
@@ -23,7 +36,7 @@ function Select-ParentBranches([String]$branchName, [PSObject[]] $allBranchInfo,
     if ($parentTickets -eq $nil) {
         $parentTickets = @()
     }
-    $parentTickets = $parentTickets | ForEach-Object {$_} # flatten the array
+    $parentTickets = [string[]]($parentTickets | ForEach-Object {$_}) # flatten the array
     if ($parentTickets.Length -eq 0) {
         $serviceLines = @($allBranchInfo | Where-Object { $_.type -eq 'service-line' } | ForEach-Object { ConvertTo-BranchName $_ -includeRemote:$includeRemote })
         if ($serviceLines.Length -gt 1) {
@@ -38,7 +51,7 @@ function Select-ParentBranches([String]$branchName, [PSObject[]] $allBranchInfo,
 
 function Invoke-ParentTicketsToBranches([string[]]$parentTickets, [PSObject[]] $allBranchInfo, [switch] $includeRemote) {
     return $allBranchInfo | Where-Object {
-        $tickets = (Get-Tickets $_)
+        $tickets = Get-Tickets $_
         if ($tickets.Length -eq 0) { return $false }
         $intersection = $tickets | Where-Object { $parentTickets -contains $_ }
         return $intersection.Length -eq $tickets.Length -AND $_.branch -ne $branchName

@@ -4,13 +4,29 @@ BeforeAll {
 }
 
 Describe 'Get-Configuration' {
-    BeforeEach{
+
+    It 'Defaults values' {
         Mock git {
-            Write-Output "origin"
         } -ParameterFilter {($args -join ' ') -eq 'config scaled-git.remote'}
+        Mock git {
+        } -ParameterFilter {($args -join ' ') -eq 'remote'}
+        
+        
+        Mock git {
+        } -ParameterFilter {($args -join ' ') -eq 'config scaled-git.upstreamBranch'}
+
+        Get-Configuration | Should-BeObject @{ remote = $nil; upstreamBranch = '_upstream' }
     }
 
-    It 'excludes feature FOO-100' {
-        Get-Configuration | Should-BeObject @{ remote = 'origin' }
+    It 'Overrides defaults' {
+        Mock git {
+            Write-Output "github"
+        } -ParameterFilter {($args -join ' ') -eq 'config scaled-git.remote'}
+        
+        Mock git {
+            Write-Output "upstream-config"
+        } -ParameterFilter {($args -join ' ') -eq 'config scaled-git.upstreamBranch'}
+
+        Get-Configuration | Should-BeObject @{ remote = 'github'; upstreamBranch = 'upstream-config' }
     }
 }

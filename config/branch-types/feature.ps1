@@ -16,14 +16,14 @@ function ConvertTo-GitFeatureInfo($branchName) {
         $result.comment = $Matches.comment
     }
     if ($Matches.parentTickets -ne $nil) {
-        $result.parents = ,($Matches.parentTickets.split('_') | Where-Object { $_ -ne "" })
+        $result.parents = [string[]]($Matches.parentTickets.split('_') | Where-Object { $_ -ne "" })
     }
     return $result
 }
 
 $branchTypeFeature = @{
     type = $featureTypeRegex
-    regex = "^(?<type>$featureTypePartialRegex)/(?<parentTickets>$ticketPartialRegex$parentTicketDelimeter)*(?<ticket>$ticketPartialRegex)(-(?<comment>$commentPart))?$"
+    regex = "^(?<type>$featureTypePartialRegex)/(?<parentTickets>($ticketPartialRegex$parentTicketDelimeter)+)?(?<ticket>$ticketPartialRegex)(-(?<comment>$commentPart))?$"
     build = 'Format-GitFeature'
     toInfo = 'ConvertTo-GitFeatureInfo'
 }

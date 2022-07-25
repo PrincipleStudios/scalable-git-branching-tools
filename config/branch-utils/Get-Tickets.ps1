@@ -1,5 +1,5 @@
-. $PSScriptRoot/../core/Coalesce.ps1
-
-function Get-Tickets($branchInfo) {
-    return Coalesce ($branchInfo.ticket -eq $nil ? $branchInfo.tickets : @($branchInfo.ticket)) @()
+function Get-Tickets {
+    [OutputType([string[]])]
+    param([PSObject]$branchInfo)
+    return [string[]]($branchInfo.ticket -eq $nil ? $branchInfo.tickets : @($branchInfo.ticket))
 }

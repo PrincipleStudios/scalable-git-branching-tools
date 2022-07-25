@@ -1,18 +1,35 @@
 
 function Should-BeObject {
     Param (
-        [Parameter(Position=0)][Object]$b, [Parameter(ValueFromPipeLine = $True)][Object]$a
+        [Parameter(Position=0)][PSObject]$b, [Parameter(ValueFromPipeLine = $True)][PSObject]$a
     )
 
     if ($a -eq $nil -AND $b -eq $nil) {
         return;
-    } elseif ($a -eq $nil -OR $b -eq $nil) {
-        throw 'One, but not both, arguments were null.'
+    } elseif ($a -eq $nil) {
+        throw 'Expected a value but got null.'
+    } elseif ($b -eq $nil) {
+        throw 'Expected null but got a value.'
     }
 
-    $Property = @(($a.PSObject.Properties | Select-Object -Expand Name), ($b.PSObject.Properties | Select-Object -Expand Name)) | ForEach-Object {$_} | select -uniq
-    $Difference = Compare-Object $b $a -Property $Property
-    if ($Difference.Length -ne 0) {
-        throw "Expected objects to be the same, but got difference: $($a | ConvertTo-Json) expected to match $($b | ConvertTo-Json)"
+    $aType = $a.GetType().FullName
+    $bType = $b.GetType().FullName
+    if ($aType -ne $bType) {
+        throw "Expected objects to be the same type, expected $aType but got $bType."
+    }
+
+    if ($aType -eq 'System.Collections.Hashtable') {
+        $Property = @(($a.Keys), ($b.Keys)) | ForEach-Object {$_} | select -uniq
+    } else {
+        $Property = @(($a.PSObject.Properties | Select-Object -Expand Name), ($b.PSObject.Properties | Select-Object -Expand Name)) | ForEach-Object {$_} | select -uniq
+            | Where-Object { @('Keys', 'Values') -notcontains $_ }
+    }
+    $Property | ForEach-Object {
+        $prop = $_
+        try {
+            $b[$_] | Should -Be $a[$_]
+        } catch {
+            throw "Expected objects to be the same for property '$prop': $_"
+        }
     }
 }

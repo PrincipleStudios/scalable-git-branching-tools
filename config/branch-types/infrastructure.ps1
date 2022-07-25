@@ -9,7 +9,7 @@ function ConvertTo-GitInfrastructureInfo($branchName) {
     }
     $result = @{ type = 'infrastructure'; comment = $Matches.comment }
     if ($Matches.tickets -ne $nil) {
-        $result.tickets = ,($Matches.tickets.split('_') | Where-Object { $_ -ne "" })
+        $result.tickets = [string[]](($Matches.tickets.split('_') | Where-Object { $_ -ne "" }))
     }
     return $result
 }

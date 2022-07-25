@@ -55,7 +55,7 @@ Describe 'Select-Branches' {
         }
     }
     
-    Context 'Without a remote branch specified' {
+    Context 'Without a remote branch specified finds a default remote' {
         BeforeEach{
             Mock git {
                 Write-Output "
@@ -70,14 +70,19 @@ Describe 'Select-Branches' {
             } -ParameterFilter {($args -join ' ') -eq 'branch -r'}
             
             Mock git {
+                Write-Output "origin"
+                Write-Output "other"
+            } -ParameterFilter {($args -join ' ') -eq 'remote'}
+            
+            Mock git {
             } -ParameterFilter {($args -join ' ') -eq 'config scaled-git.remote'}
             
             $branches = Select-Branches
         }
 
-        It 'includes feature FOO-100' {
+        It 'excludes features not on origin' {
             $branches | Where-Object { $_.branch -eq 'feature/FOO-100' } 
-                | Should-BeObject @{ branch = 'feature/FOO-100'; remote = 'other'; type = 'feature'; ticket = 'FOO-100' }
+                | Should -Be $nil
         }
         It 'includes feature FOO-123' {
             $branches | Where-Object { $_.branch -eq 'feature/FOO-123' } 

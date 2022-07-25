@@ -2,8 +2,9 @@
 . $PSScriptRoot/Get-Configuration.ps1
 
 function Select-Branches() {
-    $remote = (Get-Configuration).remote
-    $temp = (git branch -r)
+    $config = (Get-Configuration)
+    $remote = $config.remote
+    $temp = $remote -eq $nil ? (git branch) : (git branch -r)
     return $temp | Foreach-Object { $_.split("`n") } | Foreach-Object {
         $split = $_.Trim().Split('/')
         if ($remote -ne $nil -AND $remote -ne $split[0]) {

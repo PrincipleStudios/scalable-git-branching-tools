@@ -37,6 +37,7 @@ Describe 'ConvertTo-BranchInfo' {
     }
 
     It 'identifies integration branches' {
+        ConvertTo-BranchInfo 'integrate/FOO-125_XYZ-1' | Should-BeObject @{ type = 'integration'; tickets=@('FOO-125','XYZ-1') }
         ConvertTo-BranchInfo 'integrate/ABC-1234_ABC-1235' | Should-BeObject @{ type = 'integration'; tickets=@('ABC-1234','ABC-1235') }
         ConvertTo-BranchInfo 'integrate/ABC-1234_ABC-1235_XYZ-78' | Should-BeObject @{ type = 'integration'; tickets=@('ABC-1234','ABC-1235','XYZ-78') }
     }

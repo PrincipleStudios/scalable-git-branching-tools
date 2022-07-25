@@ -8,7 +8,7 @@ function ConvertTo-GitIntegrationInfo($branchName) {
         return $nil
     }
     $result = @{ type = 'integration' }
-    $result.tickets = ,($Matches.tickets.split('_') | Where-Object { $_ -ne "" })
+    $result.tickets = [string[]]($Matches.tickets.split('_') | Where-Object { $_ -ne "" })
     return $result
 }
 
