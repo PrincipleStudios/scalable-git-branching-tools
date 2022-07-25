@@ -14,6 +14,7 @@ Param(
 . $PSScriptRoot/config/git/Invoke-CreateBranch.ps1
 . $PSScriptRoot/config/git/Invoke-CheckoutBranch.ps1
 . $PSScriptRoot/config/git/Invoke-MergeBranches.ps1
+. $PSScriptRoot/config/git/Set-UpstreamBranches.ps1
 
 if (-not $noFetch) {
     Update-Git
@@ -23,13 +24,16 @@ $type = Coalesce $type $defaultFeatureType
 $ticketNames = $ticketNames | Where-Object { $_ -ne '' }
 
 $branchName = Format-BranchName $type $ticketNames $comment
-$parentBranches = [String[]](Select-ParentBranches $branchName -includeRemote)
+$parentBranches = [String[]](Invoke-FindParentBranchesFromBranchName $branchName -includeRemote)
 
 if ($parentBranches.Length -eq 0) {
     throw "No parents could be determined for new branch '$branchName'."
 }
 
 Assert-CleanWorkingDirectory
+
+Set-UpstreamBranches $branchName $parentBranches -m "Adding branch: $branchName"
+
 Invoke-CreateBranch $branchName $parentBranches[0]
 Invoke-CheckoutBranch $branchName
 Assert-CleanWorkingDirectory # checkouts can change ignored files; reassert clean
