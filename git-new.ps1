@@ -25,6 +25,7 @@ $ticketNames = $ticketNames | Where-Object { $_ -ne '' }
 
 $branchName = Format-BranchName $type $ticketNames $comment
 $parentBranches = [String[]](Invoke-FindParentBranchesFromBranchName $branchName -includeRemote)
+$parentBranchesNoRemote = [String[]](Invoke-FindParentBranchesFromBranchName $branchName)
 
 if ($parentBranches.Length -eq 0) {
     throw "No parents could be determined for new branch '$branchName'."
@@ -32,7 +33,7 @@ if ($parentBranches.Length -eq 0) {
 
 Assert-CleanWorkingDirectory
 
-Set-UpstreamBranches $branchName $parentBranches -m "Adding branch: $branchName"
+Set-UpstreamBranches $branchName $parentBranchesNoRemote -m "Add branch $branchName$($comment -eq $nil ? '' : " for $comment")"
 
 Invoke-CreateBranch $branchName $parentBranches[0]
 Invoke-CheckoutBranch $branchName

@@ -2,6 +2,7 @@
 
 function Update-Git() {
     $config = Get-Configuration
+    if ($config.remote -eq $nil) { return }
     Write-Host "Performing 'git fetch $($config.remote)'..."
     git fetch $config.remote -q
     

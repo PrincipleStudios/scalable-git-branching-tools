@@ -21,3 +21,4 @@ $parentBranches = [String[]](Select-ParentBranches $branchName -includeRemote)
 
 Assert-CleanWorkingDirectory
 Invoke-MergeBranches ($parentBranches | select -skip 1) -noAbort
+# TODO: If conflicts are detected, recommend an integration branch

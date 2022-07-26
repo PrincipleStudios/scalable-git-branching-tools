@@ -75,5 +75,8 @@ Describe 'Invoke-FindParentBranchesFromBranchName' {
         It 'finds main' {
             Invoke-FindParentBranchesFromBranchName 'feature/FOO-123' | Should -Be @('main')
         }
+        It 'finds main even with includeRemote' {
+            Invoke-FindParentBranchesFromBranchName 'feature/FOO-123' -includeRemote | Should -Be @('main')
+        }
     }
 }

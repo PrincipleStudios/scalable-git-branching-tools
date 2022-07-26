@@ -1,6 +1,6 @@
 
 function Invoke-MergeBranches([String[]] $branches, [switch]$quiet, [switch]$noAbort) {
-    $branches | ForEach-Object {
+    $branches | Where-Object { $_ -ne $nil } | ForEach-Object {
         git merge $_ --quiet --commit --no-edit --no-squash
         if ($LASTEXITCODE -ne 0) {
             if (-not $noAbort) {

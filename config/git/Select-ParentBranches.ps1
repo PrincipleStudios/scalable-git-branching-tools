@@ -5,7 +5,7 @@
 . $PSScriptRoot/Get-GitFile.ps1
 
 function ConvertTo-BranchName($branchInfo, [switch] $includeRemote) {
-    return $includeRemote ? "$($branchInfo.remote)/$($branchInfo.branch)" : $branchInfo.branch
+    return ($includeRemote -AND $branchInfo.remote -ne $nil) ? "$($branchInfo.remote)/$($branchInfo.branch)" : $branchInfo.branch
 }
 
 function Select-ParentBranches([String]$branchName, [PSObject[]] $allBranchInfo, [switch] $includeRemote) {
