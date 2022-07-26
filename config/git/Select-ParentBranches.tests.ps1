@@ -19,9 +19,7 @@ Describe 'Invoke-FindParentBranchesFromBranchName' {
                 "
             } -ParameterFilter { ($args -join ' ') -eq 'branch -r' }
             
-            Mock git {
-                Write-Output "origin"
-            } -ParameterFilter {($args -join ' ') -eq 'config scaled-git.remote'}
+            Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream' } }
             
             Mock git {
                 Write-Output "feature/FOO-124_FOO-125"
@@ -71,10 +69,7 @@ Describe 'Invoke-FindParentBranchesFromBranchName' {
                 "
             } -ParameterFilter { ($args -join ' ') -eq 'branch' }
             
-            Mock git {
-            } -ParameterFilter {($args -join ' ') -eq 'remote'}
-            Mock git {
-            } -ParameterFilter {($args -join ' ') -eq 'config scaled-git.remote'}
+            Mock -CommandName Get-Configuration { return @{ remote = $nil; upstreamBranch = '_upstream' } }
         }
 
         It 'finds main' {

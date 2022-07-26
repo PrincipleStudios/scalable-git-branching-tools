@@ -6,20 +6,24 @@ function Select-Branches() {
     $remote = $config.remote
     $temp = $remote -eq $nil ? (git branch) : (git branch -r)
     return $temp | Foreach-Object { $_.split("`n") } | Foreach-Object {
-        $split = $_.Trim().Split('/')
-        if ($remote -ne $nil -AND $remote -ne $split[0]) {
-            return $nil
-        }
-        $branchName = $split[1..($split.Length-1)] -join '/'
-        if ($branchName -eq "") {
-            return $nil
+        if ($remote -eq $nil) {
+            $branchName = $_.Trim()
+        } else {
+            $split = $_.Trim().Split('/')
+            if ($remote -ne $split[0]) {
+                return $nil
+            }
+            $branchName = $split[1..($split.Length-1)] -join '/'
+            if ($branchName -eq "") {
+                return $nil
+            }
         }
 
         $info = ConvertTo-BranchInfo $branchName
         if ($info -eq $nil) {
-            return @{ remote = $split[0]; branch = $branchName }
+            return @{ remote = $remote; branch = $branchName }
         }
-        $info.remote = $split[0]
+        $info.remote = $remote
         $info.branch = $branchName
         return $info
     } | Where-Object { $_ -ne $nil }
