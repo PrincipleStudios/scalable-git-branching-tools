@@ -50,7 +50,7 @@ Describe 'git-new' {
         Mock -CommandName Invoke-FindParentBranchesFromBranchName -ParameterFilter { 
             $branchName -eq 'feature/PS-100-some-work'
         } {
-            return @('main')
+            return @(@{ branch = 'main'; remote = $nil })
         } 
         Mock -CommandName Set-UpstreamBranches -ParameterFilter { 
             $branchName -eq 'feature/PS-100-some-work' `
@@ -79,14 +79,9 @@ Describe 'git-new' {
         Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream' } }
         Mock -CommandName Update-Git { }
         Mock -CommandName Invoke-FindParentBranchesFromBranchName -ParameterFilter { 
-            $branchName -eq 'feature/PS-100-some-work' -AND $includeRemote
+            $branchName -eq 'feature/PS-100-some-work'
         } {
-            return @('origin/main')
-        } 
-        Mock -CommandName Invoke-FindParentBranchesFromBranchName -ParameterFilter { 
-            $branchName -eq 'feature/PS-100-some-work' -AND -not $includeRemote
-        } {
-            return @('main')
+            return @(@{ branch = 'main'; remote = 'origin' })
         } 
         Mock -CommandName Set-UpstreamBranches -ParameterFilter { 
             $branchName -eq 'feature/PS-100-some-work' `

@@ -21,11 +21,12 @@ if (-not $noFetch) {
 }
 
 $type = Coalesce $type $defaultFeatureType
-$ticketNames = $ticketNames | Where-Object { $_ -ne '' }
+$ticketNames = $ticketNames | Where-Object { $_ -ne '' -AND $_ -ne $nil }
 
 $branchName = Format-BranchName $type $ticketNames $comment
-$parentBranches = [String[]](Invoke-FindParentBranchesFromBranchName $branchName -includeRemote)
-$parentBranchesNoRemote = [String[]](Invoke-FindParentBranchesFromBranchName $branchName)
+$parentBranchInfos = [PSObject[]](Invoke-FindParentBranchesFromBranchName $branchName)
+$parentBranches = [string[]]($parentBranchInfos | Foreach-Object { ConvertTo-BranchName $_ -includeRemote })
+$parentBranchesNoRemote = [string[]]($parentBranchInfos | Foreach-Object { ConvertTo-BranchName $_ })
 
 if ($parentBranches.Length -eq 0) {
     throw "No parents could be determined for new branch '$branchName'."

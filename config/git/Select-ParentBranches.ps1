@@ -8,7 +8,7 @@ function ConvertTo-BranchName($branchInfo, [switch] $includeRemote) {
     return ($includeRemote -AND $branchInfo.remote -ne $nil) ? "$($branchInfo.remote)/$($branchInfo.branch)" : $branchInfo.branch
 }
 
-function Select-ParentBranches([String]$branchName, [PSObject[]] $allBranchInfo, [switch] $includeRemote) {
+function Select-ParentBranches([String]$branchName, [PSObject[]] $allBranchInfo) {
     if ($allBranchInfo -eq $nil) {
         $allBranchInfo = Select-Branches
     }
@@ -22,7 +22,7 @@ function Select-ParentBranches([String]$branchName, [PSObject[]] $allBranchInfo,
     }
 }
 
-function Invoke-FindParentBranchesFromBranchName([String]$branchName, [PSObject[]] $allBranchInfo, [switch] $includeRemote) {
+function Invoke-FindParentBranchesFromBranchName([String]$branchName, [PSObject[]] $allBranchInfo) {
     if ($allBranchInfo -eq $nil) {
         $allBranchInfo = Select-Branches
     }
@@ -38,37 +38,37 @@ function Invoke-FindParentBranchesFromBranchName([String]$branchName, [PSObject[
     }
     $parentTickets = [string[]]($parentTickets | ForEach-Object {$_}) # flatten the array
     if ($parentTickets.Length -eq 0) {
-        $serviceLines = @($allBranchInfo | Where-Object { $_.type -eq 'service-line' } | ForEach-Object { ConvertTo-BranchName $_ -includeRemote:$includeRemote })
+        $serviceLines = [PSObject[]]($allBranchInfo | Where-Object { $_.type -eq 'service-line' })
         if ($serviceLines.Length -gt 1) {
-            $allLines = $serviceLines -join ' '
-            throw "Found more than one service line ($serviceLines) - please specify the base."
+            $allLines = ($serviceLines | ForEach-Object { ConvertTo-BranchName $_ -includeRemote }) -join ' '
+            throw "Found more than one service line ($allLines) - please specify the base."
         }
         return $serviceLines
     } else {
-        return Invoke-SimplifyParentBranches (Invoke-ParentTicketsToBranches $parentTickets $allBranchInfo -includeRemote:$includeRemote) $allBranchInfo -includeRemote:$includeRemote
+        return Invoke-SimplifyParentBranches (Invoke-ParentTicketsToBranches $parentTickets $allBranchInfo) $allBranchInfo
     }
 }
 
-function Invoke-ParentTicketsToBranches([string[]]$parentTickets, [PSObject[]] $allBranchInfo, [switch] $includeRemote) {
+function Invoke-ParentTicketsToBranches([string[]]$parentTickets, [PSObject[]] $allBranchInfo) {
     return $allBranchInfo | Where-Object {
         $tickets = Get-Tickets $_
         if ($tickets.Length -eq 0) { return $false }
         $intersection = $tickets | Where-Object { $parentTickets -contains $_ }
         return $intersection.Length -eq $tickets.Length -AND $_.branch -ne $branchName
-    } | ForEach-Object { ConvertTo-BranchName $_ -includeRemote:$includeRemote }
+    }
 }
 
-function Invoke-SimplifyParentBranches([string[]] $originalParents, [PSObject[]] $allBranchInfo, [switch] $includeRemote) {
+function Invoke-SimplifyParentBranches([PSObject[]] $originalParents, [PSObject[]] $allBranchInfo) {
     if ($allBranchInfo -eq $nil) {
         $allBranchInfo = Select-Branches
     }
 
-    $possibleResult = $allBranchInfo | Where { $originalParents -contains (ConvertTo-BranchName $_ -includeRemote:$includeRemote) }
+    $possibleResult = $allBranchInfo | Where { $originalParents -contains $_ }
     do {
         $len = $possibleResult.Length
-        $parents = $possibleResult | ForEach-Object { return Select-ParentBranches $_.branch -includeRemote:$includeRemote } | ForEach-Object {$_} | select -uniq
-        $possibleResult = $possibleResult | Where-Object { $parents -notcontains (ConvertTo-BranchName $_ -includeRemote:$includeRemote) }
+        $parents = $possibleResult | ForEach-Object { return Select-ParentBranches $_.branch } | ForEach-Object {$_} | select -uniq
+        $possibleResult = $possibleResult | Where-Object { $parents -notcontains $_.branch }
     } until ($len -eq $possibleResult.Length)
 
-    return $possibleResult | ForEach-Object { ConvertTo-BranchName $_ -includeRemote:$includeRemote }
+    return $possibleResult
 }
