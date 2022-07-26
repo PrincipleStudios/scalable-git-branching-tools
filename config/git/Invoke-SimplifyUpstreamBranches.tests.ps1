@@ -49,7 +49,7 @@ Describe 'Invoke-SimplifyUpstreamBranches' {
         ) $branches | ForEach-Object { $_.branch } | Should -Be @('integrate/FOO-125_XYZ-1')
     }
     It 'fetches the branch info if not provided' {
-        Mock -CommandName Select-Branches { $branches }
+        Mock -CommandName Select-Branches { return $branches }
         Invoke-SimplifyUpstreamBranches @(
             @{ remote = $nil; branch='feature/FOO-123'; type = 'feature'; ticket='FOO-123' }
         ) | ForEach-Object { $_.branch } | Should -Be @('feature/FOO-123')
