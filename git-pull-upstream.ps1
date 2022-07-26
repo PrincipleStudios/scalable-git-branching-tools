@@ -6,7 +6,7 @@ Param(
 
 . $PSScriptRoot/config/git/Update-Git.ps1
 . $PSScriptRoot/config/git/Get-CurrentBranch.ps1
-. $PSScriptRoot/config/git/Select-ParentBranches.ps1
+. $PSScriptRoot/config/git/Select-UpstreamBranches.ps1
 . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
 . $PSScriptRoot/config/git/Invoke-MergeBranches.ps1
 
@@ -17,7 +17,7 @@ $branchName = Get-CurrentBranch
 if ($branchName -eq $nil) {
     throw 'Must have a branch checked out'
 }
-$parentBranches = [String[]](Select-ParentBranches $branchName -includeRemote)
+$parentBranches = [String[]](Select-UpstreamBranches $branchName -includeRemote)
 
 Assert-CleanWorkingDirectory
 Invoke-MergeBranches ($parentBranches | select -skip 1) -noAbort

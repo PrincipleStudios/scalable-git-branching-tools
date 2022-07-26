@@ -41,13 +41,13 @@ Describe 'git-new' {
 
     It 'creates a local branch when no remotes are configured' {
         . $PSScriptRoot/config/git/Get-Configuration.ps1
-        . $PSScriptRoot/config/git/Select-ParentBranches.ps1
+        . $PSScriptRoot/config/git/Get-UpstreamBranchInfoFromBranchName.ps1
         . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
         . $PSScriptRoot/config/git/Invoke-CreateBranch.ps1
         . $PSScriptRoot/config/git/Invoke-CheckoutBranch.ps1
 
         Mock -CommandName Get-Configuration { return @{ remote = $nil; upstreamBranch = '_upstream' } }
-        Mock -CommandName Invoke-FindParentBranchesFromBranchName -ParameterFilter { 
+        Mock -CommandName Get-UpstreamBranchInfoFromBranchName -ParameterFilter { 
             $branchName -eq 'feature/PS-100-some-work'
         } {
             return @(@{ branch = 'main'; remote = $nil })
@@ -71,14 +71,14 @@ Describe 'git-new' {
     It 'creates a remote branch when a remote is configured' {
         . $PSScriptRoot/config/git/Get-Configuration.ps1
         . $PSScriptRoot/config/git/Update-Git.ps1
-        . $PSScriptRoot/config/git/Select-ParentBranches.ps1
+        . $PSScriptRoot/config/git/Get-UpstreamBranchInfoFromBranchName.ps1
         . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
         . $PSScriptRoot/config/git/Invoke-CreateBranch.ps1
         . $PSScriptRoot/config/git/Invoke-CheckoutBranch.ps1
 
         Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream' } }
         Mock -CommandName Update-Git { }
-        Mock -CommandName Invoke-FindParentBranchesFromBranchName -ParameterFilter { 
+        Mock -CommandName Get-UpstreamBranchInfoFromBranchName -ParameterFilter { 
             $branchName -eq 'feature/PS-100-some-work'
         } {
             return @(@{ branch = 'main'; remote = 'origin' })

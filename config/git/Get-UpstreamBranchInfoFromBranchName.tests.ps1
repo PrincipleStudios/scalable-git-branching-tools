@@ -1,9 +1,9 @@
 BeforeAll {
-    . $PSScriptRoot/Select-ParentBranches.ps1
+    . $PSScriptRoot/Get-UpstreamBranchInfoFromBranchName.ps1
     . $PSScriptRoot/../TestUtils.ps1
 }
 
-Describe 'Invoke-FindParentBranchesFromBranchName' {
+Describe 'Get-UpstreamBranchInfoFromBranchName' {
     Context 'When Configured with an origin' {
         BeforeEach{
             Mock git {
@@ -28,35 +28,35 @@ Describe 'Invoke-FindParentBranchesFromBranchName' {
         }
 
         It 'reports main for no parents' {
-            Invoke-FindParentBranchesFromBranchName 'feature/FOO-123' | ForEach-Object { $_.branch } | Should -Be @('main')
+            Get-UpstreamBranchInfoFromBranchName 'feature/FOO-123' | ForEach-Object { $_.branch } | Should -Be @('main')
         }
         It 'reports parent for single-depth entries' {
-            Invoke-FindParentBranchesFromBranchName 'feature/FOO-124_FOO-125' | ForEach-Object { $_.branch } | Should -Be @('feature/FOO-124-comment')
+            Get-UpstreamBranchInfoFromBranchName 'feature/FOO-124_FOO-125' | ForEach-Object { $_.branch } | Should -Be @('feature/FOO-124-comment')
         }
         It 'reports parent for multi-depth entries' {
-            Invoke-FindParentBranchesFromBranchName 'feature/FOO-124_FOO-125_FOO-126' | ForEach-Object { $_.branch } | Should -Be @('feature/FOO-124_FOO-125')
+            Get-UpstreamBranchInfoFromBranchName 'feature/FOO-124_FOO-125_FOO-126' | ForEach-Object { $_.branch } | Should -Be @('feature/FOO-124_FOO-125')
         }
         It 'reports parents for integration branches' {
-            Invoke-FindParentBranchesFromBranchName 'integrate/FOO-125_XYZ-1' | ForEach-Object { $_.branch } | Should -Be @('feature/FOO-124_FOO-125','feature/XYZ-1-services')
+            Get-UpstreamBranchInfoFromBranchName 'integrate/FOO-125_XYZ-1' | ForEach-Object { $_.branch } | Should -Be @('feature/FOO-124_FOO-125','feature/XYZ-1-services')
         }
         It 'reports integration parents for integration branches' {
-            Invoke-FindParentBranchesFromBranchName 'integrate/FOO-76_FOO-125_XYZ-1' | ForEach-Object { $_.branch } | Should -Be @('feature/FOO-76','integrate/FOO-125_XYZ-1')
+            Get-UpstreamBranchInfoFromBranchName 'integrate/FOO-76_FOO-125_XYZ-1' | ForEach-Object { $_.branch } | Should -Be @('feature/FOO-76','integrate/FOO-125_XYZ-1')
         }
         
         It 'reports origin/main for no parents when remote is requested' {
-            Invoke-FindParentBranchesFromBranchName 'feature/FOO-123' | ForEach-Object { ConvertTo-BranchName $_ -includeRemote } | Should -Be @('origin/main')
+            Get-UpstreamBranchInfoFromBranchName 'feature/FOO-123' | ForEach-Object { ConvertTo-BranchName $_ -includeRemote } | Should -Be @('origin/main')
         }
         It 'reports parent for single-depth entries when remote is requested' {
-            Invoke-FindParentBranchesFromBranchName 'feature/FOO-124_FOO-125' | ForEach-Object { ConvertTo-BranchName $_ -includeRemote } | Should -Be @('origin/feature/FOO-124-comment')
+            Get-UpstreamBranchInfoFromBranchName 'feature/FOO-124_FOO-125' | ForEach-Object { ConvertTo-BranchName $_ -includeRemote } | Should -Be @('origin/feature/FOO-124-comment')
         }
         It 'reports parent for multi-depth entries when remote is requested' {
-            Invoke-FindParentBranchesFromBranchName 'feature/FOO-124_FOO-125_FOO-126' | ForEach-Object { ConvertTo-BranchName $_ -includeRemote } | Should -Be @('origin/feature/FOO-124_FOO-125')
+            Get-UpstreamBranchInfoFromBranchName 'feature/FOO-124_FOO-125_FOO-126' | ForEach-Object { ConvertTo-BranchName $_ -includeRemote } | Should -Be @('origin/feature/FOO-124_FOO-125')
         }
         It 'reports parents for integration branches when remote is requested' {
-            Invoke-FindParentBranchesFromBranchName 'integrate/FOO-125_XYZ-1' | ForEach-Object { ConvertTo-BranchName $_ -includeRemote } | Should -Be @('origin/feature/FOO-124_FOO-125','origin/feature/XYZ-1-services')
+            Get-UpstreamBranchInfoFromBranchName 'integrate/FOO-125_XYZ-1' | ForEach-Object { ConvertTo-BranchName $_ -includeRemote } | Should -Be @('origin/feature/FOO-124_FOO-125','origin/feature/XYZ-1-services')
         }
         It 'reports integration parents for integration branches when remote is requested' {
-            Invoke-FindParentBranchesFromBranchName 'integrate/FOO-76_FOO-125_XYZ-1' | ForEach-Object { ConvertTo-BranchName $_ -includeRemote } | Should -Be @('origin/feature/FOO-76','origin/integrate/FOO-125_XYZ-1')
+            Get-UpstreamBranchInfoFromBranchName 'integrate/FOO-76_FOO-125_XYZ-1' | ForEach-Object { ConvertTo-BranchName $_ -includeRemote } | Should -Be @('origin/feature/FOO-76','origin/integrate/FOO-125_XYZ-1')
         }
         
     }
@@ -73,10 +73,10 @@ Describe 'Invoke-FindParentBranchesFromBranchName' {
         }
 
         It 'finds main' {
-            Invoke-FindParentBranchesFromBranchName 'feature/FOO-123' | ForEach-Object { $_.branch } | Should -Be @('main')
+            Get-UpstreamBranchInfoFromBranchName 'feature/FOO-123' | ForEach-Object { $_.branch } | Should -Be @('main')
         }
         It 'finds main even with includeRemote' {
-            Invoke-FindParentBranchesFromBranchName 'feature/FOO-123' | ForEach-Object { ConvertTo-BranchName $_ -includeRemote } | Should -Be @('main')
+            Get-UpstreamBranchInfoFromBranchName 'feature/FOO-123' | ForEach-Object { ConvertTo-BranchName $_ -includeRemote } | Should -Be @('main')
         }
     }
 }
