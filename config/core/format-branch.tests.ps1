@@ -21,8 +21,7 @@ Describe 'Format-Branch' {
 
     It 'formats a release candidate branch' {
         Format-Branch 'rc' -m '2022-07-14' | Should -BeExactly 'rc/2022-07-14'
-        # TODO:
-        # Format-Branch 'rc' -m '2022-07-14.1' | Should -BeExactly 'rc/2022-07-14.1'
+        Format-Branch 'rc' -m '2022-07-14.1' | Should -BeExactly 'rc/2022-07-14.1'
     }
 
     It 'formats integration branches' {
