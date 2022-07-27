@@ -48,6 +48,6 @@ Invoke-PreserveBranch {
 
     # TODO: push
 } -cleanup {
-    # TODO: do not delete if no remote
-    git branch -D $branchName 2> $nil
+    # TODO: delete if remote
+    # git branch -D $branchName 2> $nil
 }
