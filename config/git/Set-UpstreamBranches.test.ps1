@@ -15,7 +15,7 @@ Describe 'Set-UpstreamBranches' {
         }
 
         Mock -CommandName Get-Configuration { return @{ remote = 'github'; upstreamBranch = 'my-upstream' } }
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'fetch github my-upstream' } { }
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'fetch github my-upstream' } { $global:LASTEXITCODE = 0 }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify github/my-upstream -q' } { 'upstream-HEAD' }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify github/my-upstream^{tree} -q' } { 'upstream-TREE' }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'ls-tree upstream-TREE' } { 
@@ -31,9 +31,7 @@ Describe 'Set-UpstreamBranches' {
         Mock git -ParameterFilter { ($args -join ' ') -eq 'commit-tree new-TREE -m Add barbaz to foobar -p upstream-HEAD' } { 
             'new-COMMIT'
         }
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'push github new-COMMIT:refs/heads/my-upstream' } {
-            $global:LASTEXITCODE = 0
-        }
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'push github new-COMMIT:refs/heads/my-upstream' } { $global:LASTEXITCODE = 0 }
 
         Set-UpstreamBranches -branchName 'foobar' -upstreamBranches @('baz', 'barbaz') -m 'Add barbaz to foobar'
     }

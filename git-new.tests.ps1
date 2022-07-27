@@ -33,8 +33,8 @@ Describe 'git-new' {
             $branchName -eq 'feature/PS-100-some-work' `
                 -AND ($upstreamBranches -join ' ') -eq 'main'
         } {}
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch feature/PS-100-some-work main --quiet' } {}
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout feature/PS-100-some-work --quiet' } {}
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch feature/PS-100-some-work main --quiet' } { $Global:LASTEXITCODE = 0 }
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout feature/PS-100-some-work --quiet' } { $Global:LASTEXITCODE = 0 }
 
         & $PSScriptRoot/git-new.ps1 PS-100 -m 'some work'
     }

@@ -51,7 +51,7 @@ Describe 'git-rc' {
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch rc/2022-07-28 origin/feature/FOO-123 --quiet' } {
             $global:LASTEXITCODE = 0;
         }
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout rc/2022-07-28 --quiet' } {}
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout rc/2022-07-28 --quiet' } { $Global:LASTEXITCODE = 0 }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'merge origin/feature/FOO-124-comment --quiet --commit --no-edit --no-squash' } {}
         Mock git -ParameterFilter { ($args -join ' ') -eq 'merge origin/integrate/FOO-125_XYZ-1 --quiet --commit --no-edit --no-squash' } {}
         . $PSScriptRoot/config/git/Set-UpstreamBranches.ps1

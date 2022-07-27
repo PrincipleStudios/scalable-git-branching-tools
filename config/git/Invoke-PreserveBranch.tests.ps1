@@ -20,7 +20,7 @@ Describe 'Invoke-PreserveBranch' {
         function My-Func() { }
         Mock -CommandName My-Func -Verifiable { }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'reset --hard' } -Verifiable { }
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout my-custom-branch' } -Verifiable { }
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout my-custom-branch' } -Verifiable { $Global:LASTEXITCODE = 0 }
 
         Invoke-PreserveBranch { My-Func }
 
@@ -34,7 +34,7 @@ Describe 'Invoke-PreserveBranch' {
         function My-Func2() { }
         Mock -CommandName My-Func2 -Verifiable { }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'reset --hard' } -Verifiable { }
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout my-custom-branch' } -Verifiable { }
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout my-custom-branch' } -Verifiable { $Global:LASTEXITCODE = 0 }
 
         Invoke-PreserveBranch { My-Func } -cleanup { My-Func2 }
 
@@ -55,7 +55,7 @@ Describe 'Invoke-PreserveBranch' {
         function My-Func() { }
         Mock -CommandName My-Func -Verifiable { throw 'error' }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'reset --hard' } -Verifiable { }
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout my-custom-branch' } -Verifiable { }
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout my-custom-branch' } -Verifiable { $Global:LASTEXITCODE = 0 }
 
         { Invoke-PreserveBranch { My-Func } -onlyIfError } | Should -Throw
 
@@ -72,7 +72,7 @@ Describe 'Invoke-PreserveBranch' {
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch --show-current' } { }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse HEAD' } { 'baadf00d' }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'reset --hard' } -Verifiable { }
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout baadf00d' } -Verifiable { }
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout baadf00d' } -Verifiable { $Global:LASTEXITCODE = 0 }
 
         { Invoke-PreserveBranch { My-Func } -onlyIfError } | Should -Throw
 
