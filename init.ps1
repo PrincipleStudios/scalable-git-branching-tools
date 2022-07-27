@@ -17,6 +17,9 @@ git config alias.pull-upstream "!$dir/git-pull-upstream.ps1"
 # List branches directly upstream from a branch
 git config alias.show-upstream "!$dir/git-show-upstream.ps1"
 
+# Adds an upstream branch
+git config alias.add-upstream "!$dir/git-add-upstream.ps1"
+
 # Build a release candidate from other branches
 git config alias.rc "!$dir/git-rc.ps1"
 

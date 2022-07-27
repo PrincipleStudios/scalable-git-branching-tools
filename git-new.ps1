@@ -7,6 +7,8 @@ Param(
     [Switch] $noFetch
 )
 
+# TODO: allow explicit branch name specification for an "other" branch type
+
 . $PSScriptRoot/config/git/Update-Git.ps1
 . $PSScriptRoot/config/branch-utils/Format-BranchName.ps1
 . $PSScriptRoot/config/git/Get-UpstreamBranchInfoFromBranchName.ps1
