@@ -4,7 +4,8 @@ Param(
     [Parameter()][String[]] $tickets,
     [Parameter()][String[]] $branches,
     [Parameter()][Alias('message')][Alias('m')][string] $commitMessage,
-    [Parameter(Mandatory)][string] $label
+    [Parameter(Mandatory)][string] $label,
+    [switch] $force
 )
 
 . $PSScriptRoot/config/branch-utils/Invoke-TicketsToBranches.ps1
@@ -24,6 +25,8 @@ if (-not $noFetch) {
 }
 
 $tickets = $tickets | Where-Object { $_ -ne '' -AND $_ -ne $nil }
+
+$config = Get-Configuration
 
 Assert-CleanWorkingDirectory
 $allBranches = Select-Branches
@@ -46,8 +49,15 @@ Invoke-PreserveBranch {
 
     Set-UpstreamBranches $branchName $upstreamBranchesNoRemote -m "Add branch $branchName$($comment -eq $nil ? '' : " for $comment")"
 
-    # TODO: push
+    if ($config.remote -ne $nil) {
+        $params = $force ? @('--force') : @()
+        git push $config.remote "$($branchName):refs/heads/$($branchName)" @params
+        if ($global:LASTEXITCODE -ne 0) {
+            throw "Unable to push $branchName to $($config.remote)"
+        }
+    }
 } -cleanup {
-    # TODO: delete if remote
-    # git branch -D $branchName 2> $nil
+    if ($config.remote -ne $nil) {
+        git branch -D $branchName 2> $nil
+    }
 }
