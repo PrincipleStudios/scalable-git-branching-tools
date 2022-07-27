@@ -5,7 +5,8 @@ Param(
     [Parameter()][String[]] $branches,
     [Parameter()][Alias('message')][Alias('m')][string] $commitMessage,
     [Parameter(Mandatory)][string] $label,
-    [switch] $force
+    [switch] $force,
+    [Switch] $noFetch
 )
 
 . $PSScriptRoot/config/branch-utils/Invoke-TicketsToBranches.ps1

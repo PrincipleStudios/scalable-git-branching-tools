@@ -125,4 +125,35 @@ Describe 'git-rc' {
 
         { & $PSScriptRoot/git-rc.ps1 -tickets FOO-123,FOO-124 -branches integrate/FOO-125_XYZ-1 -m 'New RC' -label '2022-07-28' } | Should -Throw
     }
+    
+    It 'can skip the initial fetch' {
+        . $PSScriptRoot/config/git/Get-Configuration.ps1
+        Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream' } }
+        
+        . $PSScriptRoot/config/git/Update-Git.ps1
+        Mock -CommandName Update-Git { throw 'should not call Update-Git' }
+        
+        . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
+        Mock -CommandName Assert-CleanWorkingDirectory { }
+        
+        . $PSScriptRoot/config/git/Select-Branches.ps1
+        Mock -CommandName Select-Branches { return $defaultBranches }
+
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch rc/2022-07-28 origin/feature/FOO-123 --quiet' } {
+            $global:LASTEXITCODE = 0;
+        }
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout rc/2022-07-28 --quiet' } { $Global:LASTEXITCODE = 0 }
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'merge origin/feature/FOO-124-comment --quiet --commit --no-edit --no-squash' } {}
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'merge origin/integrate/FOO-125_XYZ-1 --quiet --commit --no-edit --no-squash' } {}
+        . $PSScriptRoot/config/git/Set-UpstreamBranches.ps1
+        Mock -CommandName Set-UpstreamBranches -ParameterFilter { 
+            $branchName -eq 'rc/2022-07-28' `
+                -AND ($upstreamBranches -join ' ') -eq 'feature/FOO-123 feature/FOO-124-comment integrate/FOO-125_XYZ-1'
+        } {}
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin rc/2022-07-28:refs/heads/rc/2022-07-28' } { $Global:LASTEXITCODE = 0 }
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -D rc/2022-07-28' } { $Global:LASTEXITCODE = 0 }
+
+        & $PSScriptRoot/git-rc.ps1 -tickets FOO-123,FOO-124 -branches integrate/FOO-125_XYZ-1 -m 'New RC' -label '2022-07-28' -noFetch
+    }
+    
 }
