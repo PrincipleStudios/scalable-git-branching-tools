@@ -31,9 +31,7 @@ $config = Get-Configuration
 
 Assert-CleanWorkingDirectory
 $allBranches = Select-Branches
-$ticketBranches = Invoke-TicketsToBranches $tickets $allBranches
-$namedBranches = $allBranches | Where-Object { $branches -contains $_.branch }
-$selectedBranches = [PSObject[]](@( $ticketBranches, $namedBranches ) | ForEach-Object { $_ })
+$selectedBranches = [PSObject[]](Invoke-TicketsToBranches -tickets $tickets -branches $branches -allBranchInfo $allBranches)
 
 $upstreamBranches = [string[]]($selectedBranches | Foreach-Object { ConvertTo-BranchName $_ -includeRemote })
 $upstreamBranchesNoRemote = [string[]]($selectedBranches | Foreach-Object { ConvertTo-BranchName $_ })

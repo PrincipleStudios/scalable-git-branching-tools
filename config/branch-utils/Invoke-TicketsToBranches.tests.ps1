@@ -18,13 +18,21 @@ Describe 'Invoke-TicketsToBranches' {
         )
     }
 
-    It 'returns the main ticket on a feature branch' {
-        Invoke-TicketsToBranches @('FOO-123') $branches | ForEach-Object { $_.branch } | Should -Be @('feature/FOO-123')
+    It 'returns the feature branch representing the only ticket' {
+        (Invoke-TicketsToBranches -tickets @('FOO-123') -allBranchInfo $branches) | ForEach-Object { $_.branch } | Should -Be @('feature/FOO-123')
     }
     It 'returns multiple branches' {
-        Invoke-TicketsToBranches @('FOO-125','FOO-123') $branches | ForEach-Object { $_.branch } | Should -Be @('feature/FOO-123','feature/FOO-124_FOO-125')
+        Invoke-TicketsToBranches -tickets @('FOO-125','FOO-123') -allBranchInfo $branches | ForEach-Object { $_.branch } | Should -Be @('feature/FOO-123','feature/FOO-124_FOO-125')
     }
     It 'all branches plus the integration branch' {
-        Invoke-TicketsToBranches @('FOO-125','XYZ-1') $branches | ForEach-Object { $_.branch } | Should -Be @('feature/FOO-124_FOO-125','feature/XYZ-1-services','integrate/FOO-125_XYZ-1')
+        Invoke-TicketsToBranches -tickets @('FOO-125','XYZ-1') -allBranchInfo $branches | ForEach-Object { $_.branch } | Should -Be @('feature/FOO-124_FOO-125','feature/XYZ-1-services','integrate/FOO-125_XYZ-1')
+    }
+
+    
+    It 'works for named branches only' {
+        Invoke-TicketsToBranches -branches @('feature/FOO-123') -allBranchInfo $branches | ForEach-Object { $_.branch } | Should -Be @('feature/FOO-123')
+    }
+    It 'deduplicates repeats between tickets and branch names' {
+        Invoke-TicketsToBranches -tickets @('FOO-123') -branches @('feature/FOO-123') -allBranchInfo $branches | ForEach-Object { $_.branch } | Should -Be @('feature/FOO-123')
     }
 }
