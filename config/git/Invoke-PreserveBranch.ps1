@@ -1,6 +1,6 @@
 . $PSScriptRoot/Assert-CleanWorkingDirectory.ps1
 
-function Invoke-PreserveBranch([ScriptBlock]$scriptBlock, [ScriptBlock]$cleanup, [switch]$onlyIfError) {
+function Invoke-PreserveBranch([ScriptBlock]$scriptBlock, [ScriptBlock]$cleanup, [switch]$noDefaultCleanup, [switch]$onlyIfError) {
     Assert-CleanWorkingDirectory
     $prevHead = (git branch --show-current)
     if ($prevHead -eq $nil) {
@@ -8,10 +8,12 @@ function Invoke-PreserveBranch([ScriptBlock]$scriptBlock, [ScriptBlock]$cleanup,
     }
 
     $fullCleanup = {
-        git reset --hard
-        git checkout $prevHead
+        if (-not $noDefaultCleanup) {
+            git reset --hard
+            git checkout $prevHead
+        }
         if ($cleanup -ne $nil) {
-            & $cleanup
+            & $cleanup $prevHead
         }
     }
 

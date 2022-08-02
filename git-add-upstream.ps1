@@ -2,7 +2,6 @@
 
 Param(
     [Parameter()][String] $branch,
-    [Parameter()][String[]] $tickets,
     [Parameter()][String[]] $branches,
     [Parameter()][Alias('message')][Alias('m')][string] $commitMessage
 )
@@ -13,9 +12,30 @@ Param(
 $config = Get-Configuration
 
 Assert-CleanWorkingDirectory
+Update-Git
+
+$upstreamBranch = Get-UpstreamBranch $config -fetch
 
 $parentBranches = [String[]](Select-UpstreamBranches $branchName -includeRemote)
 
-$branches = [String[]](@($branches, $parentBranches) | ForEach-Object { $_ } | Select-Object -uniq)
+$finalBranches = [String[]](@($branches, $parentBranches) | ForEach-Object { $_ } | Select-Object -uniq)
 
-# TODO
+$addedBranches = [String[]]($finalBranches | Where-Object { $parentBranches -notcontains $_ })
+
+if ($addedBranches.length -eq 0) {
+    throw 'All branches already upstream of target branch'
+}
+
+Invoke-PreserveBranch {
+    $fullBranchName = $config.remote -eq $nil ? $branch : "$($config.remote)/$($branch)"
+    $sha = git rev-parse --verify $fullBranchName -q 2> $nil
+    git checkout $sha --quiet
+    Assert-CleanWorkingDirectory
+
+    Invoke-MergeBranches $addedBranches
+
+    # TODO - push or set local branch
+    if ($config.remote) {
+         
+    }
+}
