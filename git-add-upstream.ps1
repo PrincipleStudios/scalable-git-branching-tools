@@ -7,6 +7,7 @@ Param(
     [switch] $dryRun
 )
 
+. $PSScriptRoot/config/core/Coalesce.ps1
 . $PSScriptRoot/config/git/Get-Configuration.ps1
 . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
 . $PSScriptRoot/config/git/Update-Git.ps1
@@ -32,6 +33,8 @@ $addedBranches = [String[]]($finalBranches | Where-Object { $parentBranches -not
 if ($addedBranches.length -eq 0) {
     throw 'All branches already upstream of target branch'
 }
+
+$commitMessage = Coalesce $commitMessage "Adding $($branches -join ',') to $branchName"
 
 Invoke-PreserveBranch {
     $fullBranchName = $config.remote -eq $nil ? $branchName : "$($config.remote)/$($branchName)"
