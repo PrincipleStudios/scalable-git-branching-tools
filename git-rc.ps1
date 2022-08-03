@@ -21,16 +21,16 @@ Param(
 . $PSScriptRoot/config/git/Invoke-MergeBranches.ps1
 . $PSScriptRoot/config/git/Set-UpstreamBranches.ps1
 
+$config = Get-Configuration
+
 if (-not $noFetch) {
-    Update-Git
+    Update-Git -config $config
 }
 
 $tickets = $tickets | Where-Object { $_ -ne '' -AND $_ -ne $nil }
 
-$config = Get-Configuration
-
 Assert-CleanWorkingDirectory
-$allBranches = Select-Branches
+$allBranches = Select-Branches -config $config
 $selectedBranches = [PSObject[]](Invoke-TicketsToBranches -tickets $tickets -branches $branches -allBranchInfo $allBranches)
 
 $upstreamBranches = [string[]]($selectedBranches | Foreach-Object { ConvertTo-BranchName $_ -includeRemote })
@@ -46,7 +46,7 @@ Invoke-PreserveBranch {
     # Assert-CleanWorkingDirectory # checkouts can change ignored files; reassert clean
     Invoke-MergeBranches ($upstreamBranches | select -skip 1)
 
-    Set-UpstreamBranches $branchName $upstreamBranchesNoRemote -m "Add branch $branchName$($comment -eq $nil ? '' : " for $comment")"
+    Set-UpstreamBranches $branchName $upstreamBranchesNoRemote -m "Add branch $branchName$($comment -eq $nil ? '' : " for $comment")" -config $config
 
     if ($config.remote -ne $nil) {
         $params = $force ? @('--force') : @()

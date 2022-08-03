@@ -9,6 +9,7 @@ Param(
 
 # TODO: allow explicit branch name specification for an "other" branch type
 
+. $PSScriptRoot/config/git/Get-Configuration.ps1
 . $PSScriptRoot/config/git/Update-Git.ps1
 . $PSScriptRoot/config/branch-utils/Format-BranchName.ps1
 . $PSScriptRoot/config/git/Get-UpstreamBranchInfoFromBranchName.ps1
@@ -18,15 +19,16 @@ Param(
 . $PSScriptRoot/config/git/Invoke-MergeBranches.ps1
 . $PSScriptRoot/config/git/Set-UpstreamBranches.ps1
 
+$config = Get-Configuration
 if (-not $noFetch) {
-    Update-Git
+    Update-Git -config $config
 }
 
 $type = Coalesce $type $defaultFeatureType
 $ticketNames = $ticketNames | Where-Object { $_ -ne '' -AND $_ -ne $nil }
 
 $branchName = Format-BranchName $type $ticketNames $comment
-$parentBranchInfos = [PSObject[]](Get-UpstreamBranchInfoFromBranchName $branchName)
+$parentBranchInfos = [PSObject[]](Get-UpstreamBranchInfoFromBranchName $branchName -config $config)
 $parentBranches = [string[]]($parentBranchInfos | Foreach-Object { ConvertTo-BranchName $_ -includeRemote })
 $parentBranchesNoRemote = [string[]]($parentBranchInfos | Foreach-Object { ConvertTo-BranchName $_ })
 
@@ -36,7 +38,7 @@ if ($parentBranches.Length -eq 0) {
 
 Assert-CleanWorkingDirectory
 
-Set-UpstreamBranches $branchName $parentBranchesNoRemote -m "Add branch $branchName$($comment -eq $nil ? '' : " for $comment")"
+Set-UpstreamBranches $branchName $parentBranchesNoRemote -m "Add branch $branchName$($comment -eq $nil ? '' : " for $comment")" -config $config
 
 Invoke-CreateBranch $branchName $parentBranches[0]
 Invoke-CheckoutBranch $branchName

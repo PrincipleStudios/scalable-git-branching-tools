@@ -1,4 +1,3 @@
-. $PSScriptRoot/Get-Configuration.ps1
 . $PSScriptRoot/Get-UpstreamBranch.ps1
 . $PSScriptRoot/Set-GitFiles.ps1
 . $PSScriptRoot/Update-UpstreamBranch.ps1
@@ -6,10 +5,9 @@
 function Set-UpstreamBranches(
     [Parameter(Mandatory)]$branchName, 
     [Parameter(Mandatory)][string[]]$upstreamBranches, 
-    [Parameter(Mandatory)][Alias('m')][Alias('message')][String]$commitMessage
+    [Parameter(Mandatory)][Alias('m')][Alias('message')][String]$commitMessage,
+    [Parameter(Mandatory)][PSObject] $config
 ) {
-    $config = Get-Configuration
-
     $upstreamBranch = Get-UpstreamBranch $config -fetch
     $commitish = Set-GitFiles @{ $branchName = ($upstreamBranches -join "`n") } -m $commitMessage -branchName $upstreamBranch -dryRun
     if ($commitish -eq $nil -OR $commitish -eq '') {

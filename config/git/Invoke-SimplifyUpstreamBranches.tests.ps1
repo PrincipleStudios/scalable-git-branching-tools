@@ -2,10 +2,12 @@ BeforeAll {
     . $PSScriptRoot/Invoke-SimplifyUpstreamBranches.ps1
     . $PSScriptRoot/../TestUtils.ps1
         
+    Mock git -ParameterFilter { $args[0] -eq 'cat-file' } {}
 }
 
 Describe 'Invoke-SimplifyUpstreamBranches' {
     BeforeAll {
+        $config = @{ remote = $nil; upstreamBranch = '_upstream' }
         $branches = @(
             @{ remote = $nil; branch='feature/FOO-123'; type = 'feature'; ticket='FOO-123' }
             @{ remote = $nil; branch='feature/FOO-124-comment'; type = 'feature'; ticket='FOO-124'; comment='comment' }
@@ -33,26 +35,26 @@ Describe 'Invoke-SimplifyUpstreamBranches' {
     It 'preserves the same branch' {
         Invoke-SimplifyUpstreamBranches @(
             @{ remote = $nil; branch='feature/FOO-123'; type = 'feature'; ticket='FOO-123' }
-        ) $branches | ForEach-Object { $_.branch } | Should -Be @('feature/FOO-123')
+        ) $branches -config $config | ForEach-Object { $_.branch } | Should -Be @('feature/FOO-123')
     }
     It 'preserves all branches if they do not have shared parents' {
         Invoke-SimplifyUpstreamBranches @(
             @{ remote = $nil; branch='feature/FOO-124_FOO-125'; type = 'feature'; ticket='FOO-125'; parents=@('FOO-124') },
             @{ remote = $nil; branch='feature/FOO-123'; type = 'feature'; ticket='FOO-123' }
-        ) $branches | ForEach-Object { $_.branch } | Should -Be @('feature/FOO-123','feature/FOO-124_FOO-125')
+        ) $branches -config $config | ForEach-Object { $_.branch } | Should -Be @('feature/FOO-123','feature/FOO-124_FOO-125')
     }
     It 'filters parents if they are actually extra' {
         Invoke-SimplifyUpstreamBranches @(
             @{ remote = $nil; branch='feature/FOO-124_FOO-125'; type = 'feature'; ticket='FOO-125'; parents=@('FOO-124') },
             @{ remote = $nil; branch='feature/XYZ-1-services'; type = 'feature'; ticket='XYZ-1'; comment='services' },
             @{ remote = $nil; branch='integrate/FOO-125_XYZ-1'; type = 'integration'; tickets=@('FOO-125','XYZ-1') }
-        ) $branches | ForEach-Object { $_.branch } | Should -Be @('integrate/FOO-125_XYZ-1')
+        ) $branches -config $config | ForEach-Object { $_.branch } | Should -Be @('integrate/FOO-125_XYZ-1')
     }
     It 'fetches the branch info if not provided' {
         Mock -CommandName Select-Branches { return $branches }
         Invoke-SimplifyUpstreamBranches @(
             @{ remote = $nil; branch='feature/FOO-123'; type = 'feature'; ticket='FOO-123' }
-        ) | ForEach-Object { $_.branch } | Should -Be @('feature/FOO-123')
+        ) -config $config | ForEach-Object { $_.branch } | Should -Be @('feature/FOO-123')
     }
 
 }

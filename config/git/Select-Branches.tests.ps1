@@ -18,9 +18,9 @@ Describe 'Select-Branches' {
                 "
             } -ParameterFilter {($args -join ' ') -eq 'branch -r'}
             
-            Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream' } }
+            $config = @{ remote = 'origin'; upstreamBranch = '_upstream' }
             
-            $branches = Select-Branches
+            $branches = Select-Branches -config $config
         }
 
         It 'excludes feature FOO-100' {
@@ -66,9 +66,9 @@ Describe 'Select-Branches' {
                 "
             } -ParameterFilter {($args -join ' ') -eq 'branch'}
             
-            Mock -CommandName Get-Configuration { return @{ remote = $nil; upstreamBranch = '_upstream' } }
+            $config = @{ remote = $nil; upstreamBranch = '_upstream' }
             
-            $branches = Select-Branches
+            $branches = Select-Branches -config $config
         }
 
         It 'includes feature FOO-123' {

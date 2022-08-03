@@ -1,8 +1,6 @@
 . $PSScriptRoot/../branch-utils/ConvertTo-BranchInfo.ps1
-. $PSScriptRoot/Get-Configuration.ps1
 
-function Select-Branches() {
-    $config = (Get-Configuration)
+function Select-Branches([Parameter(Mandatory)][PSObject] $config) {
     $remote = $config.remote
     $temp = $remote -eq $nil ? (git branch) : (git branch -r)
     return $temp | Foreach-Object { $_.split("`n") } | Foreach-Object {

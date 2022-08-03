@@ -4,9 +4,9 @@
 . $PSScriptRoot/Select-Branches.ps1
 . $PSScriptRoot/Invoke-SimplifyUpstreamBranches.ps1
 
-function Get-UpstreamBranchInfoFromBranchName([String]$branchName, [PSObject[]] $allBranchInfo) {
+function Get-UpstreamBranchInfoFromBranchName([String]$branchName, [PSObject[]] $allBranchInfo, [Parameter(Mandatory)][PSObject] $config) {
     if ($allBranchInfo -eq $nil) {
-        $allBranchInfo = Select-Branches
+        $allBranchInfo = Select-Branches -config $config
     }
     
     $parentTickets = [string[]](Get-ParentTicketsFromBranchName $branchName)
@@ -18,6 +18,6 @@ function Get-UpstreamBranchInfoFromBranchName([String]$branchName, [PSObject[]] 
         }
         return $serviceLines
     } else {
-        return Invoke-SimplifyUpstreamBranches (Invoke-TicketsToBranches -tickets $parentTickets -allBranchInfo $allBranchInfo) $allBranchInfo
+        return Invoke-SimplifyUpstreamBranches (Invoke-TicketsToBranches -tickets $parentTickets -allBranchInfo $allBranchInfo) $allBranchInfo -config $config
     }
 }
