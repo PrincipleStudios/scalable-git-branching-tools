@@ -7,7 +7,7 @@ Param(
     [switch] $dryRun
 )
 
-. $PSScriptRoot/config/core/Coalesce.ps1
+. $PSScriptRoot/config/core/coalesce.ps1
 . $PSScriptRoot/config/git/Get-Configuration.ps1
 . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
 . $PSScriptRoot/config/git/Update-Git.ps1

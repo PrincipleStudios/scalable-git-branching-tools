@@ -4,8 +4,13 @@ Param(
     [Parameter(Position=1, ValueFromRemainingArguments)][String[]] $ticketNames,
     [Parameter()][Alias('m')][Alias('message')][ValidateLength(1,25)][String] $comment,
     [Parameter()][Alias('t')][ValidateLength(0,25)][String] $type,
+    [Parameter()][Alias('from')][String[]] $parentBranches,
     [Switch] $noFetch
 )
+
+. $PSScriptRoot/config/core/split-string.ps1
+$ticketNames = [String[]]($ticketNames -eq $nil ? @() : (Split-String $ticketNames))
+$parentBranches = [String[]]($parentBranches -eq $nil ? @() : (Split-String $parentBranches))
 
 # TODO: allow explicit branch name specification for an "other" branch type
 
@@ -28,9 +33,16 @@ $type = Coalesce $type $defaultFeatureType
 $ticketNames = $ticketNames | Where-Object { $_ -ne '' -AND $_ -ne $nil }
 
 $branchName = Format-BranchName $type $ticketNames $comment
-$parentBranchInfos = [PSObject[]](Get-UpstreamBranchInfoFromBranchName $branchName -config $config)
-$parentBranches = [string[]]($parentBranchInfos | Foreach-Object { ConvertTo-BranchName $_ -includeRemote })
-$parentBranchesNoRemote = [string[]]($parentBranchInfos | Foreach-Object { ConvertTo-BranchName $_ })
+if ($parentBranches -ne $nil -AND $parentBranches.length -gt 0) {
+    $parentBranchesNoRemote = $parentBranches
+    if ($config.remote -ne $nil) {
+        $parentBranches = [string[]]$parentBranches | Foreach-Object { "$($config.remote)/$_" }
+    }
+} else {
+    $parentBranchInfos = [PSObject[]](Get-UpstreamBranchInfoFromBranchName $branchName -config $config)
+    $parentBranches = [string[]]($parentBranchInfos | Foreach-Object { ConvertTo-BranchName $_ -includeRemote })
+    $parentBranchesNoRemote = [string[]]($parentBranchInfos | Foreach-Object { ConvertTo-BranchName $_ })
+}
 
 if ($parentBranches.Length -eq 0) {
     throw "No parents could be determined for new branch '$branchName'."

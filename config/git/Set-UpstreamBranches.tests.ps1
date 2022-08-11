@@ -25,8 +25,8 @@ Describe 'Set-UpstreamBranches' {
             'new-FILE'
         }
         Mock -CommandName Invoke-WriteTree -ParameterFilter {
-            $treeEntries[0] -eq "100644 blob 2adfafd75a2c423627081bb19f06dca28d09cd8e`t.dockerignore" `
-                -AND $treeEntries[1] -eq "100644 blob new-FILE`tfoobar"
+            $treeEntries -contains "100644 blob 2adfafd75a2c423627081bb19f06dca28d09cd8e`t.dockerignore" `
+                -AND $treeEntries -contains "100644 blob new-FILE`tfoobar"
         } { return 'new-TREE' }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'commit-tree new-TREE -m Add barbaz to foobar -p upstream-HEAD' } { 
             'new-COMMIT'

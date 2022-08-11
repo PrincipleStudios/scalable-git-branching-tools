@@ -1,4 +1,4 @@
-. $PSScriptRoot/../core/Coalesce.ps1
+. $PSScriptRoot/../core/coalesce.ps1
 
 function Get-Configuration() {
     $remote = git config scaled-git.remote

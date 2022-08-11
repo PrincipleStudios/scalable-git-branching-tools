@@ -1,4 +1,4 @@
-FROM ubuntu 
+FROM ubuntu AS base
 RUN  apt-get update \
   && apt-get install -y wget apt-transport-https software-properties-common \
   && wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb \
@@ -14,10 +14,15 @@ RUN  git config --global user.email "test@example.com" \
 
 ADD . /git-tools
 
-WORKDIR /repos/origin
-RUN  git init \
-  && echo "existing-item" > existing-item.txt \
-  && git add . \
-  && git commit -m "Add existing-item.txt"
+WORKDIR /repos/
 
-CMD ["pwsh", "-command" ,"$psversiontable"]
+FROM base AS demo-local
+RUN /git-tools/demos/demo-local.ps1
+
+FROM base as final
+
+WORKDIR /results/
+COPY --from=demo-local /repos/report.txt demo-local-report.txt
+RUN /git-tools/demos/_report.ps1 > full-report.txt
+
+CMD ["cat", "full-report.txt"]

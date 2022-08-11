@@ -9,9 +9,15 @@ Param(
     [Switch] $noFetch
 )
 
+# git doesn't pass them as separate items in the array
+. $PSScriptRoot/config/core/split-string.ps1
+$tickets = [String[]]($tickets -eq $nil ? @() : (Split-String $tickets))
+$branches = [String[]]($branches -eq $nil ? @() : (Split-String $branches))
+
 . $PSScriptRoot/config/branch-utils/Invoke-TicketsToBranches.ps1
 . $PSScriptRoot/config/branch-utils/ConvertTo-BranchName.ps1
 . $PSScriptRoot/config/branch-utils/Format-BranchName.ps1
+. $PSScriptRoot/config/git/Get-Configuration.ps1
 . $PSScriptRoot/config/git/Update-Git.ps1
 . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
 . $PSScriptRoot/config/git/Select-Branches.ps1
