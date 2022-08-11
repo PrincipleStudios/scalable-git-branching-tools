@@ -8,5 +8,7 @@ function Update-UpstreamBranch(
         if ($LASTEXITCODE -ne 0) {
             throw "Failed to update remote branch $($config.remote)/$($config.upstreamBranch); another dev must have been updating it. Try again later."
         }
+    } else {
+        git branch "$($config.upstreamBranch)" $commitish -f
     }
 }

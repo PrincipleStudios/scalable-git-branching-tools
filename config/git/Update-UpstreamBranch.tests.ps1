@@ -13,10 +13,12 @@ Describe 'Update-UpstreamBranch' {
 
         Update-UpstreamBranch -commitish 'new-COMMIT' -config @{ remote = 'github'; upstreamBranch = 'my-upstream' }
     }
-    It 'ignores the command if no remote in config' {
+    It 'updates the local branch if no remote in config' {
         Mock git {
             throw "Unmocked git command: $args"
         }
+
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch my-upstream new-COMMIT -f' } { $global:LASTEXITCODE = 0 }
 
         Update-UpstreamBranch -commitish 'new-COMMIT' -config @{ remote = $nil; upstreamBranch = 'my-upstream' }
     }

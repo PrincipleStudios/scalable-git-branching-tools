@@ -67,7 +67,7 @@ function Update-Tree($alterations, $treeHash) {
             if ($treeEntriesByName[$_] -ne $nil) {
                 # existing file
                 $parts = $treeEntriesByName[$_].Split("`t")[0].Split(' ')
-                if ($parts[1] === 'tree') {
+                if ($parts[1] -eq 'tree') {
                     $oldTreeSha = $parts[2]
                 } else {
                     # it was not a tree, so we ignore it

@@ -50,7 +50,7 @@ if ($parentBranches.Length -eq 0) {
 
 Assert-CleanWorkingDirectory
 
-Set-UpstreamBranches $branchName $parentBranchesNoRemote -m "Add branch $branchName$($comment -eq $nil ? '' : " for $comment")" -config $config
+Set-UpstreamBranches $branchName $parentBranchesNoRemote -m "Add branch $branchName$($comment -eq $nil -OR $comment -eq '' ? '' : " for $comment")" -config $config
 
 Invoke-CreateBranch $branchName $parentBranches[0]
 Invoke-CheckoutBranch $branchName
