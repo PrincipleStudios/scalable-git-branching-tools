@@ -32,6 +32,10 @@ function Set-GitFiles(
 
     $newTree = Update-Tree (ConvertTo-Alterations $files) $oldTree
 
+    if ($newTree -eq $nil) {
+        $newTree = Invoke-WriteTree @()
+    }
+
     $parentSwitch = $parentCommit -eq $nil ? @() : @('-p', $parentCommit)
     $newCommitHash = git commit-tree $newTree -m $commitMessage @parentSwitch
 
@@ -53,10 +57,11 @@ function ConvertTo-Alterations([Parameter(Position=1, Mandatory)][PSObject]$file
 }
 
 function Update-Tree($alterations, $treeHash) {
-    $treeEntries = git ls-tree $treeHash 2> $nil
+    $treeEntries = $treeHash -eq $nil ? @() : (git ls-tree $treeHash 2> $nil)
 
     $treeEntriesByName = $treeEntries | ArrayToHash { $_.Split("`t")[1] }
 
+    if ($alterations -eq $nil) { return $treeHash }
 
     $alterations.Keys | ForEach-Object {
         if ($alterations[$_] -is [String]) {
@@ -77,9 +82,11 @@ function Update-Tree($alterations, $treeHash) {
                 $oldTreeSha = $nil
             }
             $newTreeSha = Update-Tree $alterations[$_] $oldTreeSha
-            $treeEntriesByName[$_] = "040000 tree $newTreeSha`t$_"
+            $treeEntriesByName[$_] = $newTreeSha -ne $nil ? "040000 tree $newTreeSha`t$_" : $nil
         }
     }
-    $result = Invoke-WriteTree $treeEntriesByName.Values
+    $entries = [String[]]($treeEntriesByName.Values | Where-Object { $_ -ne $nil })
+    if ($entries.Length -eq 0) { return $nil }
+    $result = Invoke-WriteTree $entries
     return $result
 }
