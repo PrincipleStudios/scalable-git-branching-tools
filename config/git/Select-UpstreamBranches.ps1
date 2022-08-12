@@ -5,7 +5,7 @@ function Select-UpstreamBranches([String]$branchName, [switch] $includeRemote, [
     $upstreamBranch = Get-UpstreamBranch $config
     $parentBranches = Get-GitFile $branchName $upstreamBranch
     if ($includeRemote) {
-        return $parentBranches | ForEach-Object { "$($config.remote)/$_" }
+        return $parentBranches | ForEach-Object { $config.remote -eq $nil ? $_ : "$($config.remote)/$_" }
     } else {
         return $parentBranches
     }
