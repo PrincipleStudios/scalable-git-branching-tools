@@ -51,3 +51,7 @@ Invoke-CreateBranch $branchName $parentBranches[0]
 Invoke-CheckoutBranch $branchName
 Assert-CleanWorkingDirectory # checkouts can change ignored files; reassert clean
 Invoke-MergeBranches ($parentBranches | select -skip 1)
+
+if ($config.remote -ne $nil) {
+    git push $config.remote "$($branchName):refs/heads/$($branchName)"
+}

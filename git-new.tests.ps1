@@ -110,11 +110,12 @@ Describe 'git-new' {
         Mock -CommandName Invoke-CheckoutBranch -ParameterFilter {
             $branchName -eq 'feature/PS-100-some-work'
         } {}
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin feature/PS-100-some-work:refs/heads/feature/PS-100-some-work' } { $Global:LASTEXITCODE = 0 }
 
         & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -m 'some work'
     }
     
-    It 'creates a remote branch when a remote is configured' {
+    It 'creates a remote branch when a remote is configured and an upstream branch is provided' {
         . $PSScriptRoot/config/git/Get-Configuration.ps1
         . $PSScriptRoot/config/git/Update-Git.ps1
         . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
@@ -135,6 +136,7 @@ Describe 'git-new' {
         Mock -CommandName Invoke-CheckoutBranch -ParameterFilter {
             $branchName -eq 'feature/PS-100-some-work'
         } {}
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin feature/PS-100-some-work:refs/heads/feature/PS-100-some-work' } { $Global:LASTEXITCODE = 0 }
 
         & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -from 'infra/foo' -m 'some work'
     }

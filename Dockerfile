@@ -19,10 +19,14 @@ WORKDIR /repos/
 FROM base AS demo-local
 RUN /git-tools/demos/demo-local.ps1
 
+FROM base AS demo-remote
+RUN /git-tools/demos/demo-remote.ps1
+
 FROM base as final
 
 WORKDIR /results/
 COPY --from=demo-local /repos/report.txt demo-local-report.txt
+COPY --from=demo-remote /repos/report.txt demo-remote-report.txt
 RUN /git-tools/demos/_report.ps1 > full-report.txt
 
 CMD ["cat", "full-report.txt"]
