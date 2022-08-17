@@ -8,5 +8,17 @@ function Get-Configuration() {
     return @{
         remote = $remote
         upstreamBranch = (Coalesce (git config scaled-git.upstreamBranch) "_upstream")
+        defaultServiceLine = Get-DefaultServiceLine -remote $remote
     }
+}
+
+function Get-DefaultServiceLine([string]$remote) {
+    $result = (git config scaled-git.defaultServiceLine)
+    if ($result -ne $nil) { return $result }
+
+    $commitish = git rev-parse ($remote -eq $nil ? 'main' : "$($remote)/main") --verify -q 2> $nil
+    if ($LASTEXITCODE -eq 0) {
+        return "main"
+    }
+    return $nil
 }

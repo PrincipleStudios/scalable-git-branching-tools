@@ -29,27 +29,27 @@ Describe 'Select-Branches' {
         }
         It 'includes feature FOO-123' {
             $branches | Where-Object { $_.branch -eq 'feature/FOO-123' } 
-                | Should-BeObject @{ branch = 'feature/FOO-123'; remote = 'origin'; type = 'feature'; ticket = 'FOO-123' }
+                | Should-BeObject @{ branch = 'feature/FOO-123'; remote = 'origin' }
         }
         It 'includes feature FOO-124' {
             $branches | Where-Object { $_.branch -eq 'feature/FOO-124-comment' } 
-                | Should-BeObject @{ branch = 'feature/FOO-124-comment'; remote = 'origin'; type = 'feature'; ticket = 'FOO-124'; comment = 'comment' }
+                | Should-BeObject @{ branch = 'feature/FOO-124-comment'; remote = 'origin' }
         }
         It 'includes feature FOO-125' {
             $branches | Where-Object { $_.branch -eq 'feature/FOO-124_FOO-125' } 
-                | Should-BeObject @{ branch = 'feature/FOO-124_FOO-125'; remote = 'origin'; type = 'feature'; ticket = 'FOO-125'; parents = @( 'FOO-124' ) }
+                | Should-BeObject @{ branch = 'feature/FOO-124_FOO-125'; remote = 'origin' }
         }
         It 'includes rc 2022-07-14' {
             $branches | Where-Object { $_.branch -eq 'rc/2022-07-14' } 
-                | Should-BeObject @{ branch = 'rc/2022-07-14'; remote = 'origin'; type = 'rc'; comment = '2022-07-14' }
+                | Should-BeObject @{ branch = 'rc/2022-07-14'; remote = 'origin' }
         }
         It 'includes main' {
             $branches | Where-Object { $_.branch -eq 'main' } 
-                | Should-BeObject @{ branch = 'main'; remote = 'origin'; type = 'service-line' }
+                | Should-BeObject @{ branch = 'main'; remote = 'origin' }
         }
         It 'includes integrate/FOO-125_XYZ-1' {
             $branches | Where-Object { $_.branch -eq 'integrate/FOO-125_XYZ-1' } 
-                | Should-BeObject @{ branch = 'integrate/FOO-125_XYZ-1'; remote = 'origin'; type = 'integration'; tickets = @('FOO-125', 'XYZ-1') }
+                | Should-BeObject @{ branch = 'integrate/FOO-125_XYZ-1'; remote = 'origin' }
         }
     }
     
@@ -73,27 +73,27 @@ Describe 'Select-Branches' {
 
         It 'includes feature FOO-123' {
             $branches | Where-Object { $_.branch -eq 'feature/FOO-123' } 
-                | Should-BeObject @{ branch = 'feature/FOO-123'; remote = $nil; type = 'feature'; ticket = 'FOO-123' }
+                | Should-BeObject @{ branch = 'feature/FOO-123'; remote = $nil }
         }
         It 'includes feature FOO-124' {
             $branches | Where-Object { $_.branch -eq 'feature/FOO-124-comment' } 
-                | Should-BeObject @{ branch = 'feature/FOO-124-comment'; remote = $nil; type = 'feature'; ticket = 'FOO-124'; comment = 'comment' }
+                | Should-BeObject @{ branch = 'feature/FOO-124-comment'; remote = $nil }
         }
         It 'includes feature FOO-125' {
             $branches | Where-Object { $_.branch -eq 'feature/FOO-124_FOO-125' } 
-                | Should-BeObject @{ branch = 'feature/FOO-124_FOO-125'; remote = $nil; type = 'feature'; ticket = 'FOO-125'; parents = @( 'FOO-124' ) }
+                | Should-BeObject @{ branch = 'feature/FOO-124_FOO-125'; remote = $nil }
         }
         It 'includes rc 2022-07-14' {
             $branches | Where-Object { $_.branch -eq 'rc/2022-07-14' } 
-                | Should-BeObject @{ branch = 'rc/2022-07-14'; remote = $nil; type = 'rc'; comment = '2022-07-14' }
+                | Should-BeObject @{ branch = 'rc/2022-07-14'; remote = $nil }
         }
         It 'includes main' {
             $branches | Where-Object { $_.branch -eq 'main' } 
-                | Should-BeObject @{ branch = 'main'; remote = $nil; type = 'service-line' }
+                | Should-BeObject @{ branch = 'main'; remote = $nil }
         }
         It 'includes integrate/FOO-125_XYZ-1' {
             $branches | Where-Object { $_.branch -eq 'integrate/FOO-125_XYZ-1' } 
-                | Should-BeObject @{ branch = 'integrate/FOO-125_XYZ-1'; remote = $nil; type = 'integration'; tickets = @('FOO-125', 'XYZ-1') }
+                | Should-BeObject @{ branch = 'integrate/FOO-125_XYZ-1'; remote = $nil }
         }
     }
 }

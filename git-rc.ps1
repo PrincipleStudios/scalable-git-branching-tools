@@ -1,22 +1,18 @@
 #!/usr/bin/env pwsh
 
 Param(
-    [Parameter()][String[]] $tickets,
+    [Parameter(Mandatory)][string] $branchName,
     [Parameter()][String[]] $branches,
     [Parameter()][Alias('message')][Alias('m')][string] $commitMessage,
-    [Parameter(Mandatory)][string] $label,
     [switch] $force,
     [Switch] $noFetch
 )
 
 # git doesn't pass them as separate items in the array
 . $PSScriptRoot/config/core/split-string.ps1
-$tickets = [String[]]($tickets -eq $nil ? @() : (Split-String $tickets))
 $branches = [String[]]($branches -eq $nil ? @() : (Split-String $branches))
 
-. $PSScriptRoot/config/branch-utils/Invoke-TicketsToBranches.ps1
 . $PSScriptRoot/config/branch-utils/ConvertTo-BranchName.ps1
-. $PSScriptRoot/config/branch-utils/Format-BranchName.ps1
 . $PSScriptRoot/config/git/Get-Configuration.ps1
 . $PSScriptRoot/config/git/Update-Git.ps1
 . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
@@ -37,12 +33,13 @@ $tickets = $tickets | Where-Object { $_ -ne '' -AND $_ -ne $nil }
 
 Assert-CleanWorkingDirectory
 $allBranches = Select-Branches -config $config
-$selectedBranches = [PSObject[]](Invoke-TicketsToBranches -tickets $tickets -branches $branches -allBranchInfo $allBranches)
+$selectedBranches = [PSObject[]]($allBranches | Where-Object {
+        if ($branches -ne $nil -AND $branches -contains $_.branch) { return $true }
+        return $false
+    })
 
 $upstreamBranches = [string[]]($selectedBranches | Foreach-Object { ConvertTo-BranchName $_ -includeRemote })
 $upstreamBranchesNoRemote = [string[]]($selectedBranches | Foreach-Object { ConvertTo-BranchName $_ })
-
-$branchName = Format-BranchName -type 'rc' -comment $label
 
 Invoke-PreserveBranch {
     

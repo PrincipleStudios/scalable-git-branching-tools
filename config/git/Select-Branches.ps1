@@ -1,5 +1,3 @@
-. $PSScriptRoot/../branch-utils/ConvertTo-BranchInfo.ps1
-
 function Select-Branches([Parameter(Mandatory)][PSObject] $config) {
     $remote = $config.remote
     $temp = $remote -eq $nil ? (git branch) : (git branch -r)
@@ -17,12 +15,6 @@ function Select-Branches([Parameter(Mandatory)][PSObject] $config) {
             }
         }
 
-        $info = ConvertTo-BranchInfo $branchName
-        if ($info -eq $nil) {
-            return @{ remote = $remote; branch = $branchName }
-        }
-        $info.remote = $remote
-        $info.branch = $branchName
-        return $info
+        return @{ remote = $remote; branch = $branchName }
     } | Where-Object { $_ -ne $nil }
 }
