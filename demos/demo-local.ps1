@@ -10,7 +10,7 @@ function ThrowOnNativeFalure {
 
 cd origin
 
-git new PS-1 -from main
+git new feature/PS-1 -from main
 ThrowOnNativeFalure
 
 if ((git rev-parse main) -ne (git rev-parse HEAD)) {
@@ -21,7 +21,7 @@ if ((git branch --show-current) -ne 'feature/PS-1') {
     throw 'Branch name did not match expected';
 }
 
-git rc -label 'test' -branches feature/add-item-1,feature/add-item-2
+git rc rc/test -branches feature/add-item-1,feature/add-item-2
 ThrowOnNativeFalure
 
 if ((git branch --show-current) -ne 'feature/PS-1') {
