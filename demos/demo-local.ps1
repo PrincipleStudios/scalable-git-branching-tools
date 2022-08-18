@@ -10,7 +10,7 @@ function ThrowOnNativeFalure {
 
 cd origin
 
-git new feature/PS-1 -from main
+git new feature/PS-1
 ThrowOnNativeFalure
 
 if ((git rev-parse main) -ne (git rev-parse HEAD)) {

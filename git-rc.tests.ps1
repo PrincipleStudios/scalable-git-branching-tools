@@ -47,7 +47,7 @@ BeforeAll {
 Describe 'git-rc' {
     It 'handles standard functionality' {
         . $PSScriptRoot/config/git/Get-Configuration.ps1
-        Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream' } }
+        Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream'; defaultServiceLine = $nil } }
         
         . $PSScriptRoot/config/git/Update-Git.ps1
         Mock -CommandName Update-Git { }
@@ -77,7 +77,7 @@ Describe 'git-rc' {
     
     It 'handles no remote' {
         . $PSScriptRoot/config/git/Get-Configuration.ps1
-        Mock -CommandName Get-Configuration { return @{ remote = $nil; upstreamBranch = '_upstream' } }
+        Mock -CommandName Get-Configuration { return @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = $nil } }
         
         . $PSScriptRoot/config/git/Update-Git.ps1
         Mock -CommandName Update-Git { }
@@ -105,7 +105,7 @@ Describe 'git-rc' {
     
     It 'does not push if there is a failure while merging' {
         . $PSScriptRoot/config/git/Get-Configuration.ps1
-        Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream' } }
+        Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream'; defaultServiceLine = $nil } }
         
         . $PSScriptRoot/config/git/Update-Git.ps1
         Mock -CommandName Update-Git { }
@@ -128,7 +128,7 @@ Describe 'git-rc' {
     
     It 'can skip the initial fetch' {
         . $PSScriptRoot/config/git/Get-Configuration.ps1
-        Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream' } }
+        Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream'; defaultServiceLine = $nil } }
         
         . $PSScriptRoot/config/git/Update-Git.ps1
         Mock -CommandName Update-Git { throw 'should not call Update-Git' }

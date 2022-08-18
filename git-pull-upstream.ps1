@@ -23,5 +23,5 @@ if ($branchName -eq $nil) {
 $parentBranches = [String[]](Select-UpstreamBranches $branchName -includeRemote -config $config)
 
 Assert-CleanWorkingDirectory
-Invoke-MergeBranches ($parentBranches | select -skip 1) -noAbort
+Invoke-MergeBranches ($parentBranches) -noAbort
 # TODO: If conflicts are detected, recommend an integration branch

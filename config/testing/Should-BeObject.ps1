@@ -27,7 +27,7 @@ function Should-BeObject {
     $Property | ForEach-Object {
         $prop = $_
         try {
-            $b[$_] | Should -Be $a[$_]
+            $a[$_] | Should -Be $b[$_]
         } catch {
             throw "Expected objects to be the same for property '$prop': $_"
         }

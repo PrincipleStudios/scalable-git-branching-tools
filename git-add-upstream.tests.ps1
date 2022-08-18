@@ -38,7 +38,7 @@ BeforeAll {
 Describe 'git-add-upstream' {
     It 'works locally' {
         . $PSScriptRoot/config/git/Get-Configuration.ps1
-        Mock -CommandName Get-Configuration { return @{ remote = $nil; upstreamBranch = '_upstream' } }
+        Mock -CommandName Get-Configuration { return @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = 'main' } }
 
         . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
         Mock -CommandName Assert-CleanWorkingDirectory { }
@@ -69,7 +69,7 @@ Describe 'git-add-upstream' {
         Mock git -ParameterFilter { ($args -join ' ') -eq 'fetch origin _upstream' } { $Global:LASTEXITCODE = 0 }
 
         . $PSScriptRoot/config/git/Get-Configuration.ps1
-        Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream' } }
+        Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream'; defaultServiceLine = 'main' } }
 
         . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
         Mock -CommandName Assert-CleanWorkingDirectory { }

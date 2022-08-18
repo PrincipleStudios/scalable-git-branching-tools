@@ -10,7 +10,7 @@ BeforeAll {
 Describe 'git-show-upstream' {
     It 'shows the results of an upstream branch' {
         . $PSScriptRoot/config/git/Get-Configuration.ps1
-        Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream' } }
+        Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream'; defaultServiceLine = $nil } }
         
         Mock git {
             "main"
@@ -23,7 +23,7 @@ Describe 'git-show-upstream' {
     
     It 'shows the results of the current branch if none is specified' {
         . $PSScriptRoot/config/git/Get-Configuration.ps1
-        Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream' } }
+        Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream'; defaultServiceLine = $nil } }
         
         Mock git -ParameterFilter {($args -join ' ') -eq 'branch --show-current'} { 'feature/FOO-123' }
 

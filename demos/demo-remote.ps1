@@ -13,7 +13,7 @@ git clone ./origin local
 cd local
 /git-tools/init.ps1
 
-git new feature/PS-1 -from main
+git new feature/PS-1
 ThrowOnNativeFalure
 
 if ((git rev-parse origin/main) -ne (git rev-parse HEAD)) {

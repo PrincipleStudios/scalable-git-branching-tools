@@ -72,7 +72,7 @@ Describe 'git-new' {
         . $PSScriptRoot/config/git/Invoke-CreateBranch.ps1
         . $PSScriptRoot/config/git/Invoke-CheckoutBranch.ps1
 
-        Mock -CommandName Get-Configuration { return @{ remote = $nil; upstreamBranch = '_upstream' } }
+        Mock -CommandName Get-Configuration { return @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = $nil } }
         Mock -CommandName Set-UpstreamBranches -ParameterFilter { 
             $branchName -eq 'feature/PS-600-some-work' `
                 -AND ($upstreamBranches -join ' ') -eq 'infra/foo'
@@ -122,7 +122,7 @@ Describe 'git-new' {
         . $PSScriptRoot/config/git/Invoke-CreateBranch.ps1
         . $PSScriptRoot/config/git/Invoke-CheckoutBranch.ps1
 
-        Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream' } }
+        Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream'; defaultServiceLine = $nil } }
         Mock -CommandName Update-Git { }
         Mock -CommandName Set-UpstreamBranches -ParameterFilter { 
             $branchName -eq 'feature/PS-100-some-work' `

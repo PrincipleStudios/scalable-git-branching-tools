@@ -36,7 +36,7 @@ try {
     git add .
     git commit -m "Apply change B"
 
-    git checkout main
+    git checkout (git rev-parse main)
 
 } finally {
     Pop-Location

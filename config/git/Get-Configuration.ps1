@@ -16,7 +16,7 @@ function Get-DefaultServiceLine([string]$remote) {
     $result = (git config scaled-git.defaultServiceLine)
     if ($result -ne $nil) { return $result }
 
-    $commitish = git rev-parse ($remote -eq $nil ? 'main' : "$($remote)/main") --verify -q 2> $nil
+    $commitish = git rev-parse --verify ($remote -eq $nil -OR $remote -eq '' ? 'main' : "$($remote)/main") -q 2> $nil
     if ($LASTEXITCODE -eq 0) {
         return "main"
     }
