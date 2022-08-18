@@ -7,6 +7,10 @@ function Select-UpstreamBranches([String]$branchName, [switch] $includeRemote, [
 
     $parentBranches = $parentBranches | Where-Object { $exclude -notcontains $_ }
 
+    if ($parentBranches -eq $nil -OR $parentBranches.length -eq 0) {
+        return [string[]](@())
+    }
+
     if ($recurse) {
         $currentExclude = [string[]]( @($branchName, $exclude) | ForEach-Object { $_ } )
         $finalParents = [string[]]( $parentBranches | ForEach-Object {
@@ -18,10 +22,6 @@ function Select-UpstreamBranches([String]$branchName, [switch] $includeRemote, [
             return $newParents
         } | ForEach-Object { $_ } )
         $parentBranches = [string[]]( @( $parentBranches, $finalParents ) | ForEach-Object { $_ } | Where-Object { $_ -ne $nil} )
-    }
-
-    if ($parentBranches -eq $nil -OR $parentBranches.length -eq 0) {
-        return [string[]](@())
     }
 
     if ($includeRemote) {

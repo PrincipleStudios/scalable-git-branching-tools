@@ -36,15 +36,17 @@ BeforeAll {
 }
 
 Describe 'git-add-upstream' {
-    It 'works locally' {
+    It 'works on the current branch' {
         . $PSScriptRoot/config/git/Get-Configuration.ps1
         Mock -CommandName Get-Configuration { return @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = 'main' } }
 
         . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
         Mock -CommandName Assert-CleanWorkingDirectory { }
         
-        # . $PSScriptRoot/config/git/Select-Branches.ps1
-        # Mock -CommandName Select-Branches { return $noRemoteBranches }
+        
+        Mock git -ParameterFilter {($args -join ' ') -eq 'branch --show-current'} {
+            'rc/2022-07-14'
+        }
 
         Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p _upstream:rc/2022-07-14'} {
             "feature/FOO-123"
@@ -61,7 +63,98 @@ Describe 'git-add-upstream' {
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f _upstream new-upstream-commit' } { $Global:LASTEXITCODE = 0 }
 
-        $result = & ./git-add-upstream.ps1 -branchName 'rc/2022-07-14' -branches @('feature/FOO-76') -m ""
+        $result = & ./git-add-upstream.ps1 'feature/FOO-76' -m ""
+    }
+    
+    It 'works locally with multiple branches' {
+        . $PSScriptRoot/config/git/Get-Configuration.ps1
+        Mock -CommandName Get-Configuration { return @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = 'main' } }
+
+        . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
+        Mock -CommandName Assert-CleanWorkingDirectory { }
+        
+        Mock git -ParameterFilter {($args -join ' ') -eq 'branch --show-current'} {
+            'rc/2022-07-14'
+        }
+
+        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p _upstream:rc/2022-07-14'} {
+            "feature/FOO-123"
+            "feature/XYZ-1-services"
+        }
+
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify rc/2022-07-14 -q' } { 'rc-old-commit' }
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout rc-old-commit --quiet' } { $Global:LASTEXITCODE = 0 }
+        $merge1Filter = { ($args -join ' ') -eq 'merge feature/FOO-76 --quiet --commit --no-edit --no-squash' }
+        Mock git -ParameterFilter $merge1Filter { $Global:LASTEXITCODE = 0 } -Verifiable
+        $merge2Filter = { ($args -join ' ') -eq 'merge feature/FOO-84 --quiet --commit --no-edit --no-squash' }
+        Mock git -ParameterFilter $merge2Filter { $Global:LASTEXITCODE = 0 } -Verifiable
+
+        . $PSScriptRoot/config/git/Set-GitFiles.ps1
+        Mock -CommandName Set-GitFiles { 'new-upstream-commit' }
+
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f _upstream new-upstream-commit' } { $Global:LASTEXITCODE = 0 }
+
+        $result = & ./git-add-upstream.ps1 'feature/FOO-76','feature/FOO-84' -m ""
+
+        Should -Invoke -CommandName git -Times 1 -ParameterFilter $merge1Filter
+        Should -Invoke -CommandName git -Times 1 -ParameterFilter $merge2Filter
+    }
+
+    It 'works locally' {
+        . $PSScriptRoot/config/git/Get-Configuration.ps1
+        Mock -CommandName Get-Configuration { return @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = 'main' } }
+
+        . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
+        Mock -CommandName Assert-CleanWorkingDirectory { }
+        
+        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p _upstream:rc/2022-07-14'} {
+            "feature/FOO-123"
+            "feature/XYZ-1-services"
+        }
+
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify rc/2022-07-14 -q' } { 'rc-old-commit' }
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout rc-old-commit --quiet' } { $Global:LASTEXITCODE = 0 }
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'merge feature/FOO-76 --quiet --commit --no-edit --no-squash' } { $Global:LASTEXITCODE = 0 }
+
+        . $PSScriptRoot/config/git/Set-GitFiles.ps1
+        Mock -CommandName Set-GitFiles { 'new-upstream-commit' }
+
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f _upstream new-upstream-commit' } { $Global:LASTEXITCODE = 0 }
+
+        $result = & ./git-add-upstream.ps1 'feature/FOO-76' -branchName 'rc/2022-07-14' -m ""
+    }
+    
+    It 'works locally with multiple branches' {
+        . $PSScriptRoot/config/git/Get-Configuration.ps1
+        Mock -CommandName Get-Configuration { return @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = 'main' } }
+
+        . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
+        Mock -CommandName Assert-CleanWorkingDirectory { }
+        
+        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p _upstream:rc/2022-07-14'} {
+            "feature/FOO-123"
+            "feature/XYZ-1-services"
+        }
+
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify rc/2022-07-14 -q' } { 'rc-old-commit' }
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout rc-old-commit --quiet' } { $Global:LASTEXITCODE = 0 }
+        $merge1Filter = { ($args -join ' ') -eq 'merge feature/FOO-76 --quiet --commit --no-edit --no-squash' }
+        Mock git -ParameterFilter $merge1Filter { $Global:LASTEXITCODE = 0 } -Verifiable
+        $merge2Filter = { ($args -join ' ') -eq 'merge feature/FOO-84 --quiet --commit --no-edit --no-squash' }
+        Mock git -ParameterFilter $merge2Filter { $Global:LASTEXITCODE = 0 } -Verifiable
+
+        . $PSScriptRoot/config/git/Set-GitFiles.ps1
+        Mock -CommandName Set-GitFiles { 'new-upstream-commit' }
+
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f _upstream new-upstream-commit' } { $Global:LASTEXITCODE = 0 }
+
+        $result = & ./git-add-upstream.ps1 'feature/FOO-76','feature/FOO-84' -branchName 'rc/2022-07-14' -m ""
+
+        Should -Invoke -CommandName git -Times 1 -ParameterFilter $merge1Filter
+        Should -Invoke -CommandName git -Times 1 -ParameterFilter $merge2Filter
     }
     
     It 'works with a remote' {
@@ -88,6 +181,6 @@ Describe 'git-add-upstream' {
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin --atomic HEAD:rc/2022-07-14 new-upstream-commit:origin/_upstream' } { $Global:LASTEXITCODE = 0 }
 
-        $result = & ./git-add-upstream.ps1 -branchName 'rc/2022-07-14' -branches @('feature/FOO-76') -m ""
+        $result = & ./git-add-upstream.ps1 @('feature/FOO-76') -branchName 'rc/2022-07-14' -m ""
     }
 }

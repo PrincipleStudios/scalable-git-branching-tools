@@ -1,8 +1,8 @@
 #!/usr/bin/env pwsh
 
 Param(
+    [Parameter(Mandatory, Position=0)][String[]] $branches,
     [Parameter()][String] $branchName,
-    [Parameter()][String[]] $branches,
     [Parameter()][Alias('message')][Alias('m')][string] $commitMessage,
     [switch] $dryRun
 )
@@ -16,8 +16,14 @@ Param(
 . $PSScriptRoot/config/git/Invoke-MergeBranches.ps1
 . $PSScriptRoot/config/git/Set-GitFiles.ps1
 . $PSScriptRoot/config/git/Invoke-PreserveBranch.ps1
+. $PSScriptRoot/config/git/Get-CurrentBranch.ps1
 
 $config = Get-Configuration
+
+$branchName = ($branchName -eq $nil -OR $branchName -eq '') ? (Get-CurrentBranch) : $branchName
+if ($branchName -eq $nil) {
+    throw 'Must specify a branch'
+}
 
 Assert-CleanWorkingDirectory
 Update-Git -config $config

@@ -1,7 +1,8 @@
 #!/usr/bin/env pwsh
 
 Param(
-    [Parameter()][String] $branchName
+    [Parameter()][String] $branchName,
+    [switch] $recurse
 )
 
 . $PSScriptRoot/config/git/Get-Configuration.ps1
@@ -16,6 +17,8 @@ if ($branchName -eq $nil) {
     throw 'Must specify a branch'
 }
 
-$parentBranches = [String[]](Select-UpstreamBranches $branchName -includeRemote -config $config)
+$parentBranches = [String[]]($recurse `
+    ? (Select-UpstreamBranches $branchName -includeRemote -config $config -recurse) `
+    : (Select-UpstreamBranches $branchName -includeRemote -config $config))
 
 $parentBranches
