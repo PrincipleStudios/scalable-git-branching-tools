@@ -36,6 +36,11 @@ try {
     git add .
     git commit -m "Apply change B"
 
+    git checkout -B feature/subfeature feature/add-item-1
+    echo "new-item-1a" > new-item-1a.txt
+    git add .
+    git commit -m "Add new-item-1a.txt"
+
     git checkout (git rev-parse main)
 
 } finally {

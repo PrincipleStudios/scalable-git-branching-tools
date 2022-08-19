@@ -8,32 +8,23 @@ function ThrowOnNativeFalure {
 
 & $PSScriptRoot/_setup.ps1
 
-Push-Location origin
-
-git add-upstream main -branchName feature/add-item-1
-git add-upstream main -branchName feature/add-item-2
-git add-upstream main -branchName feature/change-existing-item-A
-git add-upstream main -branchName feature/change-existing-item-B
-
-Pop-Location
-
 git clone ./origin local
 
 cd local
 /git-tools/init.ps1
 
-git new feature/PS-1 -from feature/add-item-1
+git new feature/PS-1
 ThrowOnNativeFalure
 
-if ((git rev-parse origin/feature/add-item-1) -ne (git rev-parse HEAD)) {
-    throw 'HEAD does not point to the same commit as feature/add-item-1';
+if ((git rev-parse origin/main) -ne (git rev-parse HEAD)) {
+    throw 'HEAD does not point to the same commit as main';
 }
 
 if ((git branch --show-current) -ne 'feature/PS-1') {
     throw 'Branch name did not match expected';
 }
 
-$upstreamOfNewFeature = [string[]](git show-upstream -recurse)
+$upstreamOfNewFeature = [string[]](git show-upstream)
 if ($upstreamOfNewFeature -notcontains 'origin/main') {
     throw "Expected main to be upstream of the current branch; found: $(ConvertTo-Json $upstreamOfNewFeature)"
 }

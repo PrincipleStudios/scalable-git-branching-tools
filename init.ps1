@@ -26,3 +26,6 @@ git config alias.rc "!$dir/git-rc.ps1"
 # Verify that a branch has all of its upstream up-to-date
 git config alias.verify-updated "!$dir/git-verify-updated.ps1"
 
+# Release an RC branch to a service line
+git config alias.release "!$dir/git-release.ps1"
+

@@ -22,15 +22,15 @@ RUN /git-tools/demos/demo-local.ps1
 FROM base AS demo-remote
 RUN /git-tools/demos/demo-remote.ps1
 
-FROM base AS demo-remote-with-existing
-RUN /git-tools/demos/demo-remote-with-existing.ps1
+FROM base AS demo-remote-without-config
+RUN /git-tools/demos/demo-remote-without-config.ps1
 
 FROM base as final
 
 WORKDIR /results/
 COPY --from=demo-local /repos/report.txt demo-local-report.txt
 COPY --from=demo-remote /repos/report.txt demo-remote-report.txt
-COPY --from=demo-remote-with-existing /repos/report.txt demo-remote-report-with-existing.txt
+COPY --from=demo-remote-without-config /repos/report.txt demo-remote-report-without-config.txt
 RUN /git-tools/demos/_report.ps1 > full-report.txt
 
 CMD ["cat", "full-report.txt"]

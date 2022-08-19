@@ -6,7 +6,7 @@ function ThrowOnNativeFalure {
     }
 }
 
-& $PSScriptRoot/_setup.ps1
+& $PSScriptRoot/_setup-existing.ps1
 
 cd origin
 
