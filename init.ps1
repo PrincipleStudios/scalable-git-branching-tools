@@ -24,5 +24,5 @@ git config alias.add-upstream "!$dir/git-add-upstream.ps1"
 git config alias.rc "!$dir/git-rc.ps1"
 
 # Verify that a branch has all of its upstream up-to-date
-git config alias.verify-upstream "!$dir/git-verify-upstream.ps1"
+git config alias.verify-updated "!$dir/git-verify-updated.ps1"
 

@@ -28,7 +28,7 @@ if ((git branch --show-current) -ne 'feature/PS-1') {
     throw 'Branch name should not have changed';
 }
 
-git verify-rc rc/test
+git verify-updated rc/test
 ThrowOnNativeFalure
 
 git branch > ../report.txt
