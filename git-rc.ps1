@@ -12,6 +12,7 @@ Param(
 . $PSScriptRoot/config/core/split-string.ps1
 $branches = [String[]]($branches -eq $nil ? @() : (Split-String $branches))
 
+. $PSScriptRoot/config/core/coalesce.ps1
 . $PSScriptRoot/config/branch-utils/ConvertTo-BranchName.ps1
 . $PSScriptRoot/config/git/Get-Configuration.ps1
 . $PSScriptRoot/config/git/Update-Git.ps1
@@ -49,7 +50,9 @@ Invoke-PreserveBranch {
     # Assert-CleanWorkingDirectory # checkouts can change ignored files; reassert clean
     Invoke-MergeBranches ($upstreamBranches | select -skip 1)
 
-    Set-UpstreamBranches $branchName $upstreamBranchesNoRemote -m "Add branch $branchName$($comment -eq $nil ? '' : " for $comment")" -config $config
+    $commitMessage = Coalesce $commitMessage "Add branch $branchName$($comment -eq $nil ? '' : " for $comment")"
+
+    Set-UpstreamBranches $branchName $upstreamBranchesNoRemote -m $commitMessage -config $config
 
     if ($config.remote -ne $nil) {
         $params = $force ? @('--force') : @()

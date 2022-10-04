@@ -3,10 +3,13 @@
 Param(
     [Parameter(Mandatory)][String] $branchName,
     [Parameter(Mandatory)][String] $target,
-    [Parameter][String[]] $preserve,
-    [switch] $dryRun
+    [Parameter()][Alias('message')][Alias('m')][string] $commitMessage,
+    [Parameter()][String[]] $preserve,
+    [switch] $dryRun,
+    [Switch] $noFetch
 )
 
+. $PSScriptRoot/config/core/coalesce.ps1
 . $PSScriptRoot/config/core/ArrayToHash.ps1
 . $PSScriptRoot/config/git/Get-Configuration.ps1
 . $PSScriptRoot/config/git/Update-Git.ps1
@@ -53,8 +56,29 @@ $updates = Get-GitFileNames -branchName $config.upstreamBranch -remote $config.r
     return $nil
 } | Where-Object { $_ -ne $nil }
 
-# Write-Host (ConvertTo-Json @{ allUpstream = $allUpstream; allPreserve = $allPreserve; preservedUpstream = $preservedUpstream; toRemove = $toRemove; updates = $updates })
+if ($dryRun) {
+    Write-Host "Would push $branchName to $target"
+    Write-Host "Would remove $toRemove"
+    Write-Host "Would perform updates: $(ConvertTo-Json $updates)"
+} else {
+    $commitMessage = Coalesce $commitMessage "Release $branchName to $target"
+    $upstreamContents = $updates | ArrayToHash -getKey { $_.branch } -getValue { $_.newUpstream -join "`n" }
+    $upstreamContents[$branchName] = $nil
+    $toRemove | ForEach-Object {
+        $upstreamContents[$_] = $nil
+    }
 
-Write-Host "Would push $branchName to $target"
-Write-Host "Would remove $toRemove"
-Write-Host "Would perform updates: $(ConvertTo-Json $updates)"
+    $commitish = Set-GitFiles $upstreamContents -m $commitMessage -branchName $config.upstreamBranch -remote $config.remote -dryRun
+
+    if ($config.remote -ne $nil) {
+        $gitDeletions = $toRemove | ForEach-Object { ":$_" }
+
+        git push --atomic $config.remote "$($config.remote)/$($branchName):$target" @gitDeletions "$($commitish):$($config.upstreamBranch)"
+    } else {
+        git branch -f $config.upstreamBranch $commitish
+        git branch -f $branchName $target
+        $toRemove | ForEach-Object {
+            git branch -D $_
+        }
+    }
+}
