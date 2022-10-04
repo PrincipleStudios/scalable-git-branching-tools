@@ -8,7 +8,8 @@ function ThrowOnNativeFalure {
 
 & $PSScriptRoot/_setup-existing.ps1
 
-cd origin
+ln -s origin local
+cd local
 
 git new feature/PS-1
 ThrowOnNativeFalure
