@@ -1,14 +1,13 @@
 #!/usr/bin/env pwsh
 
 Param(
-    [String] $branchName,
+    [Parameter(Mandatory)][String] $branchName,
     [Parameter()][Alias('m')][Alias('message')][ValidateLength(1,25)][String] $comment,
     [Parameter()][Alias('from')][String[]] $parentBranches,
     [Switch] $noFetch
 )
 
 . $PSScriptRoot/config/core/split-string.ps1
-$ticketNames = [String[]]($ticketNames -eq $nil ? @() : (Split-String $ticketNames))
 $parentBranches = [String[]]($parentBranches -eq $nil ? @() : (Split-String $parentBranches))
 
 # TODO: allow explicit branch name specification for an "other" branch type
@@ -19,7 +18,8 @@ $parentBranches = [String[]]($parentBranches -eq $nil ? @() : (Split-String $par
 . $PSScriptRoot/config/git/Invoke-CreateBranch.ps1
 . $PSScriptRoot/config/git/Invoke-CheckoutBranch.ps1
 . $PSScriptRoot/config/git/Invoke-MergeBranches.ps1
-. $PSScriptRoot/config/git/Set-UpstreamBranches.ps1
+. $PSScriptRoot/config/git/Invoke-PreserveBranch.ps1
+. $PSScriptRoot/config/git/Set-GitFiles.ps1
 
 $config = Get-Configuration
 if (-not $noFetch) {
@@ -27,7 +27,6 @@ if (-not $noFetch) {
 }
 
 $type = Coalesce $type $defaultFeatureType
-$ticketNames = $ticketNames | Where-Object { $_ -ne '' -AND $_ -ne $nil }
 
 if ($parentBranches -ne $nil -AND $parentBranches.length -gt 0) {
     $parentBranchesNoRemote = $parentBranches
@@ -45,13 +44,19 @@ if ($parentBranches.Length -eq 0) {
 
 Assert-CleanWorkingDirectory
 
-Set-UpstreamBranches $branchName $parentBranchesNoRemote -m "Add branch $branchName$($comment -eq $nil -OR $comment -eq '' ? '' : " for $comment")" -config $config
+$upstreamCommitish = Set-GitFiles @{ $branchName = ($parentBranchesNoRemote -join "`n") } -m "Add branch $branchName$($comment -eq $nil -OR $comment -eq '' ? '' : " for $comment")" -branchName $config.upstreamBranch -remote $config.remote -dryRun
 
-Invoke-CreateBranch $branchName $parentBranches[0]
-Invoke-CheckoutBranch $branchName
-Assert-CleanWorkingDirectory # checkouts can change ignored files; reassert clean
-Invoke-MergeBranches ($parentBranches | select -skip 1)
+Invoke-PreserveBranch {
+    Invoke-CreateBranch $branchName $parentBranches[0]
+    Invoke-CheckoutBranch $branchName
+    Assert-CleanWorkingDirectory # checkouts can change ignored files; reassert clean
+    Invoke-MergeBranches ($parentBranches | select -skip 1)
 
-if ($config.remote -ne $nil) {
-    git push $config.remote "$($branchName):refs/heads/$($branchName)"
-}
+    if ($config.remote -ne $nil) {
+        git push $config.remote --atomic "$($branchName):refs/heads/$($branchName)" "$($upstreamCommitish):refs/heads/$($config.upstreamBranch)"
+    } else {
+        git branch -f $config.upstreamBranch $upstreamCommitish --quiet
+    }
+} -cleanup {
+    git branch -D $branchName 2> $nil
+} -onlyIfError

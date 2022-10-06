@@ -15,7 +15,6 @@ Param(
 . $PSScriptRoot/config/git/Update-Git.ps1
 . $PSScriptRoot/config/git/Select-UpstreamBranches.ps1
 . $PSScriptRoot/config/git/Get-GitFileNames.ps1
-. $PSScriptRoot/config/git/Set-MultipleUpstreamBranches.ps1
 
 $config = Get-Configuration
 
@@ -73,7 +72,7 @@ if ($dryRun) {
     if ($config.remote -ne $nil) {
         $gitDeletions = $toRemove | ForEach-Object { ":$_" }
 
-        git push --atomic $config.remote "$($config.remote)/$($branchName):$target" @gitDeletions "$($commitish):$($config.upstreamBranch)"
+        git push --atomic $config.remote "$($config.remote)/$($branchName):$target" @gitDeletions "$($commitish):refs/heads/$($config.upstreamBranch)"
     } else {
         git branch -f $config.upstreamBranch $commitish
         git branch -f $branchName $target

@@ -7,6 +7,10 @@ Param(
     [switch] $dryRun
 )
 
+# git doesn't pass them as separate items in the array
+. $PSScriptRoot/config/core/split-string.ps1
+$branches = [String[]]($branches -eq $nil ? @() : (Split-String $branches))
+
 . $PSScriptRoot/config/core/coalesce.ps1
 . $PSScriptRoot/config/git/Get-Configuration.ps1
 . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
@@ -20,6 +24,7 @@ Param(
 
 $config = Get-Configuration
 
+$isCurrentBranch = ($branchName -eq $nil -OR $branchName -eq '')
 $branchName = ($branchName -eq $nil -OR $branchName -eq '') ? (Get-CurrentBranch) : $branchName
 if ($branchName -eq $nil) {
     throw 'Must specify a branch'
@@ -28,9 +33,7 @@ if ($branchName -eq $nil) {
 Assert-CleanWorkingDirectory
 Update-Git -config $config
 
-$upstreamBranch = Get-UpstreamBranch $config -fetch
-
-$parentBranches = [String[]](Select-UpstreamBranches $branchName -includeRemote -config $config)
+$parentBranches = [String[]](Select-UpstreamBranches $branchName -config $config)
 
 $finalBranches = [String[]](@($branches, $parentBranches) | ForEach-Object { $_ } | Select-Object -uniq)
 
@@ -48,19 +51,19 @@ Invoke-PreserveBranch {
     git checkout $sha --quiet
     Assert-CleanWorkingDirectory
 
-    Invoke-MergeBranches $addedBranches
+    Invoke-MergeBranches ($config.remote -eq $nil ? $addedBranches : ($addedBranches | ForEach-Object { "$($config.remote)/$($_)" }))
 
-    $upstreamCommitish = Set-GitFiles @{ $branchName = ($finalBranches -join "`n") } -m $commitMessage -branchName $upstreamBranch -dryRun
+    $upstreamCommitish = Set-GitFiles @{ $branchName = ($finalBranches -join "`n") } -m $commitMessage -branchName $config.upstreamBranch -remote $config.remote -dryRun
     if ($upstreamCommitish -eq $nil -OR $commitish -eq '') {
         throw 'Failed to update upstream branch commit'
     }
 
     if (-not $dryRun) {
         if ($config.remote) {
-            git push $config.remote --atomic "HEAD:$($branchName)" "$($upstreamCommitish):$($upstreamBranch)"
+            git push $config.remote --atomic "HEAD:$($branchName)" "$($upstreamCommitish):refs/heads/$($config.upstreamBranch)"
         } else {
-            git branch -f $branchName HEAD
-            git branch -f $upstreamBranch $upstreamCommitish
+            git branch -f $config.upstreamBranch $upstreamCommitish
         }
+        git branch -f $branchName HEAD
     }
 }

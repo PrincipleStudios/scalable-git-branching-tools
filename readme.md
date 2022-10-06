@@ -10,7 +10,30 @@ In your terminal, navigate to the git directory in which you want to use the com
 
     PS C:\Users\Matt\Source\MyProject> ..\git-tools\init.ps1
 
-## Tests
+## Commands
+
+[`git tool-update`](./docs/tool-update.md)
+
+[`git tool-config`](./docs/tool-config.md)
+
+[`git new`](./docs/new.md)
+
+[`git pull-upstream`](./docs/pull-upstream.md)
+
+[`git show-upstream`](./docs/show-upstream.md)
+
+[`git add-upstream`](./docs/add-upstream.md)
+
+[`git rc`](./docs/rc.md)
+
+[`git verify-updated`](./docs/verify-updated.md)
+
+[`git release`](./docs/release.md)
+
+
+## Development
+
+### Tests
 
 Install the latest version of Pester:
 
@@ -25,7 +48,7 @@ There are also docker integration tests that actually run the git commands; run:
 
     docker build .
 
-## Demo
+### Demo
 
 If you want to test it locally, but don't have a git repository set up, you can use one of the samples via Docker! Run one of the following:
 

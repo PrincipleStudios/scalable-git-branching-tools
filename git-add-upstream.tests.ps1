@@ -9,7 +9,12 @@ BeforeAll {
     . $PSScriptRoot/config/git/Invoke-PreserveBranch.ps1
     Mock -CommandName Invoke-PreserveBranch {
         & $scriptBlock
-        if ($cleanup -ne $nil) { & $cleanup }
+        if ($cleanup -ne $nil -AND -not $onlyIfError) { & $cleanup }
+    }
+
+    . $PSScriptRoot/config/git/Set-GitFiles.ps1
+    Mock -CommandName Set-GitFiles {
+        throw "Unexpected parameters for Set-GitFiles: $(@{ files = $files; commitMessage = $commitMessage; branchName = $branchName; remote = $remote; dryRun = $dryRun } | ConvertTo-Json)"
     }
 
     $noRemoteBranches = @(
@@ -174,12 +179,13 @@ Describe 'git-add-upstream' {
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify origin/rc/2022-07-14 -q' } { 'rc-old-commit' }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout rc-old-commit --quiet' } { $Global:LASTEXITCODE = 0 }
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'merge feature/FOO-76 --quiet --commit --no-edit --no-squash' } { $Global:LASTEXITCODE = 0 }
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'merge origin/feature/FOO-76 --quiet --commit --no-edit --no-squash' } { $Global:LASTEXITCODE = 0 }
 
         . $PSScriptRoot/config/git/Set-GitFiles.ps1
-        Mock -CommandName Set-GitFiles { 'new-upstream-commit' }
+        Mock -CommandName Set-GitFiles -ParameterFilter { $files['rc/2022-07-14'] -eq "feature/FOO-76`nfeature/FOO-123`nfeature/XYZ-1-services" } { 'new-upstream-commit' }
 
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin --atomic HEAD:rc/2022-07-14 new-upstream-commit:origin/_upstream' } { $Global:LASTEXITCODE = 0 }
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin --atomic HEAD:rc/2022-07-14 new-upstream-commit:refs/heads/_upstream' } { $Global:LASTEXITCODE = 0 }
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
 
         $result = & ./git-add-upstream.ps1 @('feature/FOO-76') -branchName 'rc/2022-07-14' -m ""
     }
