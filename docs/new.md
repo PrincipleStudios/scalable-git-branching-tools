@@ -13,10 +13,14 @@ Usage:
 
 Specifies the name of the branch. 
 
-### `[-comment] <string>`
+### `[-comment] <string>` (Optional)
 
 Specifies a comment as part of the commit message for the upstream branch.
 
-### `-parentBranches <string>`
+### `-parentBranches <string>` (Optional)
 
 A comma-delimited list of branches (without the remote, if applicable). If not specified, assumes the default service line (see [tool-config](./tool-config.md).)
+
+### `[-noFetch]` (Optional)
+
+If specified, branch will be created without fetching from the remote first.

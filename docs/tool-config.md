@@ -9,14 +9,14 @@ Usage:
 
 ## Parameters:
 
-### `-remote <string>`
+### `-remote <string>` (Optional)
 
 Sets the remote used where the upstream branch is tracked. Most commands will automatically fetch/push from this remote when set. If not set and the repository has a remote configured, the first remote will be used.
 
-### `-upstreamBranch <string>`
+### `-upstreamBranch <string>` (Optional)
 
 Sets the branch name used to track upstream branches. Defaults to `_upstream`.
 
-### `-defaultServiceLine <string>`
+### `-defaultServiceLine <string>` (Optional)
 
 Sets the branch used as the default service line when creating new branches.
