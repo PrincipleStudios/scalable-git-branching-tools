@@ -2,7 +2,7 @@
 
 Usage:
 
-    git-release.ps1 [-branchName] <string> [-target] <string> [[-commitMessage] <string>] [[-preserve] <string[]>] [-dryRun] [-noFetch]
+    git-release.ps1 [-branchName] <string> [-target] <string> [[-commitMessage] <string>] [[-preserve] <string[]>] [-dryRun] [-noFetch] [-cleanupOnly]
 
 ## Parameters
 
@@ -29,3 +29,7 @@ If specified, changes to branches will be displayed but no actual changes will b
 ### `[-noFetch]` (Optional)
 
 If specified, changes will be made without fetching from the remote first.
+
+### `[-cleanupOnly]` (Optional)
+
+Use this flag when the released branch (from `-branchName`) was already merged to the target branch (`-target`) to clean up the included branches.

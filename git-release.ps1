@@ -6,7 +6,8 @@ Param(
     [Parameter()][Alias('message')][Alias('m')][string] $commitMessage,
     [Parameter()][String[]] $preserve,
     [switch] $dryRun,
-    [Switch] $noFetch
+    [Switch] $noFetch,
+    [switch] $cleanupOnly
 )
 
 . $PSScriptRoot/config/core/coalesce.ps1
@@ -20,6 +21,19 @@ $config = Get-Configuration
 
 if (-not $noFetch) {
     Update-Git -config $config
+}
+
+if ($cleanupOnly) {
+    # Verify that $target already has all of $branchName
+    $count = git rev-list ($config.remote -eq $nil ? $branchName : "$($config.remote)/$($branchName)") "^$($config.remote -eq $nil ? $target : "$($config.remote)/$($target)")" --count
+    if ($count -ne 0) {
+        throw "Found $count commits in $branchName that were not included in $target"
+    }
+} else {
+    $count = git rev-list ($config.remote -eq $nil ? $target : "$($config.remote)/$($target)") "^$($config.remote -eq $nil ? $branchName : "$($config.remote)/$($branchName)")" --count
+    if ($count -ne 0) {
+        throw "Could not fast-forward $target to $branchname; $count commits in $target that were not included in $branchname"
+    }
 }
 
 $allPreserve = [String[]](@($target, $preserve) | ForEach-Object { $_ } | Select-Object -uniq)
@@ -56,7 +70,9 @@ $updates = Get-GitFileNames -branchName $config.upstreamBranch -remote $config.r
 } | Where-Object { $_ -ne $nil }
 
 if ($dryRun) {
-    Write-Host "Would push $branchName to $target"
+    if (-not $cleanupOnly) {
+        Write-Host "Would push $branchName to $target"
+    }
     Write-Host "Would remove $toRemove"
     Write-Host "Would perform updates: $(ConvertTo-Json $updates)"
 } else {
@@ -72,10 +88,14 @@ if ($dryRun) {
     if ($config.remote -ne $nil) {
         $gitDeletions = $toRemove | ForEach-Object { ":$_" }
 
-        git push --atomic $config.remote "$($config.remote)/$($branchName):$target" @gitDeletions "$($commitish):refs/heads/$($config.upstreamBranch)"
+        $releasePart = $cleanupOnly ? @() : @("$($config.remote)/$($branchName):$target")
+
+        git push --atomic $config.remote @releasePart @gitDeletions "$($commitish):refs/heads/$($config.upstreamBranch)"
     } else {
         git branch -f $config.upstreamBranch $commitish
-        git branch -f $branchName $target
+        if (-not $cleanupOnly) {
+            git branch -f $branchName $target
+        }
         $toRemove | ForEach-Object {
             git branch -D $_
         }
