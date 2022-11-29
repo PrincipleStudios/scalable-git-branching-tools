@@ -136,7 +136,7 @@ Describe 'git-release' {
             'new-commit'
         }
 
-        $pushParameterFilter = {($args -join ' ') -eq 'push --atomic origin origin/rc/2022-07-14:main :feature/FOO-123 :feature/XYZ-1-services :rc/2022-07-14 new-commit:refs/heads/_upstream'}
+        $pushParameterFilter = {($args -join ' ') -eq 'push origin origin/rc/2022-07-14:main :feature/FOO-123 :feature/XYZ-1-services :rc/2022-07-14 new-commit:refs/heads/_upstream'}
         Mock git -ParameterFilter $pushParameterFilter {} -Verifiable
 
         & $PSScriptRoot/git-release.ps1 rc/2022-07-14 main
@@ -195,7 +195,7 @@ Describe 'git-release' {
             'new-commit'
         }
 
-        $pushParameterFilter = {($args -join ' ') -eq 'push --atomic origin origin/rc/2022-07-14:main :feature/FOO-123 :feature/XYZ-1-services :rc/2022-07-14 new-commit:refs/heads/_upstream'}
+        $pushParameterFilter = {($args -join ' ') -eq 'push origin origin/rc/2022-07-14:main :feature/FOO-123 :feature/XYZ-1-services :rc/2022-07-14 new-commit:refs/heads/_upstream'}
         Mock git -ParameterFilter $pushParameterFilter {} -Verifiable
 
         & $PSScriptRoot/git-release.ps1 rc/2022-07-14 main -noFetch
@@ -222,7 +222,7 @@ Describe 'git-release' {
             'new-commit'
         }
 
-        $pushParameterFilter = {($args -join ' ') -eq 'push --atomic origin origin/rc/2022-07-14:main :feature/FOO-123 :feature/XYZ-1-services :rc/2022-07-14 new-commit:refs/heads/_upstream'}
+        $pushParameterFilter = {($args -join ' ') -eq 'push origin origin/rc/2022-07-14:main :feature/FOO-123 :feature/XYZ-1-services :rc/2022-07-14 new-commit:refs/heads/_upstream'}
         Mock git -ParameterFilter $pushParameterFilter {} -Verifiable
 
         & $PSScriptRoot/git-release.ps1 rc/2022-07-14 main -dryrun
@@ -249,7 +249,7 @@ Describe 'git-release' {
             'new-commit'
         }
 
-        $pushParameterFilter = {($args -join ' ') -eq 'push --atomic origin origin/rc/2022-07-14:main :feature/FOO-123 :integrate/FOO-125_XYZ-1 :feature/FOO-124_FOO-125 :feature/XYZ-1-services :feature/FOO-124-comment :rc/2022-07-14 new-commit:refs/heads/_upstream'}
+        $pushParameterFilter = {($args -join ' ') -eq 'push origin origin/rc/2022-07-14:main :feature/FOO-123 :integrate/FOO-125_XYZ-1 :feature/FOO-124_FOO-125 :feature/XYZ-1-services :feature/FOO-124-comment :rc/2022-07-14 new-commit:refs/heads/_upstream'}
         Mock git -ParameterFilter $pushParameterFilter {} -Verifiable
 
         & $PSScriptRoot/git-release.ps1 rc/2022-07-14 main
