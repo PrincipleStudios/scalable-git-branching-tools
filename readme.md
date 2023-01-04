@@ -6,6 +6,15 @@
 
 ## Installation
 
+### Install Powershell tools for macOS
+
+	https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-macos?view=powershell-7.3
+
+Alternatively, if you already have the .NET Core SDK installed, you can install PowerShell as a .NET Global tool.
+
+	dotnet tool install --global PowerShell --tool-path ~/bin
+
+### Install Git Shortcuts
 In your terminal, navigate to the git directory in which you want to use the commands. Then run the `init.ps1`. For example:
 
     PS C:\Users\Matt\Source\MyProject> ..\git-tools\init.ps1
