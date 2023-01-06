@@ -58,7 +58,7 @@ Describe 'git-rc' {
         . $PSScriptRoot/config/git/Select-Branches.ps1
         Mock -CommandName Select-Branches { return $defaultBranches }
 
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch rc/2022-07-28 origin/feature/FOO-123 --quiet' } {
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch rc/2022-07-28 origin/feature/FOO-123 --quiet --no-track' } {
             $global:LASTEXITCODE = 0;
         }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout rc/2022-07-28 --quiet' } { $Global:LASTEXITCODE = 0 }
@@ -88,7 +88,7 @@ Describe 'git-rc' {
         . $PSScriptRoot/config/git/Select-Branches.ps1
         Mock -CommandName Select-Branches { return $noRemoteBranches }
 
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch rc/2022-07-28 feature/FOO-123 --quiet' } {
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch rc/2022-07-28 feature/FOO-123 --quiet --no-track' } {
             $global:LASTEXITCODE = 0;
         }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout rc/2022-07-28 --quiet' } { $Global:LASTEXITCODE = 0 }
@@ -116,7 +116,7 @@ Describe 'git-rc' {
         . $PSScriptRoot/config/git/Select-Branches.ps1
         Mock -CommandName Select-Branches { return $defaultBranches }
 
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch rc/2022-07-28 origin/feature/FOO-123 --quiet' } {
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch rc/2022-07-28 origin/feature/FOO-123 --quiet --no-track' } {
             $global:LASTEXITCODE = 0;
         }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout rc/2022-07-28 --quiet' } { $Global:LASTEXITCODE = 0 }
@@ -139,7 +139,7 @@ Describe 'git-rc' {
         . $PSScriptRoot/config/git/Select-Branches.ps1
         Mock -CommandName Select-Branches { return $defaultBranches }
 
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch rc/2022-07-28 origin/feature/FOO-123 --quiet' } {
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch rc/2022-07-28 origin/feature/FOO-123 --quiet --no-track' } {
             $global:LASTEXITCODE = 0;
         }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout rc/2022-07-28 --quiet' } { $Global:LASTEXITCODE = 0 }
