@@ -28,6 +28,9 @@ if (-not $noFetch) {
 
 $type = Coalesce $type $defaultFeatureType
 
+. $PSScriptRoot/config/core/get-atomic-flag.ps1
+$atomic = Get-AtomicFlag($config.atomicPushEnabled)
+
 if ($parentBranches -ne $nil -AND $parentBranches.length -gt 0) {
     $parentBranchesNoRemote = $parentBranches
     if ($config.remote -ne $nil) {
@@ -53,7 +56,7 @@ Invoke-PreserveBranch {
     Invoke-MergeBranches ($parentBranches | select -skip 1)
 
     if ($config.remote -ne $nil) {
-        git push $config.remote $config.atomicPushFlag "$($branchName):refs/heads/$($branchName)" "$($upstreamCommitish):refs/heads/$($config.upstreamBranch)"
+        git push $config.remote $atomic "$($branchName):refs/heads/$($branchName)" "$($upstreamCommitish):refs/heads/$($config.upstreamBranch)"
     } else {
         git branch -f $config.upstreamBranch $upstreamCommitish --quiet
     }

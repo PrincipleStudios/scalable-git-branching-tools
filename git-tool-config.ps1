@@ -4,6 +4,7 @@ Param(
     [Parameter()][String] $remote,
     [Parameter()][String] $upstreamBranch,
     [Parameter()][String] $defaultServiceLine,
+	[Switch] $enableAtomicPush,
 	[Switch] $disableAtomicPush
 )
 
@@ -42,10 +43,12 @@ if ($defaultServiceLine -ne '') {
     Write-Host "Using previous default service line: $($oldConfig.defaultServiceLine)"
 }
 
-if (-not $disableAtomicPush) {
-	git config scaled-git.atomicPushFlag '--atomic'
+if ($enableAtomicPush) {
+	git config scaled-git.atomicPushEnabled true
 	Write-Host "Enabling atomic push"
-} else {
-	git config --unset scaled-git.atomicPushFlag
+}
+
+if ($disableAtomicPush) {
+	git config scaled-git.atomicPushEnabled false
 	Write-Host "Disabling atomic push"
 }
