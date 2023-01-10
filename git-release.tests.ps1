@@ -6,6 +6,9 @@ BeforeAll {
     # User-interface commands are a bit noisy; TODO: add quiet option and test it by making this throw
     Mock -CommandName Write-Host {}
 
+	. $PSScriptRoot/config/git/Get-Configuration.ps1
+	Mock -CommandName Get-ConfiguredAtomicPushEnabled { return $true }
+
     # This command is more complex than I want to handle for low-level git commands in these tests
     . $PSScriptRoot/config/git/Set-UpstreamBranches.ps1
     Mock -CommandName Set-UpstreamBranches { throw "Unexpected parameters for Set-UpstreamBranches: $branchName $upstreamBranches $commitMessage" }
@@ -80,7 +83,7 @@ BeforeAll {
     
     function Mock-RemoteUpstream() {
         . $PSScriptRoot/config/git/Get-Configuration.ps1
-        Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream'; defaultServiceLine = $nil } }
+        Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream'; defaultServiceLine = $nil; atomicPushEnabled = $true } }
         
         . $PSScriptRoot/config/git/Get-GitFileNames.ps1
         Mock -CommandName Get-GitFileNames -ParameterFilter { 
