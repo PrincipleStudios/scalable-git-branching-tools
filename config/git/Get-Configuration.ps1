@@ -6,6 +6,7 @@ function Get-Configuration() {
         remote = $remote
         upstreamBranch = Get-ConfiguredUpstreamBranch
         defaultServiceLine = Get-ConfiguredDefaultServiceLine -remote $remote
+		atomicPushFlag = Get-ConfiguredAtomicPushFlag
     }
 }
 
@@ -32,4 +33,10 @@ function Get-ConfiguredDefaultServiceLine([string]$remote) {
         return "main"
     }
     return $nil
+}
+
+function Get-ConfiguredAtomicPushFlag() {
+	$result = git config scaled-git.atomicPushFlag
+	if ($result -ne $nil) { return $result }
+	return $nil
 }

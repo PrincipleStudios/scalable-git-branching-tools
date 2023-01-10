@@ -72,7 +72,7 @@ if ($dryRun) {
     if ($config.remote -ne $nil) {
         $gitDeletions = $toRemove | ForEach-Object { ":$_" }
 
-        git push --atomic $config.remote "$($config.remote)/$($branchName):$target" @gitDeletions "$($commitish):refs/heads/$($config.upstreamBranch)"
+        git push $config.atomicPushFlag $config.remote "$($config.remote)/$($branchName):$target" @gitDeletions "$($commitish):refs/heads/$($config.upstreamBranch)"
     } else {
         git branch -f $config.upstreamBranch $commitish
         git branch -f $branchName $target
