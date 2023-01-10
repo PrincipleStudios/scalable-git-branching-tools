@@ -24,9 +24,6 @@ $branches = [String[]]($branches -eq $nil ? @() : (Split-String $branches))
 
 $config = Get-Configuration
 
-. $PSScriptRoot/config/core/get-atomic-flag.ps1
-$atomic = Get-AtomicFlag($config.atomicPushEnabled)
-
 $isCurrentBranch = ($branchName -eq $nil -OR $branchName -eq '')
 $branchName = ($branchName -eq $nil -OR $branchName -eq '') ? (Get-CurrentBranch) : $branchName
 if ($branchName -eq $nil) {
@@ -63,7 +60,11 @@ Invoke-PreserveBranch {
 
     if (-not $dryRun) {
         if ($config.remote) {
-            git push $config.remote $atomic "HEAD:$($branchName)" "$($upstreamCommitish):refs/heads/$($config.upstreamBranch)"
+            if ($config.atomicPushEnabled) {
+				git push $config.remote $atomic "HEAD:$($branchName)" "$($upstreamCommitish):refs/heads/$($config.upstreamBranch)"
+			} else {
+				git push $config.remote "HEAD:$($branchName)" "$($upstreamCommitish):refs/heads/$($config.upstreamBranch)"
+			}
         } else {
             git branch -f $config.upstreamBranch $upstreamCommitish
         }

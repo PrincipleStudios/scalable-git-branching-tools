@@ -22,9 +22,6 @@ if (-not $noFetch) {
     Update-Git -config $config
 }
 
-. $PSScriptRoot/config/core/get-atomic-flag.ps1
-$atomic = Get-AtomicFlag($config.atomicPushEnabled)
-
 $allPreserve = [String[]](@($target, $preserve) | ForEach-Object { $_ } | Select-Object -uniq)
 
 $allUpstream = Select-UpstreamBranches $branchName -config $config -recurse
@@ -75,7 +72,11 @@ if ($dryRun) {
     if ($config.remote -ne $nil) {
         $gitDeletions = $toRemove | ForEach-Object { ":$_" }
 
-        git push $atomic $config.remote "$($config.remote)/$($branchName):$target" @gitDeletions "$($commitish):refs/heads/$($config.upstreamBranch)"
+		if ($config.atomicPushEnabled) {
+			git push --atomic $config.remote "$($config.remote)/$($branchName):$target" @gitDeletions "$($commitish):refs/heads/$($config.upstreamBranch)"
+		} else {
+			git push $config.remote "$($config.remote)/$($branchName):$target" @gitDeletions "$($commitish):refs/heads/$($config.upstreamBranch)"
+		}
     } else {
         git branch -f $config.upstreamBranch $commitish
         git branch -f $branchName $target
