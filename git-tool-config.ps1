@@ -3,7 +3,9 @@
 Param(
     [Parameter()][String] $remote,
     [Parameter()][String] $upstreamBranch,
-    [Parameter()][String] $defaultServiceLine
+    [Parameter()][String] $defaultServiceLine,
+	[Switch] $enableAtomicPush,
+	[Switch] $disableAtomicPush
 )
 
 . $PSScriptRoot/config/git/Get-Configuration.ps1
@@ -39,4 +41,14 @@ if ($defaultServiceLine -ne '') {
     Write-Host "Set default service line: $defaultServiceLine"
 } else {
     Write-Host "Using previous default service line: $($oldConfig.defaultServiceLine)"
+}
+
+if ($enableAtomicPush) {
+	git config scaled-git.atomicPushEnabled true
+	Write-Host "Enabling atomic push"
+}
+
+if ($disableAtomicPush) {
+	git config scaled-git.atomicPushEnabled false
+	Write-Host "Disabling atomic push"
 }

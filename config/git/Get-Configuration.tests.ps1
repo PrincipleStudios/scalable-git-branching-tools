@@ -29,7 +29,11 @@ Describe 'Get-Configuration' {
             $global:LASTEXITCODE = 0
         } -ParameterFilter {($args -join ' ') -eq 'config scaled-git.upstreamBranch'}
 
-        Get-Configuration | Should-BeObject @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = 'main' }
+        Mock git {
+            $global:LASTEXITCODE = 0
+        } -ParameterFilter {($args -join ' ') -eq 'config scaled-git.atomicPushEnabled'}
+
+        Get-Configuration | Should-BeObject @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = 'main'; atomicPushEnabled = $true }
     }
 
     It 'Defaults values with no main branch' {
@@ -50,7 +54,10 @@ Describe 'Get-Configuration' {
         Mock git {
         } -ParameterFilter {($args -join ' ') -eq 'config scaled-git.upstreamBranch'}
 
-        Get-Configuration | Should-BeObject @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = $nil }
+        Mock git {
+        } -ParameterFilter {($args -join ' ') -eq 'config scaled-git.atomicPushEnabled'}
+
+        Get-Configuration | Should-BeObject @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = $nil; atomicPushEnabled = $true }
     }
 
     It 'Defaults values with a remote main branch' {
@@ -74,7 +81,11 @@ Describe 'Get-Configuration' {
             $global:LASTEXITCODE = 0
         } -ParameterFilter {($args -join ' ') -eq 'config scaled-git.upstreamBranch'}
 
-        Get-Configuration | Should-BeObject @{ remote = 'origin'; upstreamBranch = '_upstream'; defaultServiceLine = 'main' }
+        Mock git {
+            $global:LASTEXITCODE = 0
+        } -ParameterFilter {($args -join ' ') -eq 'config scaled-git.atomicPushEnabled'}
+
+        Get-Configuration | Should-BeObject @{ remote = 'origin'; upstreamBranch = '_upstream'; defaultServiceLine = 'main'; atomicPushEnabled = $true }
     }
 
     It 'Overrides defaults' {
@@ -93,6 +104,11 @@ Describe 'Get-Configuration' {
             $global:LASTEXITCODE = 0
         } -ParameterFilter {($args -join ' ') -eq 'config scaled-git.defaultServiceLine'}
 
-        Get-Configuration | Should-BeObject @{ remote = 'github'; upstreamBranch = 'upstream-config'; defaultServiceLine = 'trunk' }
+        Mock git {
+			$false
+            $global:LASTEXITCODE = 0
+        } -ParameterFilter {($args -join ' ') -eq 'config scaled-git.atomicPushEnabled'}
+
+        Get-Configuration | Should-BeObject @{ remote = 'github'; upstreamBranch = 'upstream-config'; defaultServiceLine = 'trunk'; atomicPushEnabled = $false }
     }
 }

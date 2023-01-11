@@ -6,6 +6,7 @@ function Get-Configuration() {
         remote = $remote
         upstreamBranch = Get-ConfiguredUpstreamBranch
         defaultServiceLine = Get-ConfiguredDefaultServiceLine -remote $remote
+		atomicPushEnabled = Get-ConfiguredAtomicPushEnabled
     }
 }
 
@@ -32,4 +33,10 @@ function Get-ConfiguredDefaultServiceLine([string]$remote) {
         return "main"
     }
     return $nil
+}
+
+function Get-ConfiguredAtomicPushEnabled() {
+	$result = git config scaled-git.atomicPushEnabled
+	if ($result -ne $nil) { return [bool]::Parse($result) }
+	return $true
 }

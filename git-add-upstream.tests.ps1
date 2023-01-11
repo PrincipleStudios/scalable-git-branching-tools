@@ -167,7 +167,7 @@ Describe 'git-add-upstream' {
         Mock git -ParameterFilter { ($args -join ' ') -eq 'fetch origin _upstream' } { $Global:LASTEXITCODE = 0 }
 
         . $PSScriptRoot/config/git/Get-Configuration.ps1
-        Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream'; defaultServiceLine = 'main' } }
+        Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream'; defaultServiceLine = 'main'; atomicPushEnabled = $true } }
 
         . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
         Mock -CommandName Assert-CleanWorkingDirectory { }

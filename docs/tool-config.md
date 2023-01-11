@@ -20,3 +20,11 @@ Sets the branch name used to track upstream branches. Defaults to `_upstream`.
 ### `-defaultServiceLine <string>` (Optional)
 
 Sets the branch used as the default service line when creating new branches.
+
+### `[-enableAtomicPush]` (Optional)
+
+If specified, atomic pushes will be enabled.
+
+### `[-disableAtomicPush]` (Optional)
+
+If specified, atomic pushes will be disabled.
