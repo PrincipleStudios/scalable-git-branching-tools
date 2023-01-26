@@ -32,7 +32,7 @@ if ($upstreamBranch -ne '') {
 }
 
 if ($defaultServiceLine -ne '') {
-    $expected = $remote -eq $nil ? "$remote/$defaultServiceLine" : $defaultServiceLine
+    $expected = $remote -eq $nil ? $defaultServiceLine : "$remote/$defaultServiceLine"
     $branches = $remote -eq $nil ? (git branch --format '%(refname:short)') : (git branch -r --format '%(refname:short)')
     if ($branches -notcontains $expected) {
         throw "$expected is not found"
