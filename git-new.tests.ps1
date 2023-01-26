@@ -42,7 +42,7 @@ Describe 'git-new' {
         Mock -CommandName Set-GitFiles -ParameterFilter { 
             $files['feature/PS-100-some-work'] -eq 'main'
         } { 'new-commit' }
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch feature/PS-100-some-work main --quiet' } { $Global:LASTEXITCODE = 0 }
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch feature/PS-100-some-work main --quiet --no-track' } { $Global:LASTEXITCODE = 0 }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f _upstream new-commit --quiet' } { $Global:LASTEXITCODE = 0 }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout feature/PS-100-some-work --quiet' } { $Global:LASTEXITCODE = 0 }
 
@@ -102,7 +102,7 @@ Describe 'git-new' {
         . $PSScriptRoot/config/git/Invoke-CreateBranch.ps1
         . $PSScriptRoot/config/git/Invoke-CheckoutBranch.ps1
 
-        Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream'; defaultServiceLine = 'main' } }
+        Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream'; defaultServiceLine = 'main'; atomicPushEnabled = $true } }
         Mock -CommandName Update-Git { }
         Mock -CommandName Set-GitFiles -ParameterFilter { 
             $files['feature/PS-100-some-work'] -eq 'main'
@@ -127,7 +127,7 @@ Describe 'git-new' {
         . $PSScriptRoot/config/git/Invoke-CreateBranch.ps1
         . $PSScriptRoot/config/git/Invoke-CheckoutBranch.ps1
 
-        Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream'; defaultServiceLine = $nil } }
+        Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream'; defaultServiceLine = $nil; atomicPushEnabled = $true } }
         Mock -CommandName Update-Git { }
         Mock -CommandName Set-GitFiles -ParameterFilter { 
             $files['feature/PS-100-some-work'] -eq 'infra/foo'

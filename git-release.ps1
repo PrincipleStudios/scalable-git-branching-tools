@@ -88,9 +88,10 @@ if ($dryRun) {
     if ($config.remote -ne $nil) {
         $gitDeletions = $toRemove | ForEach-Object { ":$_" }
 
+        $atomicPart = $config.atomicPushEnabled ? @("--atomic") : @()
         $releasePart = $cleanupOnly ? @() : @("$($config.remote)/$($branchName):$target")
 
-        git push --atomic $config.remote @releasePart @gitDeletions "$($commitish):refs/heads/$($config.upstreamBranch)"
+        git push @atomicPart $config.remote @releasePart @gitDeletions "$($commitish):refs/heads/$($config.upstreamBranch)"
     } else {
         git branch -f $config.upstreamBranch $commitish
         if (-not $cleanupOnly) {

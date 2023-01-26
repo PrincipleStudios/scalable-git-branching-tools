@@ -53,7 +53,11 @@ Invoke-PreserveBranch {
     Invoke-MergeBranches ($parentBranches | select -skip 1)
 
     if ($config.remote -ne $nil) {
-        git push $config.remote --atomic "$($branchName):refs/heads/$($branchName)" "$($upstreamCommitish):refs/heads/$($config.upstreamBranch)"
+		if ($config.atomicPushEnabled) {
+        	git push $config.remote --atomic "$($branchName):refs/heads/$($branchName)" "$($upstreamCommitish):refs/heads/$($config.upstreamBranch)"
+		} else {
+			git push $config.remote "$($branchName):refs/heads/$($branchName)" "$($upstreamCommitish):refs/heads/$($config.upstreamBranch)"
+		}
     } else {
         git branch -f $config.upstreamBranch $upstreamCommitish --quiet
     }
