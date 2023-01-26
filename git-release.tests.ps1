@@ -124,6 +124,10 @@ Describe 'git-release' {
         Mock-RemoteUpstream
         Mock-UpdateGit
 
+        Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list origin/main ^origin/rc/2022-07-14 --count'} {
+            "0"
+        }
+        
         Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p origin/_upstream:rc/2022-07-14'} {
             "feature/FOO-123"
             "feature/XYZ-1-services"
@@ -150,6 +154,10 @@ Describe 'git-release' {
     It 'handles no remote' {
         Mock-NoRemoteUpstream
         Mock-UpdateGit
+        
+        Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list main ^rc/2022-07-14 --count'} {
+            "0"
+        }
         
         Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p _upstream:rc/2022-07-14'} {
             "feature/FOO-123"
@@ -183,6 +191,10 @@ Describe 'git-release' {
     It 'can skip the initial fetch' {
         Mock-RemoteUpstream
 
+        Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list origin/main ^origin/rc/2022-07-14 --count'} {
+            "0"
+        }
+        
         Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p origin/_upstream:rc/2022-07-14'} {
             "feature/FOO-123"
             "feature/XYZ-1-services"
@@ -210,6 +222,10 @@ Describe 'git-release' {
         Mock-RemoteUpstream
         Mock-UpdateGit
 
+        Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list origin/main ^origin/rc/2022-07-14 --count'} {
+            "0"
+        }
+        
         Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p origin/_upstream:rc/2022-07-14'} {
             "feature/FOO-123"
             "feature/XYZ-1-services"
@@ -235,6 +251,10 @@ Describe 'git-release' {
         Mock-RemoteUpstream
         Mock-UpdateGit
 
+        Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list origin/main ^origin/rc/2022-07-14 --count'} {
+            "0"
+        }
+        
         Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p origin/_upstream:rc/2022-07-14'} {
             "feature/FOO-123"
             "integrate/FOO-125_XYZ-1"
@@ -258,6 +278,59 @@ Describe 'git-release' {
         & $PSScriptRoot/git-release.ps1 rc/2022-07-14 main
 
         Should -Invoke -CommandName git -Times 1 -ParameterFilter $pushParameterFilter
+    }
+    
+    It 'aborts if not a fast-forward' {
+        Mock-RemoteUpstream
+        Mock-UpdateGit
+
+        Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list origin/main ^origin/rc/2022-07-14 --count'} {
+            "1"
+        }
+        
+        { & $PSScriptRoot/git-release.ps1 rc/2022-07-14 main } | Should -Throw
+    }
+    
+    It 'can clean up if already released' {
+        Mock-RemoteUpstream
+        Mock-UpdateGit
+
+        Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list origin/rc/2022-07-14 ^origin/main --count'} {
+            "0"
+        }
+        
+        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p origin/_upstream:rc/2022-07-14'} {
+            "feature/FOO-123"
+            "feature/XYZ-1-services"
+        }
+        
+        Mock -CommandName Set-GitFiles -ParameterFilter { 
+            $commitMessage -eq 'Release rc/2022-07-14 to main' -AND $branchName -eq '_upstream' -AND $remote -eq 'origin' -AND $dryRun `
+                -AND $files['feature/FOO-123'] -eq $nil `
+                -AND $files['integrate/FOO-125_XYZ-1'] -eq "feature/FOO-124_FOO-125`nmain" `
+                -AND $files['rc/2022-07-14'] -eq $nil `
+                -AND $files['feature/XYZ-1-services'] -eq $nil
+        } { 
+            'new-commit'
+        }
+
+        $pushParameterFilter = {($args -join ' ') -eq 'push --atomic origin :feature/FOO-123 :feature/XYZ-1-services :rc/2022-07-14 new-commit:refs/heads/_upstream'}
+        Mock git -ParameterFilter $pushParameterFilter {} -Verifiable
+
+        & $PSScriptRoot/git-release.ps1 rc/2022-07-14 main -cleanupOnly
+
+        Should -Invoke -CommandName git -Times 1 -ParameterFilter $pushParameterFilter
+    }
+    
+    It 'aborts clean up if not already released' {
+        Mock-RemoteUpstream
+        Mock-UpdateGit
+
+        Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list origin/rc/2022-07-14 ^origin/main --count'} {
+            "1"
+        }
+        
+        { & $PSScriptRoot/git-release.ps1 rc/2022-07-14 main -cleanupOnly } | Should -Throw
     }
     
 }
