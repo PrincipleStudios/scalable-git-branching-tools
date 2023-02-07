@@ -1,6 +1,6 @@
 #!/usr/bin/env pwsh
 
-$dir = $PSScriptRoot -replace '\\','/'
+$dir = $PSScriptRoot -replace '\\','/' -replace ' ', '\ '
 
 # Updates self
 git config alias.tool-update "!$dir/init.ps1"
