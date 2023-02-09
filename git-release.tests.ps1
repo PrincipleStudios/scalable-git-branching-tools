@@ -280,6 +280,37 @@ Describe 'git-release' {
         Should -Invoke -CommandName git -Times 1 -ParameterFilter $pushParameterFilter
     }
     
+    It 'handles a single upstream branch' {
+        Mock-RemoteUpstream
+        Mock-UpdateGit
+
+        Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list origin/main ^origin/feature/FOO-123 --count'} {
+            "0"
+        }
+        
+        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p origin/_upstream:feature/FOO-123'} {
+            "main"
+        }
+        
+        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p origin/_upstream:rc/2022-07-14'} {
+            "integrate/FOO-125_XYZ-1"
+        }
+        
+        Mock -CommandName Set-GitFiles -ParameterFilter { 
+            $commitMessage -eq 'Release feature/FOO-123 to main' -AND $branchName -eq '_upstream' -AND $remote -eq 'origin' -AND $dryRun `
+                -AND $files['feature/FOO-123'] -eq $nil
+        } { 
+            'new-commit'
+        }
+
+        $pushParameterFilter = {($args -join ' ') -eq 'push --atomic origin origin/feature/FOO-123:main :feature/FOO-123 new-commit:refs/heads/_upstream'}
+        Mock git -ParameterFilter $pushParameterFilter {} -Verifiable
+
+        & $PSScriptRoot/git-release.ps1 feature/FOO-123 main
+
+        Should -Invoke -CommandName git -Times 1 -ParameterFilter $pushParameterFilter
+    }
+    
     It 'aborts if not a fast-forward' {
         Mock-RemoteUpstream
         Mock-UpdateGit

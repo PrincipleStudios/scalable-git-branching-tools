@@ -19,6 +19,9 @@ WORKDIR /repos/
 FROM base AS demo-local
 RUN /git-tools/demos/demo-local.ps1
 
+FROM base AS demo-local-cd
+RUN /git-tools/demos/demo-local-cd.ps1
+
 FROM base AS demo-local-with-space
 RUN /git-tools/demos/demo-local-with-space.ps1
 
@@ -35,6 +38,7 @@ FROM base as final
 
 WORKDIR /results/
 COPY --from=demo-local /repos/report.txt demo-local-report.txt
+COPY --from=demo-local-cd /repos/report.txt demo-local-cd-report.txt
 COPY --from=demo-local-with-space /repos/report.txt demo-local-with-space-report.txt
 COPY --from=demo-remote /repos/report.txt demo-remote-report.txt
 COPY --from=demo-remote-without-config /repos/report.txt demo-remote-report-without-config.txt
