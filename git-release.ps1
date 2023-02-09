@@ -16,6 +16,7 @@ Param(
 . $PSScriptRoot/config/git/Update-Git.ps1
 . $PSScriptRoot/config/git/Select-UpstreamBranches.ps1
 . $PSScriptRoot/config/git/Get-GitFileNames.ps1
+. $PSScriptRoot/config/git/Set-GitFiles.ps1
 
 $config = Get-Configuration
 
@@ -86,7 +87,7 @@ if ($dryRun) {
     $commitish = Set-GitFiles $upstreamContents -m $commitMessage -branchName $config.upstreamBranch -remote $config.remote -dryRun
 
     if ($config.remote -ne $nil) {
-        $gitDeletions = $toRemove | ForEach-Object { ":$_" }
+        $gitDeletions = [String[]]($toRemove | ForEach-Object { ":$_" })
 
         $atomicPart = $config.atomicPushEnabled ? @("--atomic") : @()
         $releasePart = $cleanupOnly ? @() : @("$($config.remote)/$($branchName):$target")
