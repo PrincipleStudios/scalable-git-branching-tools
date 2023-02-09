@@ -39,6 +39,15 @@ In your terminal, navigate to the git directory in which you want to use the com
 
 [`git release`](./docs/release.md)
 
+## Resolving Conflicts
+
+Sometimes when merging an infra/feature/fix branch into an rc branch you'll get merge conflicts. Do *not* rebase the rc branch on to your branch to resolve the conflicts as this defeats the whole prupose of this merging strategy which is to be able to create rc branches from arbitrary sets of branches. Instead:
+
+1. Use `git blame` or [Git Lens](https://gitlens.amod.io/) to find the conflicting commits.
+2. If needed use [git name-rev](https://git-scm.com/docs/git-name-rev) to find the branch(es) with the conflicting commits.
+3. Use `git new integrate/PS-###_PS-###_etc.` to create an integration branch named after the branches to be merged.
+4. Use `git merge origin/<branch name>;git add-upstream <branch name>` to the branches to merge one by one.
+5. Create a PR for your integrate branch against the rc branch and get it merged ASAP.
 
 ## Development
 
