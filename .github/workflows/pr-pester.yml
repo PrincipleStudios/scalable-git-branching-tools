@@ -1,0 +1,23 @@
+name: Run Powershell Tests
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+
+jobs:
+  test-pester:
+    strategy:
+      fail-fast: true
+      matrix:
+        os: ['ubuntu-latest', 'windows-latest']
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Output Pester versions
+      shell: pwsh
+      run: |
+        Get-Module -ListAvailable Pester
+    - name: Run all Pester tests
+      shell: pwsh
+      run: |
+        Invoke-Pester
