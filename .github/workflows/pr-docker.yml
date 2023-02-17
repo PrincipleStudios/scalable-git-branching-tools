@@ -1,0 +1,15 @@
+name: Run Docker Tests
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+
+
+jobs:
+  test-docker:
+    runs-on: 'ubuntu-latest'
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: 'Build image'
+      run: |
+        docker build .
