@@ -1,5 +1,16 @@
 . $PSScriptRoot/Assert-CleanWorkingDirectory.ps1
 
+class ResultWithCleanup {
+    [object] $result
+
+    ResultWithCleanup() {
+    }
+
+    ResultWithCleanup([object] $result) {
+        $this.result = $result
+    }
+}
+
 function Invoke-PreserveBranch([ScriptBlock]$scriptBlock, [ScriptBlock]$cleanup, [switch]$noDefaultCleanup, [switch]$onlyIfError) {
     Assert-CleanWorkingDirectory
     $prevHead = (git branch --show-current)
@@ -18,13 +29,19 @@ function Invoke-PreserveBranch([ScriptBlock]$scriptBlock, [ScriptBlock]$cleanup,
     }
 
     try {
-        & $scriptBlock
+        $result = & $scriptBlock
     } catch {
         & $fullCleanup
         throw;
     }
 
-    if (-not $onlyIfError) {
+    if (-not $onlyIfError -or $result -is [ResultWithCleanup]) {
         & $fullCleanup
     }
+
+    if ($result -is [ResultWithCleanup]) {
+        $result = $result.result
+    }
+
+    return $result
 }

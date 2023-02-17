@@ -45,13 +45,19 @@ if ($addedBranches.length -eq 0) {
 
 $commitMessage = Coalesce $commitMessage "Adding $($branches -join ',') to $branchName"
 
-Invoke-PreserveBranch {
+$result = Invoke-PreserveBranch {
     $fullBranchName = $config.remote -eq $nil ? $branchName : "$($config.remote)/$($branchName)"
     $sha = git rev-parse --verify $fullBranchName -q 2> $nil
     git checkout $sha --quiet
     Assert-CleanWorkingDirectory
 
-    Invoke-MergeBranches ($config.remote -eq $nil ? $addedBranches : ($addedBranches | ForEach-Object { "$($config.remote)/$($_)" }))
+    $mergeResult = Invoke-MergeBranches ($config.remote -eq $nil ? $addedBranches : ($addedBranches | ForEach-Object { "$($config.remote)/$($_)" }))
+    if ($mergeResult -is [InvalidMergeResult]) {
+        Write-Host "Not all branches requested could be merged automatically. Please use the following commands to add it manually to your branch and then re-run ``git add-upstream``:"
+        Write-Host "    git merge $($mergeResult.branch)"
+
+        return New-Object ResultWithCleanup $false
+    }
 
     $upstreamCommitish = Set-GitFiles @{ $branchName = ($finalBranches -join "`n") } -m $commitMessage -branchName $config.upstreamBranch -remote $config.remote -dryRun
     if ($upstreamCommitish -eq $nil -OR $commitish -eq '') {
@@ -70,4 +76,7 @@ Invoke-PreserveBranch {
         }
         git branch -f $branchName HEAD
     }
+}
+if ($result -eq $false) {
+    exit 1
 }

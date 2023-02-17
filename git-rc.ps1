@@ -43,12 +43,12 @@ $upstreamBranches = [string[]]($selectedBranches | Foreach-Object { ConvertTo-Br
 $upstreamBranchesNoRemote = [string[]]($selectedBranches | Foreach-Object { ConvertTo-BranchName $_ })
 
 Invoke-PreserveBranch {
-    
+
     Invoke-CreateBranch $branchName $upstreamBranches[0]
     Invoke-CheckoutBranch $branchName
     # TODO: do we need to reassert clean here?
     # Assert-CleanWorkingDirectory # checkouts can change ignored files; reassert clean
-    Invoke-MergeBranches ($upstreamBranches | select -skip 1)
+    $(Invoke-MergeBranches ($upstreamBranches | select -skip 1)).ThrowIfInvalid()
 
     $commitMessage = Coalesce $commitMessage "Add branch $branchName$($comment -eq $nil ? '' : " for $comment")"
 
