@@ -50,8 +50,7 @@ function Invoke-MergeBranches([String[]] $branches, [switch]$quiet, [switch]$noA
         if (-not $quiet) {
             Write-Host "Failed to merge $($_.Exception.branch)"
         }
-        $result = $_.Exception.ToResult()
-        return $result
+        return $_.Exception.ToResult()
     }
 
     if (-not $quiet) {

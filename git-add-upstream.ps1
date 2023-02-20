@@ -57,6 +57,8 @@ $result = Invoke-PreserveBranch {
         Write-Host "    git merge $($mergeResult.branch)"
 
         return New-Object ResultWithCleanup $false
+    } elseif (-not ($mergeResult -is [SuccessfulMergeResult])) {
+        throw "$mergeResult was not an expected result type, got $($mergeResult.GetType().FullName)"
     }
 
     $upstreamCommitish = Set-GitFiles @{ $branchName = ($finalBranches -join "`n") } -m $commitMessage -branchName $config.upstreamBranch -remote $config.remote -dryRun
