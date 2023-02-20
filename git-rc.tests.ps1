@@ -46,7 +46,7 @@ BeforeAll {
 
 Describe 'git-rc' {
     BeforeAll {
-        Import-Module "$PSScriptRoot/config/git/Invoke-MergeBranches.mocks.psm1" -Force
+        Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.mocks.psm1"
         Initialize-QuietMergeBranches
     }
 

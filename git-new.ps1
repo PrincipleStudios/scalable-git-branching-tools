@@ -17,7 +17,7 @@ $parentBranches = [String[]]($parentBranches -eq $nil ? @() : (Split-String $par
 . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
 . $PSScriptRoot/config/git/Invoke-CreateBranch.ps1
 . $PSScriptRoot/config/git/Invoke-CheckoutBranch.ps1
-Import-Module "$PSScriptRoot/config/git/Invoke-MergeBranches.psm1";
+Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.psm1";
 . $PSScriptRoot/config/git/Invoke-PreserveBranch.ps1
 . $PSScriptRoot/config/git/Set-GitFiles.ps1
 

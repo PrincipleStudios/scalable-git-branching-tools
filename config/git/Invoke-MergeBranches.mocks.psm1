@@ -1,5 +1,5 @@
-Import-Module "$PSScriptRoot/Invoke-MergeBranches.psm1"
-Import-Module "$PSScriptRoot/../core/Invoke-VerifyMock.psm1" -Force
+Import-Module -Scope Local "$PSScriptRoot/Invoke-MergeBranches.psm1"
+Import-Module -Scope Local "$PSScriptRoot/../core/Invoke-VerifyMock.psm1"
 
 $abortFilter = New-VerifiableMock `
     -ModuleName Invoke-MergeBranches `

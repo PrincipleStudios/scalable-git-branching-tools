@@ -38,9 +38,9 @@ BeforeAll {
 
 Describe 'git-add-upstream' {
     BeforeAll {
-        Import-Module "$PSScriptRoot/config/git/Invoke-MergeBranches.mocks.psm1" -Force
+        Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.mocks.psm1"
         Initialize-QuietMergeBranches
-        Import-Module "$PSScriptRoot/config/core/Invoke-VerifyMock.psm1" -Force
+        Import-Module -Scope Local "$PSScriptRoot/config/core/Invoke-VerifyMock.psm1"
     }
 
     It 'works on the current branch' {
