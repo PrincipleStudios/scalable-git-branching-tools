@@ -21,7 +21,7 @@ $branches = [String[]]($branches -eq $nil ? @() : (Split-String $branches))
 . $PSScriptRoot/config/git/Invoke-PreserveBranch.ps1
 . $PSScriptRoot/config/git/Invoke-CreateBranch.ps1
 . $PSScriptRoot/config/git/Invoke-CheckoutBranch.ps1
-. $PSScriptRoot/config/git/Invoke-MergeBranches.ps1
+Import-Module "$PSScriptRoot/config/git/Invoke-MergeBranches.psm1";
 . $PSScriptRoot/config/git/Set-UpstreamBranches.ps1
 
 $config = Get-Configuration

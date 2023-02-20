@@ -9,7 +9,7 @@ Param(
 . $PSScriptRoot/config/git/Get-CurrentBranch.ps1
 . $PSScriptRoot/config/git/Select-UpstreamBranches.ps1
 . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
-. $PSScriptRoot/config/git/Invoke-MergeBranches.ps1
+Import-Module "$PSScriptRoot/config/git/Invoke-MergeBranches.psm1";
 
 $config = Get-Configuration
 

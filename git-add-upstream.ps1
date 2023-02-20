@@ -17,7 +17,7 @@ $branches = [String[]]($branches -eq $nil ? @() : (Split-String $branches))
 . $PSScriptRoot/config/git/Update-Git.ps1
 . $PSScriptRoot/config/git/Get-UpstreamBranch.ps1
 . $PSScriptRoot/config/git/Select-UpstreamBranches.ps1
-. $PSScriptRoot/config/git/Invoke-MergeBranches.ps1
+Import-Module "$PSScriptRoot/config/git/Invoke-MergeBranches.psm1";
 . $PSScriptRoot/config/git/Set-GitFiles.ps1
 . $PSScriptRoot/config/git/Invoke-PreserveBranch.ps1
 . $PSScriptRoot/config/git/Get-CurrentBranch.ps1
@@ -52,13 +52,11 @@ $result = Invoke-PreserveBranch {
     Assert-CleanWorkingDirectory
 
     $mergeResult = Invoke-MergeBranches ($config.remote -eq $nil ? $addedBranches : ($addedBranches | ForEach-Object { "$($config.remote)/$($_)" }))
-    if ($mergeResult -is [InvalidMergeResult]) {
-        Write-Host "Not all branches requested could be merged automatically. Please use the following commands to add it manually to your branch and then re-run ``git add-upstream``:"
-        Write-Host "    git merge $($mergeResult.branch)"
+    if (-not $mergeResult.isValid) {
+        Write-Host -ForegroundColor yellow "Not all branches requested could be merged automatically. Please use the following commands to add it manually to your branch and then re-run ``git add-upstream``:"
+        Write-Host -ForegroundColor yellow "    git merge $($mergeResult.branch)"
 
         return New-Object ResultWithCleanup $false
-    } elseif (-not ($mergeResult -is [SuccessfulMergeResult])) {
-        throw "$mergeResult was not an expected result type, got $($mergeResult.GetType().FullName)"
     }
 
     $upstreamCommitish = Set-GitFiles @{ $branchName = ($finalBranches -join "`n") } -m $commitMessage -branchName $config.upstreamBranch -remote $config.remote -dryRun

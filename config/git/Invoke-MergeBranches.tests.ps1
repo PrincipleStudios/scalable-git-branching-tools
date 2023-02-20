@@ -1,56 +1,52 @@
+using module "./Invoke-MergeBranches.psm1"
 
 Describe 'Invoke-MergeBranches' {
-    BeforeEach {
-        . $PSScriptRoot/Invoke-MergeBranches.ps1
-
-        $foo1Filter = { ($args -join ' ') -eq 'merge feature/FOO-1 --quiet --commit --no-edit --no-squash' }
-        $foo2Filter = { ($args -join ' ') -eq 'merge feature/FOO-2 --quiet --commit --no-edit --no-squash' }
-        $foo3Filter = { ($args -join ' ') -eq 'merge feature/FOO-3 --quiet --commit --no-edit --no-squash' }
-        $abortFilter = { ($args -join ' ') -eq 'merge --abort' }
+    BeforeAll {
+        Import-Module "$PSScriptRoot/Invoke-MergeBranches.psm1" -Force
+        Import-Module "$PSScriptRoot/Invoke-MergeBranches.mocks.psm1" -Force
+        Import-Module "$PSScriptRoot/../core/Invoke-VerifyMock.psm1" -Force
+        Initialize-QuietMergeBranches
     }
 
     It 'throws and aborts midway if exit code is non-zero' {
-        Mock git -ParameterFilter $foo1Filter { $Global:LASTEXITCODE = 0 } -Verifiable
-        Mock git -ParameterFilter $foo2Filter { $Global:LASTEXITCODE = 1 } -Verifiable
-        Mock git -ParameterFilter $foo3Filter { $Global:LASTEXITCODE = 0 } -Verifiable
-        Mock git -ParameterFilter $abortFilter { $Global:LASTEXITCODE = 0 } -Verifiable
+        $foo1 = Initialize-InvokeMergeSuccess 'feature/FOO-1'
+        $foo2 = Initialize-InvokeMergeFailure 'feature/FOO-2'
+        $foo3 = Initialize-InvokeMergeSuccess 'feature/FOO-3'
 
         $result = Invoke-MergeBranches @('feature/FOO-1', 'feature/FOO-2', 'feature/FOO-3')  -quiet
-        $result -is [InvalidMergeResult] | Should -Be $true
+        $result.isValid | Should -Be $false
         $result.branch | Should -Be 'feature/FOO-2'
-        { $result.ThrowIfInvalid() } | Should -Throw
-        Should -Invoke -CommandName git -Times 1 -ParameterFilter $foo1Filter
-        Should -Invoke -CommandName git -Times 1 -ParameterFilter $foo2Filter
-        Should -Invoke -CommandName git -Times 0 -ParameterFilter $foo3Filter
-        Should -Invoke -CommandName git -Times 1 -ParameterFilter $abortFilter
+        { $result.ThrowIfInvalid() } | Should -Throw "Could not complete the merge."
+        Invoke-VerifyMock $foo1 -Times 1
+        Invoke-VerifyMock $foo2 -Times 1
+        Invoke-VerifyMock $foo3 -Times 0
+        Invoke-VerifyMock $(Get-MergeAbortFilter) -Times 1
     }
     It 'throws midway if exit code is non-zero but leaves the merge half-completed when -noAbort is passed' {
-        Mock git -ParameterFilter $foo1Filter { $Global:LASTEXITCODE = 0 } -Verifiable
-        Mock git -ParameterFilter $foo2Filter { $Global:LASTEXITCODE = 1 } -Verifiable
-        Mock git -ParameterFilter $foo3Filter { $Global:LASTEXITCODE = 0 } -Verifiable
-        Mock git -ParameterFilter $abortFilter { $Global:LASTEXITCODE = 0 } -Verifiable
+        $foo1 = Initialize-InvokeMergeSuccess 'feature/FOO-1'
+        $foo2 = Initialize-InvokeMergeFailure 'feature/FOO-2'
+        $foo3 = Initialize-InvokeMergeSuccess 'feature/FOO-3' -noAbort
 
         $result = Invoke-MergeBranches @('feature/FOO-1', 'feature/FOO-2', 'feature/FOO-3') -noAbort  -quiet
-        $result -is [InvalidMergeResult] | Should -Be $true
+        $result.isValid | Should -Be $false
         $result.branch | Should -Be 'feature/FOO-2'
-        { $result.ThrowIfInvalid() } | Should -Throw
-        Should -Invoke -CommandName git -Times 1 -ParameterFilter $foo1Filter
-        Should -Invoke -CommandName git -Times 1 -ParameterFilter $foo2Filter
-        Should -Invoke -CommandName git -Times 0 -ParameterFilter $foo3Filter
-        Should -Invoke -CommandName git -Times 0 -ParameterFilter $abortFilter
+        { $result.ThrowIfInvalid() } | Should -Throw "Could not complete the merge."
+        Invoke-VerifyMock $foo1 -Times 1
+        Invoke-VerifyMock $foo2 -Times 1
+        Invoke-VerifyMock $foo3 -Times 0
+        Invoke-VerifyMock $(Get-MergeAbortFilter) -Times 0
     }
     It 'does not throw or abort if exit code is zero' {
-        Mock git -ParameterFilter $foo1Filter { $Global:LASTEXITCODE = 0 } -Verifiable
-        Mock git -ParameterFilter $foo2Filter { $Global:LASTEXITCODE = 0 } -Verifiable
-        Mock git -ParameterFilter $foo3Filter { $Global:LASTEXITCODE = 0 } -Verifiable
-        Mock git -ParameterFilter $abortFilter { $Global:LASTEXITCODE = 0 } -Verifiable
+        $foo1 = Initialize-InvokeMergeSuccess 'feature/FOO-1'
+        $foo2 = Initialize-InvokeMergeSuccess 'feature/FOO-2'
+        $foo3 = Initialize-InvokeMergeSuccess 'feature/FOO-3'
 
         $result = Invoke-MergeBranches @('feature/FOO-1', 'feature/FOO-2', 'feature/FOO-3') -quiet
-        $result -is [SuccessfulMergeResult] | Should -Be $true
+        $result.isValid | Should -Be $true
         { $result.ThrowIfInvalid() } | Should -Not -Throw
-        Should -Invoke -CommandName git -Times 1 -ParameterFilter $foo1Filter
-        Should -Invoke -CommandName git -Times 1 -ParameterFilter $foo2Filter
-        Should -Invoke -CommandName git -Times 1 -ParameterFilter $foo3Filter
-        Should -Invoke -CommandName git -Times 0 -ParameterFilter $abortFilter
+        Invoke-VerifyMock $foo1 -Times 1
+        Invoke-VerifyMock $foo2 -Times 1
+        Invoke-VerifyMock $foo3 -Times 1
+        Invoke-VerifyMock $(Get-MergeAbortFilter) -Times 0
     }
 }
