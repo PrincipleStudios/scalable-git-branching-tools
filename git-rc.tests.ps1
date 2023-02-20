@@ -30,7 +30,7 @@ BeforeAll {
         @{ remote = $nil; branch='rc/2022-07-14' }
         @{ remote = $nil; branch='integrate/FOO-125_XYZ-1' }
     )
-    
+
     $defaultBranches = @(
         @{ remote = 'origin'; branch='feature/FOO-123' }
         @{ remote = 'origin'; branch='feature/FOO-124-comment' }
@@ -45,16 +45,21 @@ BeforeAll {
 
 
 Describe 'git-rc' {
+    BeforeAll {
+        Import-Module "$PSScriptRoot/config/git/Invoke-MergeBranches.mocks.psm1" -Force
+        Initialize-QuietMergeBranches
+    }
+
     It 'handles standard functionality' {
         . $PSScriptRoot/config/git/Get-Configuration.ps1
         Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream'; defaultServiceLine = $nil } }
-        
+
         . $PSScriptRoot/config/git/Update-Git.ps1
         Mock -CommandName Update-Git { }
-        
+
         . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
         Mock -CommandName Assert-CleanWorkingDirectory { }
-        
+
         . $PSScriptRoot/config/git/Select-Branches.ps1
         Mock -CommandName Select-Branches { return $defaultBranches }
 
@@ -62,10 +67,10 @@ Describe 'git-rc' {
             $global:LASTEXITCODE = 0;
         }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout rc/2022-07-28 --quiet' } { $Global:LASTEXITCODE = 0 }
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'merge origin/feature/FOO-124-comment --quiet --commit --no-edit --no-squash' } {}
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'merge origin/integrate/FOO-125_XYZ-1 --quiet --commit --no-edit --no-squash' } {}
+        Initialize-InvokeMergeSuccess 'origin/feature/FOO-124-comment'
+        Initialize-InvokeMergeSuccess 'origin/integrate/FOO-125_XYZ-1'
         . $PSScriptRoot/config/git/Set-UpstreamBranches.ps1
-        Mock -CommandName Set-UpstreamBranches -ParameterFilter { 
+        Mock -CommandName Set-UpstreamBranches -ParameterFilter {
             $branchName -eq 'rc/2022-07-28' `
                 -AND ($upstreamBranches -join ' ') -eq 'feature/FOO-123 feature/FOO-124-comment integrate/FOO-125_XYZ-1'
         } {}
@@ -74,17 +79,17 @@ Describe 'git-rc' {
 
         & $PSScriptRoot/git-rc.ps1 -branches feature/FOO-123,feature/FOO-124-comment,integrate/FOO-125_XYZ-1 -m 'New RC' -branchName 'rc/2022-07-28'
     }
-    
+
     It 'handles no remote' {
         . $PSScriptRoot/config/git/Get-Configuration.ps1
         Mock -CommandName Get-Configuration { return @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = $nil } }
-        
+
         . $PSScriptRoot/config/git/Update-Git.ps1
         Mock -CommandName Update-Git { }
-        
+
         . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
         Mock -CommandName Assert-CleanWorkingDirectory { }
-        
+
         . $PSScriptRoot/config/git/Select-Branches.ps1
         Mock -CommandName Select-Branches { return $noRemoteBranches }
 
@@ -92,27 +97,27 @@ Describe 'git-rc' {
             $global:LASTEXITCODE = 0;
         }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout rc/2022-07-28 --quiet' } { $Global:LASTEXITCODE = 0 }
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'merge feature/FOO-124-comment --quiet --commit --no-edit --no-squash' } {}
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'merge integrate/FOO-125_XYZ-1 --quiet --commit --no-edit --no-squash' } {}
+        Initialize-InvokeMergeSuccess 'feature/FOO-124-comment'
+        Initialize-InvokeMergeSuccess 'integrate/FOO-125_XYZ-1'
         . $PSScriptRoot/config/git/Set-UpstreamBranches.ps1
-        Mock -CommandName Set-UpstreamBranches -ParameterFilter { 
+        Mock -CommandName Set-UpstreamBranches -ParameterFilter {
             $branchName -eq 'rc/2022-07-28' `
                 -AND ($upstreamBranches -join ' ') -eq 'feature/FOO-123 feature/FOO-124-comment integrate/FOO-125_XYZ-1'
         } {}
 
         & $PSScriptRoot/git-rc.ps1 -branches feature/FOO-123,feature/FOO-124-comment,integrate/FOO-125_XYZ-1 -m 'New RC' -branchName 'rc/2022-07-28'
     }
-    
+
     It 'does not push if there is a failure while merging' {
         . $PSScriptRoot/config/git/Get-Configuration.ps1
         Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream'; defaultServiceLine = $nil } }
-        
+
         . $PSScriptRoot/config/git/Update-Git.ps1
         Mock -CommandName Update-Git { }
-        
+
         . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
         Mock -CommandName Assert-CleanWorkingDirectory { }
-        
+
         . $PSScriptRoot/config/git/Select-Branches.ps1
         Mock -CommandName Select-Branches { return $defaultBranches }
 
@@ -120,22 +125,22 @@ Describe 'git-rc' {
             $global:LASTEXITCODE = 0;
         }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout rc/2022-07-28 --quiet' } { $Global:LASTEXITCODE = 0 }
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'merge origin/feature/FOO-124-comment --quiet --commit --no-edit --no-squash' } { $Global:LASTEXITCODE = 1 }
+        Initialize-InvokeMergeFailure 'origin/feature/FOO-124-comment'
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -D rc/2022-07-28' } { $Global:LASTEXITCODE = 0 }
 
         { & $PSScriptRoot/git-rc.ps1 -branches feature/FOO-123,feature/FOO-124-comment,integrate/FOO-125_XYZ-1 -m 'New RC' -branchName 'rc/2022-07-28' } | Should -Throw
     }
-    
+
     It 'can skip the initial fetch' {
         . $PSScriptRoot/config/git/Get-Configuration.ps1
         Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream'; defaultServiceLine = $nil } }
-        
+
         . $PSScriptRoot/config/git/Update-Git.ps1
         Mock -CommandName Update-Git { throw 'should not call Update-Git' }
-        
+
         . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
         Mock -CommandName Assert-CleanWorkingDirectory { }
-        
+
         . $PSScriptRoot/config/git/Select-Branches.ps1
         Mock -CommandName Select-Branches { return $defaultBranches }
 
@@ -143,10 +148,10 @@ Describe 'git-rc' {
             $global:LASTEXITCODE = 0;
         }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout rc/2022-07-28 --quiet' } { $Global:LASTEXITCODE = 0 }
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'merge origin/feature/FOO-124-comment --quiet --commit --no-edit --no-squash' } {}
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'merge origin/integrate/FOO-125_XYZ-1 --quiet --commit --no-edit --no-squash' } {}
+        Initialize-InvokeMergeSuccess 'origin/feature/FOO-124-comment'
+        Initialize-InvokeMergeSuccess 'origin/integrate/FOO-125_XYZ-1'
         . $PSScriptRoot/config/git/Set-UpstreamBranches.ps1
-        Mock -CommandName Set-UpstreamBranches -ParameterFilter { 
+        Mock -CommandName Set-UpstreamBranches -ParameterFilter {
             $branchName -eq 'rc/2022-07-28' `
                 -AND ($upstreamBranches -join ' ') -eq 'feature/FOO-123 feature/FOO-124-comment integrate/FOO-125_XYZ-1'
         } {}
@@ -155,5 +160,5 @@ Describe 'git-rc' {
 
         & $PSScriptRoot/git-rc.ps1 -branches feature/FOO-123,feature/FOO-124-comment,integrate/FOO-125_XYZ-1 -m 'New RC' -branchName 'rc/2022-07-28' -noFetch
     }
-    
+
 }

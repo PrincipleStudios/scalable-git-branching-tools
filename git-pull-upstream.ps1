@@ -9,7 +9,7 @@ Param(
 . $PSScriptRoot/config/git/Get-CurrentBranch.ps1
 . $PSScriptRoot/config/git/Select-UpstreamBranches.ps1
 . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
-. $PSScriptRoot/config/git/Invoke-MergeBranches.ps1
+Import-Module "$PSScriptRoot/config/git/Invoke-MergeBranches.psm1";
 
 $config = Get-Configuration
 
@@ -23,5 +23,5 @@ if ($branchName -eq $nil) {
 $parentBranches = [String[]](Select-UpstreamBranches $branchName -includeRemote -config $config)
 
 Assert-CleanWorkingDirectory
-Invoke-MergeBranches ($parentBranches) -noAbort
+$(Invoke-MergeBranches ($parentBranches) -noAbort).ThrowIfInvalid()
 # TODO: If conflicts are detected, recommend an integration branch
