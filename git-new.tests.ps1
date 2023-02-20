@@ -25,6 +25,7 @@ BeforeAll {
 Describe 'git-new' {
     BeforeAll {
         Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.mocks.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-CleanWorkingDirectory.mocks.psm1"
         Initialize-QuietMergeBranches
     }
 
@@ -32,6 +33,7 @@ Describe 'git-new' {
         . $PSScriptRoot/config/git/Get-Configuration.ps1
 
         Mock -CommandName Get-Configuration { return @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = 'main' } }
+        Initialize-CleanWorkingDirectory
 
         # Mock git -ParameterFilter { ($args -join ' ') -eq 'config scaled-git.remote' } {}
         # Mock git -ParameterFilter { ($args -join ' ') -eq 'remote' } {}
@@ -56,7 +58,6 @@ Describe 'git-new' {
 
     It 'creates a local branch when no remotes are configured' {
         . $PSScriptRoot/config/git/Get-Configuration.ps1
-        . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
         . $PSScriptRoot/config/git/Invoke-CreateBranch.ps1
         . $PSScriptRoot/config/git/Invoke-CheckoutBranch.ps1
 
@@ -64,7 +65,7 @@ Describe 'git-new' {
         Mock -CommandName Set-GitFiles -ParameterFilter {
             $files['feature/PS-100-some-work'] -eq 'main'
         } { 'new-commit' }
-        Mock -CommandName Assert-CleanWorkingDirectory {}
+        Initialize-CleanWorkingDirectory
         Mock -CommandName Invoke-CreateBranch -ParameterFilter {
             $branchName -eq 'feature/PS-100-some-work' `
                 -AND $source -eq 'main'
@@ -79,7 +80,6 @@ Describe 'git-new' {
 
     It 'creates a local branch from the specified branch when no remotes are configured' {
         . $PSScriptRoot/config/git/Get-Configuration.ps1
-        . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
         . $PSScriptRoot/config/git/Invoke-CreateBranch.ps1
         . $PSScriptRoot/config/git/Invoke-CheckoutBranch.ps1
 
@@ -87,7 +87,7 @@ Describe 'git-new' {
         Mock -CommandName Set-GitFiles -ParameterFilter {
             $files['feature/PS-600-some-work'] -eq 'infra/foo'
         } { 'new-commit' }
-        Mock -CommandName Assert-CleanWorkingDirectory {}
+        Initialize-CleanWorkingDirectory
         Mock -CommandName Invoke-CreateBranch -ParameterFilter {
             $branchName -eq 'feature/PS-600-some-work' `
                 -AND $source -eq 'infra/foo'
@@ -103,7 +103,6 @@ Describe 'git-new' {
     It 'creates a remote branch when a remote is configured' {
         . $PSScriptRoot/config/git/Get-Configuration.ps1
         . $PSScriptRoot/config/git/Update-Git.ps1
-        . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
         . $PSScriptRoot/config/git/Invoke-CreateBranch.ps1
         . $PSScriptRoot/config/git/Invoke-CheckoutBranch.ps1
 
@@ -112,7 +111,7 @@ Describe 'git-new' {
         Mock -CommandName Set-GitFiles -ParameterFilter {
             $files['feature/PS-100-some-work'] -eq 'main'
         } { 'new-commit' }
-        Mock -CommandName Assert-CleanWorkingDirectory {}
+        Initialize-CleanWorkingDirectory
         Mock -CommandName Invoke-CreateBranch -ParameterFilter {
             $branchName -eq 'feature/PS-100-some-work' `
                 -AND $source -eq 'origin/main'
@@ -128,7 +127,6 @@ Describe 'git-new' {
     It 'creates a remote branch when a remote is configured and an upstream branch is provided' {
         . $PSScriptRoot/config/git/Get-Configuration.ps1
         . $PSScriptRoot/config/git/Update-Git.ps1
-        . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
         . $PSScriptRoot/config/git/Invoke-CreateBranch.ps1
         . $PSScriptRoot/config/git/Invoke-CheckoutBranch.ps1
 
@@ -137,7 +135,7 @@ Describe 'git-new' {
         Mock -CommandName Set-GitFiles -ParameterFilter {
             $files['feature/PS-100-some-work'] -eq 'infra/foo'
         } { 'new-commit' }
-        Mock -CommandName Assert-CleanWorkingDirectory {}
+        Initialize-CleanWorkingDirectory
         Mock -CommandName Invoke-CreateBranch -ParameterFilter {
             $branchName -eq 'feature/PS-100-some-work' `
                 -AND $source -eq 'origin/infra/foo'

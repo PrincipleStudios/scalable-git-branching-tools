@@ -16,7 +16,7 @@ $branches = [String[]]($branches -eq $nil ? @() : (Split-String $branches))
 . $PSScriptRoot/config/branch-utils/ConvertTo-BranchName.ps1
 . $PSScriptRoot/config/git/Get-Configuration.ps1
 . $PSScriptRoot/config/git/Update-Git.ps1
-. $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
+Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-CleanWorkingDirectory.psm1"
 . $PSScriptRoot/config/git/Select-Branches.ps1
 . $PSScriptRoot/config/git/Invoke-PreserveBranch.ps1
 . $PSScriptRoot/config/git/Invoke-CreateBranch.ps1

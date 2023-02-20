@@ -38,6 +38,7 @@ BeforeAll {
 
 Describe 'git-add-upstream' {
     BeforeAll {
+        Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-CleanWorkingDirectory.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.mocks.psm1"
         Initialize-QuietMergeBranches
         Import-Module -Scope Local "$PSScriptRoot/config/core/Invoke-VerifyMock.psm1"
@@ -47,9 +48,7 @@ Describe 'git-add-upstream' {
         . $PSScriptRoot/config/git/Get-Configuration.ps1
         Mock -CommandName Get-Configuration { return @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = 'main' } }
 
-        . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
-        Mock -CommandName Assert-CleanWorkingDirectory { }
-
+        Initialize-CleanWorkingDirectory
 
         Mock git -ParameterFilter {($args -join ' ') -eq 'branch --show-current'} {
             'rc/2022-07-14'
@@ -77,8 +76,7 @@ Describe 'git-add-upstream' {
         . $PSScriptRoot/config/git/Get-Configuration.ps1
         Mock -CommandName Get-Configuration { return @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = 'main' } }
 
-        . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
-        Mock -CommandName Assert-CleanWorkingDirectory { }
+        Initialize-CleanWorkingDirectory
 
         Mock git -ParameterFilter {($args -join ' ') -eq 'branch --show-current'} {
             'rc/2022-07-14'
@@ -110,8 +108,7 @@ Describe 'git-add-upstream' {
         . $PSScriptRoot/config/git/Get-Configuration.ps1
         Mock -CommandName Get-Configuration { return @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = 'main' } }
 
-        . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
-        Mock -CommandName Assert-CleanWorkingDirectory { }
+        Initialize-CleanWorkingDirectory
 
         Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p _upstream:rc/2022-07-14'} {
             "feature/FOO-123"
@@ -135,8 +132,7 @@ Describe 'git-add-upstream' {
         . $PSScriptRoot/config/git/Get-Configuration.ps1
         Mock -CommandName Get-Configuration { return @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = 'main' } }
 
-        . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
-        Mock -CommandName Assert-CleanWorkingDirectory { }
+        Initialize-CleanWorkingDirectory
 
         Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p _upstream:rc/2022-07-14'} {
             "feature/FOO-123"
@@ -167,8 +163,7 @@ Describe 'git-add-upstream' {
         . $PSScriptRoot/config/git/Get-Configuration.ps1
         Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream'; defaultServiceLine = 'main'; atomicPushEnabled = $true } }
 
-        . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
-        Mock -CommandName Assert-CleanWorkingDirectory { }
+        Initialize-CleanWorkingDirectory
 
         Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p origin/_upstream:rc/2022-07-14'} {
             "feature/FOO-123"
@@ -192,8 +187,7 @@ Describe 'git-add-upstream' {
         . $PSScriptRoot/config/git/Get-Configuration.ps1
         Mock -CommandName Get-Configuration { return @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = 'main' } }
 
-        . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
-        Mock -CommandName Assert-CleanWorkingDirectory { }
+        Initialize-CleanWorkingDirectory
 
 
         Mock git -ParameterFilter {($args -join ' ') -eq 'branch --show-current'} {

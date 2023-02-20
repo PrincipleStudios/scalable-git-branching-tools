@@ -8,7 +8,7 @@ Param(
 . $PSScriptRoot/config/git/Update-Git.ps1
 . $PSScriptRoot/config/git/Get-CurrentBranch.ps1
 . $PSScriptRoot/config/git/Select-UpstreamBranches.ps1
-. $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
+Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-CleanWorkingDirectory.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.psm1";
 
 $config = Get-Configuration

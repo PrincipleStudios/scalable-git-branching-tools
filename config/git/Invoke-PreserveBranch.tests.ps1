@@ -11,9 +11,9 @@ Describe 'Invoke-PreserveBranch' {
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch --show-current' } { 'my-custom-branch' }
 
-        . $PSScriptRoot/Assert-CleanWorkingDirectory.ps1
-        Mock -CommandName Assert-CleanWorkingDirectory { }
+        Import-Module -Scope Local "$PSScriptRoot/Assert-CleanWorkingDirectory.mocks.psm1"
 
+        Initialize-CleanWorkingDirectory
     }
 
     It 'by default checks out the previous branch' {

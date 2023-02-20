@@ -47,6 +47,7 @@ BeforeAll {
 Describe 'git-rc' {
     BeforeAll {
         Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.mocks.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-CleanWorkingDirectory.mocks.psm1"
         Initialize-QuietMergeBranches
     }
 
@@ -57,8 +58,7 @@ Describe 'git-rc' {
         . $PSScriptRoot/config/git/Update-Git.ps1
         Mock -CommandName Update-Git { }
 
-        . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
-        Mock -CommandName Assert-CleanWorkingDirectory { }
+        Initialize-CleanWorkingDirectory
 
         . $PSScriptRoot/config/git/Select-Branches.ps1
         Mock -CommandName Select-Branches { return $defaultBranches }
@@ -87,8 +87,7 @@ Describe 'git-rc' {
         . $PSScriptRoot/config/git/Update-Git.ps1
         Mock -CommandName Update-Git { }
 
-        . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
-        Mock -CommandName Assert-CleanWorkingDirectory { }
+        Initialize-CleanWorkingDirectory
 
         . $PSScriptRoot/config/git/Select-Branches.ps1
         Mock -CommandName Select-Branches { return $noRemoteBranches }
@@ -115,8 +114,7 @@ Describe 'git-rc' {
         . $PSScriptRoot/config/git/Update-Git.ps1
         Mock -CommandName Update-Git { }
 
-        . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
-        Mock -CommandName Assert-CleanWorkingDirectory { }
+        Initialize-CleanWorkingDirectory
 
         . $PSScriptRoot/config/git/Select-Branches.ps1
         Mock -CommandName Select-Branches { return $defaultBranches }
@@ -138,8 +136,7 @@ Describe 'git-rc' {
         . $PSScriptRoot/config/git/Update-Git.ps1
         Mock -CommandName Update-Git { throw 'should not call Update-Git' }
 
-        . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
-        Mock -CommandName Assert-CleanWorkingDirectory { }
+        Initialize-CleanWorkingDirectory
 
         . $PSScriptRoot/config/git/Select-Branches.ps1
         Mock -CommandName Select-Branches { return $defaultBranches }

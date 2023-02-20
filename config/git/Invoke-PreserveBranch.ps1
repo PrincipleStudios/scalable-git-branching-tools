@@ -1,4 +1,4 @@
-. $PSScriptRoot/Assert-CleanWorkingDirectory.ps1
+Import-Module -Scope Local "$PSScriptRoot/Assert-CleanWorkingDirectory.psm1"
 
 class ResultWithCleanup {
     [object] $result
