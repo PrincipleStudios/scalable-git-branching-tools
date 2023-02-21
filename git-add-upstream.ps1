@@ -20,7 +20,7 @@ Import-Module -Scope Local "$PSScriptRoot/config/git/Get-UpstreamBranch.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CheckoutBranch.psm1"
 . $PSScriptRoot/config/git/Set-GitFiles.ps1
-. $PSScriptRoot/config/git/Invoke-PreserveBranch.ps1
+Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Get-CurrentBranch.psm1"
 
 $config = Get-Configuration

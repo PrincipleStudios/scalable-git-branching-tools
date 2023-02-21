@@ -40,7 +40,7 @@ function Invoke-PreserveBranch([ScriptBlock]$scriptBlock, [ScriptBlock]$cleanup,
         throw;
     }
 
-    $resultIsResultWithCleanup = $result -ne $nil -AND $result.GetType().FullName -eq 'ResultWithCleanup'
+    $resultIsResultWithCleanup = $result -is [ResultWithCleanup]
 
     if (-not $onlyIfError -or $resultIsResultWithCleanup) {
         & $fullCleanup
@@ -52,3 +52,4 @@ function Invoke-PreserveBranch([ScriptBlock]$scriptBlock, [ScriptBlock]$cleanup,
 
     return $result
 }
+Export-ModuleMember -Function Invoke-PreserveBranch, New-ResultAfterCleanup

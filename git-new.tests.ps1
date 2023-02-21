@@ -1,6 +1,7 @@
 BeforeAll {
     . "$PSScriptRoot/config/core/Lock-Git.mocks.ps1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.mocks.psm1"
 
     # User-interface commands are a bit noisy; TODO: add quiet option and test it by making this throw
     Mock -CommandName Write-Host {}
@@ -11,7 +12,6 @@ BeforeAll {
         throw "Unexpected parameters for Set-GitFiles: $(@{ files = $files; commitMessage = $commitMessage; branchName = $branchName; remote = $remote; dryRun = $dryRun } | ConvertTo-Json)"
     }
 
-    . $PSScriptRoot/config/git/Invoke-PreserveBranch.ps1
     Mock -CommandName Invoke-PreserveBranch -ParameterFilter { $onlyIfError } {
         & $scriptBlock
     }
