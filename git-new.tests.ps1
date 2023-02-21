@@ -1,4 +1,5 @@
 BeforeAll {
+    Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.mocks.psm1"
     Mock git {
         throw "Unmocked git command: $args"
     }
@@ -30,9 +31,7 @@ Describe 'git-new' {
     }
 
     It 'handles standard functionality' {
-        . $PSScriptRoot/config/git/Get-Configuration.ps1
-
-        Mock -CommandName Get-Configuration { return @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = 'main' } }
+        Initialize-ToolConfiguration -noRemote
         Initialize-CleanWorkingDirectory
 
         # Mock git -ParameterFilter { ($args -join ' ') -eq 'config scaled-git.remote' } {}
@@ -57,11 +56,10 @@ Describe 'git-new' {
     }
 
     It 'creates a local branch when no remotes are configured' {
-        . $PSScriptRoot/config/git/Get-Configuration.ps1
+        Initialize-ToolConfiguration -noRemote
         . $PSScriptRoot/config/git/Invoke-CreateBranch.ps1
         . $PSScriptRoot/config/git/Invoke-CheckoutBranch.ps1
 
-        Mock -CommandName Get-Configuration { return @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = 'main' } }
         Mock -CommandName Set-GitFiles -ParameterFilter {
             $files['feature/PS-100-some-work'] -eq 'main'
         } { 'new-commit' }
@@ -79,11 +77,10 @@ Describe 'git-new' {
     }
 
     It 'creates a local branch from the specified branch when no remotes are configured' {
-        . $PSScriptRoot/config/git/Get-Configuration.ps1
         . $PSScriptRoot/config/git/Invoke-CreateBranch.ps1
         . $PSScriptRoot/config/git/Invoke-CheckoutBranch.ps1
 
-        Mock -CommandName Get-Configuration { return @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = $nil } }
+        Initialize-ToolConfiguration -noRemote
         Mock -CommandName Set-GitFiles -ParameterFilter {
             $files['feature/PS-600-some-work'] -eq 'infra/foo'
         } { 'new-commit' }
@@ -101,12 +98,11 @@ Describe 'git-new' {
     }
 
     It 'creates a remote branch when a remote is configured' {
-        . $PSScriptRoot/config/git/Get-Configuration.ps1
         . $PSScriptRoot/config/git/Update-Git.ps1
         . $PSScriptRoot/config/git/Invoke-CreateBranch.ps1
         . $PSScriptRoot/config/git/Invoke-CheckoutBranch.ps1
 
-        Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream'; defaultServiceLine = 'main'; atomicPushEnabled = $true } }
+        Initialize-ToolConfiguration
         Mock -CommandName Update-Git { }
         Mock -CommandName Set-GitFiles -ParameterFilter {
             $files['feature/PS-100-some-work'] -eq 'main'
@@ -125,12 +121,11 @@ Describe 'git-new' {
     }
 
     It 'creates a remote branch when a remote is configured and an upstream branch is provided' {
-        . $PSScriptRoot/config/git/Get-Configuration.ps1
         . $PSScriptRoot/config/git/Update-Git.ps1
         . $PSScriptRoot/config/git/Invoke-CreateBranch.ps1
         . $PSScriptRoot/config/git/Invoke-CheckoutBranch.ps1
 
-        Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream'; defaultServiceLine = $nil; atomicPushEnabled = $true } }
+        Initialize-ToolConfiguration
         Mock -CommandName Update-Git { }
         Mock -CommandName Set-GitFiles -ParameterFilter {
             $files['feature/PS-100-some-work'] -eq 'infra/foo'

@@ -6,7 +6,7 @@ function Get-Configuration() {
         remote = $remote
         upstreamBranch = Get-ConfiguredUpstreamBranch
         defaultServiceLine = Get-ConfiguredDefaultServiceLine -remote $remote
-		atomicPushEnabled = Get-ConfiguredAtomicPushEnabled
+        atomicPushEnabled = Get-ConfiguredAtomicPushEnabled
     }
 }
 
@@ -40,3 +40,5 @@ function Get-ConfiguredAtomicPushEnabled() {
 	if ($result -ne $nil) { return [bool]::Parse($result) }
 	return $true
 }
+
+Export-ModuleMember -Function Get-Configuration

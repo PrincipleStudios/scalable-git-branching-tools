@@ -1,4 +1,6 @@
 BeforeAll {
+    Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.mocks.psm1"
+
     Mock git {
         throw "Unmocked git command: $args"
     }
@@ -10,17 +12,15 @@ BeforeAll {
 
 Describe 'git-verify-updated' {
     It 'fails if no current branch and none provided' {
-        . $PSScriptRoot/config/git/Get-Configuration.ps1        
-        Mock -CommandName Get-Configuration { return @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = 'main' } }
+        Initialize-ToolConfiguration -noRemote
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch --show-current' } { $Global:LASTEXITCODE = 0 }
 
         { & $PSScriptRoot/git-verify-updated.ps1 } | Should -Throw
     }
-    
+
     It 'uses the default branch when none specified, without a remote' {
-        . $PSScriptRoot/config/git/Get-Configuration.ps1        
-        Mock -CommandName Get-Configuration { return @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = 'main' } }
+        Initialize-ToolConfiguration -noRemote
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch --show-current' } { 'feature/PS-2' }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify feature/PS-2' } { 'target-branch-hash' }
@@ -37,10 +37,9 @@ Describe 'git-verify-updated' {
 
         & $PSScriptRoot/git-verify-updated.ps1
     }
-    
+
     It 'uses the branch specified, without a remote' {
-        . $PSScriptRoot/config/git/Get-Configuration.ps1        
-        Mock -CommandName Get-Configuration { return @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = 'main' } }
+        Initialize-ToolConfiguration -noRemote
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify feature/PS-2' } { 'target-branch-hash' }
 
@@ -56,10 +55,9 @@ Describe 'git-verify-updated' {
 
         & $PSScriptRoot/git-verify-updated.ps1 -branchName feature/PS-2
     }
-    
+
     It 'throws when one branch is out of date' {
-        . $PSScriptRoot/config/git/Get-Configuration.ps1        
-        Mock -CommandName Get-Configuration { return @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = 'main' } }
+        Initialize-ToolConfiguration -noRemote
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify feature/PS-2' } { 'target-branch-hash' }
 
@@ -75,10 +73,9 @@ Describe 'git-verify-updated' {
 
         { & $PSScriptRoot/git-verify-updated.ps1 -branchName feature/PS-2 } | Should -Throw
     }
-    
+
     It 'uses the current branch if none specified, with a remote' {
-        . $PSScriptRoot/config/git/Get-Configuration.ps1        
-        Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream'; defaultServiceLine = 'main' } }
+        Initialize-ToolConfiguration
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'fetch origin -q' } { }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch --show-current' } { 'feature/PS-2' }
@@ -96,10 +93,9 @@ Describe 'git-verify-updated' {
 
         & $PSScriptRoot/git-verify-updated.ps1
     }
-    
+
     It 'uses the branch specified, with a remote' {
-        . $PSScriptRoot/config/git/Get-Configuration.ps1        
-        Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream'; defaultServiceLine = 'main' } }
+        Initialize-ToolConfiguration
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'fetch origin -q' } { }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify origin/feature/PS-2' } { 'target-branch-hash' }
@@ -116,10 +112,9 @@ Describe 'git-verify-updated' {
 
         & $PSScriptRoot/git-verify-updated.ps1 -branchName feature/PS-2
     }
-    
+
     It 'uses the branch specified, recursively, with a remote' {
-        . $PSScriptRoot/config/git/Get-Configuration.ps1        
-        Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream'; defaultServiceLine = 'main' } }
+        Initialize-ToolConfiguration
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'fetch origin -q' } { }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify origin/feature/PS-2' } { 'target-branch-hash' }
@@ -136,5 +131,5 @@ Describe 'git-verify-updated' {
 
         & $PSScriptRoot/git-verify-updated.ps1 -branchName feature/PS-2 -recurse
     }
-    
+
 }

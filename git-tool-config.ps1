@@ -8,7 +8,7 @@ Param(
 	[Switch] $disableAtomicPush
 )
 
-. $PSScriptRoot/config/git/Get-Configuration.ps1
+Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.psm1"
 
 $oldConfig = Get-Configuration
 

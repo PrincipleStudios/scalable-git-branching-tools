@@ -6,7 +6,7 @@ Param(
     [switch] $recurse
 )
 
-. $PSScriptRoot/config/git/Get-Configuration.ps1
+Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.psm1"
 . $PSScriptRoot/config/git/Update-Git.ps1
 . $PSScriptRoot/config/git/Select-UpstreamBranches.ps1
 . $PSScriptRoot/config/git/Get-CurrentBranch.ps1
@@ -19,7 +19,7 @@ if (-not $noFetch) {
 
 $noneSpecified = ($branchName -eq $nil -OR $branchName -eq '')
 $branchName = $noneSpecified ? (Get-CurrentBranch) : $branchName
-$fullBranchName = $noneSpecified -OR $config.remote -eq $nil ? $branchName 
+$fullBranchName = $noneSpecified -OR $config.remote -eq $nil ? $branchName
     : "$($config.remote)/$($branchName)"
 if ($fullBranchName -eq $nil) {
     throw "No branch specified"

@@ -39,15 +39,14 @@ BeforeAll {
 Describe 'git-add-upstream' {
     BeforeAll {
         Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-CleanWorkingDirectory.mocks.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.mocks.psm1"
         Initialize-QuietMergeBranches
         Import-Module -Scope Local "$PSScriptRoot/config/core/Invoke-VerifyMock.psm1"
     }
 
     It 'works on the current branch' {
-        . $PSScriptRoot/config/git/Get-Configuration.ps1
-        Mock -CommandName Get-Configuration { return @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = 'main' } }
-
+        Initialize-ToolConfiguration -noRemote
         Initialize-CleanWorkingDirectory
 
         Mock git -ParameterFilter {($args -join ' ') -eq 'branch --show-current'} {
@@ -73,9 +72,7 @@ Describe 'git-add-upstream' {
     }
 
     It 'works locally with multiple branches' {
-        . $PSScriptRoot/config/git/Get-Configuration.ps1
-        Mock -CommandName Get-Configuration { return @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = 'main' } }
-
+        Initialize-ToolConfiguration -noRemote
         Initialize-CleanWorkingDirectory
 
         Mock git -ParameterFilter {($args -join ' ') -eq 'branch --show-current'} {
@@ -105,9 +102,7 @@ Describe 'git-add-upstream' {
     }
 
     It 'works locally' {
-        . $PSScriptRoot/config/git/Get-Configuration.ps1
-        Mock -CommandName Get-Configuration { return @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = 'main' } }
-
+        Initialize-ToolConfiguration -noRemote
         Initialize-CleanWorkingDirectory
 
         Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p _upstream:rc/2022-07-14'} {
@@ -129,9 +124,7 @@ Describe 'git-add-upstream' {
     }
 
     It 'works locally with multiple branches' {
-        . $PSScriptRoot/config/git/Get-Configuration.ps1
-        Mock -CommandName Get-Configuration { return @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = 'main' } }
-
+        Initialize-ToolConfiguration -noRemote
         Initialize-CleanWorkingDirectory
 
         Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p _upstream:rc/2022-07-14'} {
@@ -160,9 +153,7 @@ Describe 'git-add-upstream' {
         Mock git -ParameterFilter { ($args -join ' ') -eq 'fetch origin -q' } { $Global:LASTEXITCODE = 0 }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'fetch origin _upstream' } { $Global:LASTEXITCODE = 0 }
 
-        . $PSScriptRoot/config/git/Get-Configuration.ps1
-        Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream'; defaultServiceLine = 'main'; atomicPushEnabled = $true } }
-
+        Initialize-ToolConfiguration
         Initialize-CleanWorkingDirectory
 
         Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p origin/_upstream:rc/2022-07-14'} {
@@ -184,9 +175,7 @@ Describe 'git-add-upstream' {
     }
 
     It 'outputs a helpful message if it fails' {
-        . $PSScriptRoot/config/git/Get-Configuration.ps1
-        Mock -CommandName Get-Configuration { return @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = 'main' } }
-
+        Initialize-ToolConfiguration -noRemote
         Initialize-CleanWorkingDirectory
 
 
@@ -203,19 +192,14 @@ Describe 'git-add-upstream' {
         Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout rc-old-commit --quiet' } { $Global:LASTEXITCODE = 0 }
         Initialize-InvokeMergeFailure 'feature/FOO-76'
 
-        $writeHostFilter = {
-            return $Object -ne $nil -and $Object[0] -match 'git merge feature/FOO-76'
-        }
-        Mock -CommandName Write-Host -ParameterFilter $writeHostFilter -Verifiable {}
-
-        $invokePreserveBranch.cleanupCounter = 0;
+        $invokePreserveBranch.cleanupCounter = 0
 
         $result = & ./git-add-upstream.ps1 'feature/FOO-76' -m ""
 
         $LASTEXITCODE | Should -Be 1
         $invokePreserveBranch.cleanupCounter | Should -Be 1
 
-        Should -Invoke -CommandName Write-Host -Times 1 -ParameterFilter $writeHostFilter
+        Should -Invoke -CommandName Write-Host -Times 1 -ParameterFilter { $Object -ne $nil -and $Object[0] -match 'git merge feature/FOO-76' }
     }
 
 }

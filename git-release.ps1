@@ -12,7 +12,7 @@ Param(
 
 . $PSScriptRoot/config/core/coalesce.ps1
 . $PSScriptRoot/config/core/ArrayToHash.ps1
-. $PSScriptRoot/config/git/Get-Configuration.ps1
+Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.psm1"
 . $PSScriptRoot/config/git/Update-Git.ps1
 . $PSScriptRoot/config/git/Select-UpstreamBranches.ps1
 . $PSScriptRoot/config/git/Get-GitFileNames.ps1
@@ -43,7 +43,7 @@ $allUpstream = Select-UpstreamBranches $branchName -config $config -recurse
 
 $upstreamCache = @($allUpstream, $allPreserve) | ForEach-Object { $_ } | ArrayToHash -getValue { Select-UpstreamBranches $_ -config $config -recurse }
 
-$preservedUpstream = [String[]]($allPreserve 
+$preservedUpstream = [String[]]($allPreserve
     | ForEach-Object { $_; $upstreamCache[$_] }
     | ForEach-Object { $_ }
     | Select-Object -uniq)
