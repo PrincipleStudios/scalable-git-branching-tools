@@ -1,18 +1,8 @@
-Import-Module -Scope Local "$PSScriptRoot/../core/Invoke-VerifyMock.psm1"
+Import-Module -Scope Local "$PSScriptRoot/../core/Invoke-MockGitModule.psm1"
 Import-Module -Scope Local "$PSScriptRoot/Assert-CleanWorkingDirectory.psm1"
 
-function Invoke-MockGit([string] $gitCli, [scriptblock] $MockWith) {
-    $result = New-VerifiableMock `
-        -ModuleName 'Assert-CleanWorkingDirectory' `
-        -CommandName git `
-        -ParameterFilter $([scriptblock]::Create("(`$args -join ' ') -eq '$gitCli'"))
-    Invoke-WrapMock $result -MockWith {
-            $global:LASTEXITCODE = 0
-            if ($MockWith -ne $nil) {
-                & $MockWith
-            }
-        }.GetNewClosure()
-    return $result
+function Invoke-MockGit([string] $gitCli, [object] $MockWith) {
+    return Invoke-MockGitModule -ModuleName 'Assert-CleanWorkingDirectory' @PSBoundParameters
 }
 
 function Initialize-CleanWorkingDirectory() {

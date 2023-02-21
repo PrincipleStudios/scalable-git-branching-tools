@@ -1,24 +1,14 @@
 BeforeAll {
     Import-Module -Scope Local "$PSScriptRoot/Get-Configuration.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/../core/Invoke-VerifyMock.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/../core/Invoke-MockGitModule.psm1"
     . $PSScriptRoot/../TestUtils.ps1
 
     Mock -ModuleName Get-Configuration git {
         throw "Unmocked git command: $args"
     }
 
-    function Invoke-MockGit([string] $gitCli, [scriptblock] $MockWith) {
-        $result = New-VerifiableMock `
-            -ModuleName 'Get-Configuration' `
-            -CommandName git `
-            -ParameterFilter $([scriptblock]::Create("(`$args -join ' ') -eq '$gitCli'"))
-        Invoke-WrapMock $result -MockWith {
-                $global:LASTEXITCODE = 0
-                if ($MockWith -ne $nil) {
-                    & $MockWith
-                }
-            }.GetNewClosure()
-        return $result
+    function Invoke-MockGit([string] $gitCli, [object] $MockWith) {
+        return Invoke-MockGitModule -ModuleName 'Get-Configuration' @PSBoundParameters
     }
 }
 
