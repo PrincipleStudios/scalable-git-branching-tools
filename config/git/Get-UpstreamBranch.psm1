@@ -12,3 +12,4 @@ function Get-UpstreamBranch(
 
     return $upstreamBranch
 }
+Export-ModuleMember -Function Get-UpstreamBranch

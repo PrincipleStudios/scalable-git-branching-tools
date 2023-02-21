@@ -1,4 +1,4 @@
-. $PSScriptRoot/Get-UpstreamBranch.ps1
+Import-Module -Scope Local "$PSScriptRoot/Get-UpstreamBranch.psm1"
 Import-Module -Scope Local "$PSScriptRoot/Get-GitFile.psm1"
 
 function Select-UpstreamBranches([String]$branchName, [switch] $includeRemote, [switch] $recurse, [string[]] $exclude, [Parameter(Mandatory)][PSObject] $config) {

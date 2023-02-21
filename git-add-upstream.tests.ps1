@@ -44,6 +44,7 @@ Describe 'git-add-upstream' {
         Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/config/core/Invoke-VerifyMock.psm1"
         Import-Module -Scope Local "$PSScriptRoot/config/git/Get-GitFile.mocks.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/config/git/Get-UpstreamBranch.mocks.psm1"
         Initialize-QuietMergeBranches
     }
 
@@ -131,9 +132,9 @@ Describe 'git-add-upstream' {
 
     It 'works with a remote' {
         Mock git -ParameterFilter { ($args -join ' ') -eq 'fetch origin -q' } { $Global:LASTEXITCODE = 0 }
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'fetch origin _upstream' } { $Global:LASTEXITCODE = 0 }
 
         Initialize-ToolConfiguration
+        Initialize-FetchUpstreamBranch
         Initialize-CleanWorkingDirectory
         Initialize-GitFile 'origin/_upstream' 'rc/2022-07-14' @("feature/FOO-123","feature/XYZ-1-services")
 
