@@ -1,4 +1,5 @@
 Import-Module -Scope Local "$PSScriptRoot/Assert-CleanWorkingDirectory.psm1"
+Import-Module -Scope Local "$PSScriptRoot/Get-CurrentBranch.psm1"
 
 class ResultWithCleanup {
     [object] $result
@@ -13,7 +14,7 @@ class ResultWithCleanup {
 
 function Invoke-PreserveBranch([ScriptBlock]$scriptBlock, [ScriptBlock]$cleanup, [switch]$noDefaultCleanup, [switch]$onlyIfError) {
     Assert-CleanWorkingDirectory
-    $prevHead = (git branch --show-current)
+    $prevHead = Get-CurrentBranch
     if ($prevHead -eq $nil) {
         $prevHead = (git rev-parse HEAD)
     }

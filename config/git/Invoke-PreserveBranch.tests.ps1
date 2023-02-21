@@ -9,11 +9,11 @@ Describe 'Invoke-PreserveBranch' {
             throw "Unmocked git command: $args"
         }
 
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch --show-current' } { 'my-custom-branch' }
-
         Import-Module -Scope Local "$PSScriptRoot/Assert-CleanWorkingDirectory.mocks.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/Get-CurrentBranch.mocks.psm1"
 
         Initialize-CleanWorkingDirectory
+        Initialize-CurrentBranch 'my-custom-branch'
     }
 
     It 'by default checks out the previous branch' {
@@ -86,8 +86,8 @@ Describe 'Invoke-PreserveBranch' {
     It 'checks out the original commitish on a failure' {
         function My-Func() { }
         Mock -CommandName My-Func -Verifiable { throw 'error' }
+        Initialize-NoCurrentBranch
 
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch --show-current' } { }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse HEAD' } { 'baadf00d' }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'reset --hard' } -Verifiable { }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout baadf00d' } -Verifiable { $Global:LASTEXITCODE = 0 }
@@ -105,7 +105,7 @@ Describe 'Invoke-PreserveBranch' {
         function My-Func2() { }
         Mock -CommandName My-Func2 -Verifiable { }
 
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch --show-current' } { }
+        Initialize-NoCurrentBranch
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse HEAD' } { 'baadf00d' }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'reset --hard' } -Verifiable { }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout baadf00d' } -Verifiable { $Global:LASTEXITCODE = 0 }
@@ -138,7 +138,7 @@ Describe 'Invoke-PreserveBranch' {
         function My-Func() { }
         Mock -CommandName My-Func -Verifiable { return New-Object ResultWithCleanup $expectedResult }
 
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch --show-current' } { }
+        Initialize-NoCurrentBranch
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse HEAD' } { 'baadf00d' }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'reset --hard' } -Verifiable { }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout baadf00d' } -Verifiable { $Global:LASTEXITCODE = 0 }

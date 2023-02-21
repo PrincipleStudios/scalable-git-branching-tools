@@ -1,5 +1,6 @@
 BeforeAll {
     Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/config/git/Get-CurrentBranch.mocks.psm1"
     Mock git {
         throw "Unmocked git command: $args"
     }
@@ -23,8 +24,7 @@ Describe 'git-show-upstream' {
 
     It 'shows the results of the current branch if none is specified' {
         Initialize-ToolConfiguration
-
-        Mock git -ParameterFilter {($args -join ' ') -eq 'branch --show-current'} { 'feature/FOO-123' }
+        Initialize-CurrentBranch 'feature/FOO-123'
 
         Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p origin/_upstream:feature/FOO-123'} {
             "main"
@@ -37,8 +37,7 @@ Describe 'git-show-upstream' {
 
     It 'shows recursive the results of the current branch if none is specified' {
         Initialize-ToolConfiguration
-
-        Mock git -ParameterFilter {($args -join ' ') -eq 'branch --show-current'} { 'feature/FOO-123' }
+        Initialize-CurrentBranch 'feature/FOO-123'
 
         Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p origin/_upstream:feature/FOO-123'} {
             "main"

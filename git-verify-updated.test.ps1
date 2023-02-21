@@ -13,16 +13,15 @@ BeforeAll {
 Describe 'git-verify-updated' {
     It 'fails if no current branch and none provided' {
         Initialize-ToolConfiguration -noRemote
-
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch --show-current' } { $Global:LASTEXITCODE = 0 }
+        Initialize-NoCurrentBranch
 
         { & $PSScriptRoot/git-verify-updated.ps1 } | Should -Throw
     }
 
     It 'uses the default branch when none specified, without a remote' {
         Initialize-ToolConfiguration -noRemote
+        Initialize-CurrentBranch 'feature/PS-2'
 
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch --show-current' } { 'feature/PS-2' }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify feature/PS-2' } { 'target-branch-hash' }
 
         . $PSScriptRoot/config/git/Select-UpstreamBranches.ps1
@@ -76,9 +75,9 @@ Describe 'git-verify-updated' {
 
     It 'uses the current branch if none specified, with a remote' {
         Initialize-ToolConfiguration
+        Initialize-CurrentBranch 'feature/PS-2'
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'fetch origin -q' } { }
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch --show-current' } { 'feature/PS-2' }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify feature/PS-2' } { 'target-branch-hash' }
 
         . $PSScriptRoot/config/git/Select-UpstreamBranches.ps1

@@ -7,7 +7,7 @@ Param(
 
 Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.psm1"
 . $PSScriptRoot/config/core/coalesce.ps1
-. $PSScriptRoot/config/git/Get-CurrentBranch.ps1
+Import-Module -Scope Local "$PSScriptRoot/config/git/Get-CurrentBranch.psm1"
 . $PSScriptRoot/config/git/Select-UpstreamBranches.ps1
 
 $config = Get-Configuration

@@ -6,7 +6,7 @@ Param(
 
 Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.psm1"
 . $PSScriptRoot/config/git/Update-Git.ps1
-. $PSScriptRoot/config/git/Get-CurrentBranch.ps1
+Import-Module -Scope Local "$PSScriptRoot/config/git/Get-CurrentBranch.psm1"
 . $PSScriptRoot/config/git/Select-UpstreamBranches.ps1
 Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-CleanWorkingDirectory.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.psm1";
