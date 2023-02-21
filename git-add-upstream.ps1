@@ -18,6 +18,7 @@ Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-CleanWorkingDirector
 Import-Module -Scope Local "$PSScriptRoot/config/git/Get-UpstreamBranch.psm1"
 . $PSScriptRoot/config/git/Select-UpstreamBranches.ps1
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CheckoutBranch.psm1"
 . $PSScriptRoot/config/git/Set-GitFiles.ps1
 . $PSScriptRoot/config/git/Invoke-PreserveBranch.ps1
 Import-Module -Scope Local "$PSScriptRoot/config/git/Get-CurrentBranch.psm1"
@@ -48,7 +49,7 @@ $commitMessage = Coalesce $commitMessage "Adding $($branches -join ',') to $bran
 $result = Invoke-PreserveBranch {
     $fullBranchName = $config.remote -eq $nil ? $branchName : "$($config.remote)/$($branchName)"
     $sha = git rev-parse --verify $fullBranchName -q 2> $nil
-    git checkout $sha --quiet
+    Invoke-CheckoutBranch $sha -quiet
     Assert-CleanWorkingDirectory
 
     $mergeResult = Invoke-MergeBranches ($config.remote -eq $nil ? $addedBranches : ($addedBranches | ForEach-Object { "$($config.remote)/$($_)" }))

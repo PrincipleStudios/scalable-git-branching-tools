@@ -45,6 +45,7 @@ Describe 'git-add-upstream' {
         Import-Module -Scope Local "$PSScriptRoot/config/core/Invoke-VerifyMock.psm1"
         Import-Module -Scope Local "$PSScriptRoot/config/git/Get-GitFile.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/config/git/Get-UpstreamBranch.mocks.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CheckoutBranch.mocks.psm1"
         Initialize-QuietMergeBranches
     }
 
@@ -55,7 +56,7 @@ Describe 'git-add-upstream' {
         Initialize-GitFile '_upstream' 'rc/2022-07-14' @("feature/FOO-123","feature/XYZ-1-services")
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify rc/2022-07-14 -q' } { 'rc-old-commit' }
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout rc-old-commit --quiet' } { $Global:LASTEXITCODE = 0 }
+        Initialize-CheckoutBranch 'rc-old-commit'
         Initialize-InvokeMergeSuccess 'feature/FOO-76'
 
         . $PSScriptRoot/config/git/Set-GitFiles.ps1
@@ -74,7 +75,7 @@ Describe 'git-add-upstream' {
         Initialize-GitFile '_upstream' 'rc/2022-07-14' @("feature/FOO-123","feature/XYZ-1-services")
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify rc/2022-07-14 -q' } { 'rc-old-commit' }
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout rc-old-commit --quiet' } { $Global:LASTEXITCODE = 0 }
+        Initialize-CheckoutBranch 'rc-old-commit'
         $merge1Filter = Initialize-InvokeMergeSuccess 'feature/FOO-76'
         $merge2Filter = Initialize-InvokeMergeSuccess 'feature/FOO-84'
 
@@ -96,7 +97,7 @@ Describe 'git-add-upstream' {
         Initialize-GitFile '_upstream' 'rc/2022-07-14' @("feature/FOO-123","feature/XYZ-1-services")
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify rc/2022-07-14 -q' } { 'rc-old-commit' }
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout rc-old-commit --quiet' } { $Global:LASTEXITCODE = 0 }
+        Initialize-CheckoutBranch 'rc-old-commit'
         Initialize-InvokeMergeSuccess 'feature/FOO-76'
 
         . $PSScriptRoot/config/git/Set-GitFiles.ps1
@@ -114,7 +115,7 @@ Describe 'git-add-upstream' {
         Initialize-GitFile '_upstream' 'rc/2022-07-14' @("feature/FOO-123","feature/XYZ-1-services")
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify rc/2022-07-14 -q' } { 'rc-old-commit' }
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout rc-old-commit --quiet' } { $Global:LASTEXITCODE = 0 }
+        Initialize-CheckoutBranch 'rc-old-commit'
         $merge1Filter = Initialize-InvokeMergeSuccess 'feature/FOO-76'
         $merge2Filter = Initialize-InvokeMergeSuccess 'feature/FOO-84'
 
@@ -139,7 +140,7 @@ Describe 'git-add-upstream' {
         Initialize-GitFile 'origin/_upstream' 'rc/2022-07-14' @("feature/FOO-123","feature/XYZ-1-services")
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify origin/rc/2022-07-14 -q' } { 'rc-old-commit' }
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout rc-old-commit --quiet' } { $Global:LASTEXITCODE = 0 }
+        Initialize-CheckoutBranch 'rc-old-commit'
         Initialize-InvokeMergeSuccess 'origin/feature/FOO-76'
 
         . $PSScriptRoot/config/git/Set-GitFiles.ps1
@@ -158,7 +159,7 @@ Describe 'git-add-upstream' {
         Initialize-GitFile '_upstream' 'rc/2022-07-14' @("feature/FOO-123","feature/XYZ-1-services")
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify rc/2022-07-14 -q' } { 'rc-old-commit' }
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout rc-old-commit --quiet' } { $Global:LASTEXITCODE = 0 }
+        Initialize-CheckoutBranch 'rc-old-commit'
         Initialize-InvokeMergeFailure 'feature/FOO-76'
 
         $invokePreserveBranch.cleanupCounter = 0

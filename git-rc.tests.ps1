@@ -49,6 +49,7 @@ Describe 'git-rc' {
         Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-CleanWorkingDirectory.mocks.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CheckoutBranch.mocks.psm1"
         Initialize-QuietMergeBranches
     }
 
@@ -66,7 +67,7 @@ Describe 'git-rc' {
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch rc/2022-07-28 origin/feature/FOO-123 --quiet --no-track' } {
             $global:LASTEXITCODE = 0;
         }
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout rc/2022-07-28 --quiet' } { $Global:LASTEXITCODE = 0 }
+        Initialize-CheckoutBranch 'rc/2022-07-28'
         Initialize-InvokeMergeSuccess 'origin/feature/FOO-124-comment'
         Initialize-InvokeMergeSuccess 'origin/integrate/FOO-125_XYZ-1'
         . $PSScriptRoot/config/git/Set-UpstreamBranches.ps1
@@ -94,7 +95,7 @@ Describe 'git-rc' {
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch rc/2022-07-28 feature/FOO-123 --quiet --no-track' } {
             $global:LASTEXITCODE = 0;
         }
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout rc/2022-07-28 --quiet' } { $Global:LASTEXITCODE = 0 }
+        Initialize-CheckoutBranch 'rc/2022-07-28'
         Initialize-InvokeMergeSuccess 'feature/FOO-124-comment'
         Initialize-InvokeMergeSuccess 'integrate/FOO-125_XYZ-1'
         . $PSScriptRoot/config/git/Set-UpstreamBranches.ps1
@@ -120,7 +121,7 @@ Describe 'git-rc' {
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch rc/2022-07-28 origin/feature/FOO-123 --quiet --no-track' } {
             $global:LASTEXITCODE = 0;
         }
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout rc/2022-07-28 --quiet' } { $Global:LASTEXITCODE = 0 }
+        Initialize-CheckoutBranch 'rc/2022-07-28'
         Initialize-InvokeMergeFailure 'origin/feature/FOO-124-comment'
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -D rc/2022-07-28' } { $Global:LASTEXITCODE = 0 }
 
@@ -141,7 +142,7 @@ Describe 'git-rc' {
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch rc/2022-07-28 origin/feature/FOO-123 --quiet --no-track' } {
             $global:LASTEXITCODE = 0;
         }
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout rc/2022-07-28 --quiet' } { $Global:LASTEXITCODE = 0 }
+        Initialize-CheckoutBranch 'rc/2022-07-28'
         Initialize-InvokeMergeSuccess 'origin/feature/FOO-124-comment'
         Initialize-InvokeMergeSuccess 'origin/integrate/FOO-125_XYZ-1'
         . $PSScriptRoot/config/git/Set-UpstreamBranches.ps1
