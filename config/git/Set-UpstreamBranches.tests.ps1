@@ -1,6 +1,11 @@
 BeforeAll {
+    Import-Module -Scope Local "$PSScriptRoot/Get-Configuration.mocks.psm1"
     . $PSScriptRoot/Set-UpstreamBranches.ps1
     . $PSScriptRoot/../TestUtils.ps1
+
+    Mock git {
+        throw "Unmocked git command: $args"
+    }
 
     # This command is more complex than I want to handle for low-level git commands in these tests
     . $PSScriptRoot/Invoke-WriteTree.ps1
@@ -9,6 +14,7 @@ BeforeAll {
 
 Describe 'Set-UpstreamBranches' {
     It 'sets the git file' {
+        Initialize-ToolConfiguration -remote 'github' -upstreamBranchName 'my-upstream'
         Mock git {
             throw "Unmocked git command: $args"
         }

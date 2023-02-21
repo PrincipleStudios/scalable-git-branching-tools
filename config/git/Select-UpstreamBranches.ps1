@@ -2,7 +2,7 @@
 Import-Module -Scope Local "$PSScriptRoot/Get-GitFile.psm1"
 
 function Select-UpstreamBranches([String]$branchName, [switch] $includeRemote, [switch] $recurse, [string[]] $exclude, [Parameter(Mandatory)][PSObject] $config) {
-    $upstreamBranch = Get-UpstreamBranch $config
+    $upstreamBranch = Get-UpstreamBranch
     $parentBranches = [string[]](Get-GitFile $branchName $upstreamBranch)
 
     $parentBranches = $parentBranches | Where-Object { $exclude -notcontains $_ }
