@@ -1,15 +1,11 @@
 BeforeAll {
-    . $PSScriptRoot/Get-GitFile.ps1
-    . $PSScriptRoot/../TestUtils.ps1
+    Import-Module -Scope Local "$PSScriptRoot/Get-GitFile.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/Get-GitFile.mocks.psm1"
 }
 
 Describe 'Get-GitFile' {
     It 'outputs a file' {
-
-        Mock git {
-            Write-Output "feature/FOO-124_FOO-125"
-            Write-Output "feature/XYZ-1-services"
-        } -ParameterFilter {($args -join ' ') -eq 'cat-file -p origin/_upstream:integrate/FOO-125_XYZ-1'}
+        Initialize-GitFile 'origin/_upstream' 'integrate/FOO-125_XYZ-1' @("feature/FOO-124_FOO-125", "feature/XYZ-1-services")
 
         $result = Get-GitFile 'integrate/FOO-125_XYZ-1' 'origin/_upstream'
         $result[0] | Should -Be "feature/FOO-124_FOO-125"

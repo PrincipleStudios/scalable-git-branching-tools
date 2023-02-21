@@ -42,19 +42,16 @@ Describe 'git-add-upstream' {
         Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/config/git/Get-CurrentBranch.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.mocks.psm1"
-        Initialize-QuietMergeBranches
         Import-Module -Scope Local "$PSScriptRoot/config/core/Invoke-VerifyMock.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/config/git/Get-GitFile.mocks.psm1"
+        Initialize-QuietMergeBranches
     }
 
     It 'works on the current branch' {
         Initialize-ToolConfiguration -noRemote
         Initialize-CleanWorkingDirectory
         Initialize-CurrentBranch 'rc/2022-07-14'
-
-        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p _upstream:rc/2022-07-14'} {
-            "feature/FOO-123"
-            "feature/XYZ-1-services"
-        }
+        Initialize-GitFile '_upstream' 'rc/2022-07-14' @("feature/FOO-123","feature/XYZ-1-services")
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify rc/2022-07-14 -q' } { 'rc-old-commit' }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout rc-old-commit --quiet' } { $Global:LASTEXITCODE = 0 }
@@ -73,11 +70,7 @@ Describe 'git-add-upstream' {
         Initialize-ToolConfiguration -noRemote
         Initialize-CleanWorkingDirectory
         Initialize-CurrentBranch 'rc/2022-07-14'
-
-        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p _upstream:rc/2022-07-14'} {
-            "feature/FOO-123"
-            "feature/XYZ-1-services"
-        }
+        Initialize-GitFile '_upstream' 'rc/2022-07-14' @("feature/FOO-123","feature/XYZ-1-services")
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify rc/2022-07-14 -q' } { 'rc-old-commit' }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout rc-old-commit --quiet' } { $Global:LASTEXITCODE = 0 }
@@ -99,11 +92,7 @@ Describe 'git-add-upstream' {
     It 'works locally' {
         Initialize-ToolConfiguration -noRemote
         Initialize-CleanWorkingDirectory
-
-        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p _upstream:rc/2022-07-14'} {
-            "feature/FOO-123"
-            "feature/XYZ-1-services"
-        }
+        Initialize-GitFile '_upstream' 'rc/2022-07-14' @("feature/FOO-123","feature/XYZ-1-services")
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify rc/2022-07-14 -q' } { 'rc-old-commit' }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout rc-old-commit --quiet' } { $Global:LASTEXITCODE = 0 }
@@ -121,11 +110,7 @@ Describe 'git-add-upstream' {
     It 'works locally with multiple branches' {
         Initialize-ToolConfiguration -noRemote
         Initialize-CleanWorkingDirectory
-
-        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p _upstream:rc/2022-07-14'} {
-            "feature/FOO-123"
-            "feature/XYZ-1-services"
-        }
+        Initialize-GitFile '_upstream' 'rc/2022-07-14' @("feature/FOO-123","feature/XYZ-1-services")
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify rc/2022-07-14 -q' } { 'rc-old-commit' }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout rc-old-commit --quiet' } { $Global:LASTEXITCODE = 0 }
@@ -150,11 +135,7 @@ Describe 'git-add-upstream' {
 
         Initialize-ToolConfiguration
         Initialize-CleanWorkingDirectory
-
-        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p origin/_upstream:rc/2022-07-14'} {
-            "feature/FOO-123"
-            "feature/XYZ-1-services"
-        }
+        Initialize-GitFile 'origin/_upstream' 'rc/2022-07-14' @("feature/FOO-123","feature/XYZ-1-services")
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify origin/rc/2022-07-14 -q' } { 'rc-old-commit' }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout rc-old-commit --quiet' } { $Global:LASTEXITCODE = 0 }
@@ -173,11 +154,7 @@ Describe 'git-add-upstream' {
         Initialize-ToolConfiguration -noRemote
         Initialize-CleanWorkingDirectory
         Initialize-CurrentBranch 'rc/2022-07-14'
-
-        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p _upstream:rc/2022-07-14'} {
-            "feature/FOO-123"
-            "feature/XYZ-1-services"
-        }
+        Initialize-GitFile '_upstream' 'rc/2022-07-14' @("feature/FOO-123","feature/XYZ-1-services")
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify rc/2022-07-14 -q' } { 'rc-old-commit' }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout rc-old-commit --quiet' } { $Global:LASTEXITCODE = 0 }

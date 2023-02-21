@@ -1,6 +1,7 @@
 BeforeAll {
     Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Get-CurrentBranch.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/config/git/Get-GitFile.mocks.psm1"
     Mock git {
         throw "Unmocked git command: $args"
     }
@@ -12,11 +13,7 @@ BeforeAll {
 Describe 'git-show-upstream' {
     It 'shows the results of an upstream branch' {
         Initialize-ToolConfiguration
-
-        Mock git {
-            "main"
-            "infra/add-services"
-        } -ParameterFilter {($args -join ' ') -eq 'cat-file -p origin/_upstream:feature/FOO-123'}
+        Initialize-GitFile 'origin/_upstream' 'feature/FOO-123' @("main", "infra/add-services")
 
         $result = & ./git-show-upstream.ps1 -branchName 'feature/FOO-123'
         $result | Should -Be @('origin/main', 'origin/infra/add-services')
@@ -26,10 +23,7 @@ Describe 'git-show-upstream' {
         Initialize-ToolConfiguration
         Initialize-CurrentBranch 'feature/FOO-123'
 
-        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p origin/_upstream:feature/FOO-123'} {
-            "main"
-            "infra/add-services"
-        }
+        Initialize-GitFile 'origin/_upstream' 'feature/FOO-123' @("main", "infra/add-services")
 
         $result = & ./git-show-upstream.ps1
         $result | Should -Be @('origin/main', 'origin/infra/add-services')
@@ -39,19 +33,10 @@ Describe 'git-show-upstream' {
         Initialize-ToolConfiguration
         Initialize-CurrentBranch 'feature/FOO-123'
 
-        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p origin/_upstream:feature/FOO-123'} {
-            "main"
-            "infra/add-services"
-        }
-
-        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p origin/_upstream:main'} {
-        }
-
-        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p origin/_upstream:infra/add-services'} {
-            'infra/build-infrastructure'
-        }
-        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p origin/_upstream:infra/build-infrastructure'} {
-        }
+        Initialize-GitFile 'origin/_upstream' 'feature/FOO-123' $("main", "infra/add-services")
+        Initialize-GitFile 'origin/_upstream' 'main' $()
+        Initialize-GitFile 'origin/_upstream' 'infra/add-services' $('infra/build-infrastructure')
+        Initialize-GitFile 'origin/_upstream' 'infra/build-infrastructure' $()
 
         $result = & ./git-show-upstream.ps1 -recurse
         $result | Should -Be @('origin/main', 'origin/infra/add-services', 'origin/infra/build-infrastructure')
