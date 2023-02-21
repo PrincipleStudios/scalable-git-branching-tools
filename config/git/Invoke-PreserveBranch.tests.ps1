@@ -5,9 +5,7 @@ BeforeAll {
 
 Describe 'Invoke-PreserveBranch' {
     BeforeAll {
-        Mock git {
-            throw "Unmocked git command: $args"
-        }
+        . "$PSScriptRoot/../core/Lock-Git.mocks.ps1"
 
         Import-Module -Scope Local "$PSScriptRoot/Assert-CleanWorkingDirectory.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/Get-CurrentBranch.mocks.psm1"

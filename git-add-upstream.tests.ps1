@@ -1,7 +1,5 @@
 BeforeAll {
-    Mock git {
-        throw "Unmocked git command: $args"
-    }
+    . "$PSScriptRoot/config/core/Lock-Git.mocks.ps1"
 
     # User-interface commands are a bit noisy; TODO: add quiet option and test it by making this throw
     Mock -CommandName Write-Host {}
@@ -50,6 +48,8 @@ Describe 'git-add-upstream' {
     }
 
     It 'works on the current branch' {
+        { git branch -a } | Should -Throw -Because 'we should have locked git down'
+
         Initialize-ToolConfiguration -noRemote
         Initialize-CleanWorkingDirectory
         Initialize-CurrentBranch 'rc/2022-07-14'

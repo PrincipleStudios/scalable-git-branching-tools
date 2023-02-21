@@ -1,11 +1,8 @@
 BeforeAll {
+    . "$PSScriptRoot/../core/Lock-Git.mocks.ps1"
     Import-Module -Scope Local "$PSScriptRoot/Get-Configuration.psm1"
     Import-Module -Scope Local "$PSScriptRoot/../core/Invoke-MockGitModule.psm1"
     . $PSScriptRoot/../TestUtils.ps1
-
-    Mock -ModuleName Get-Configuration git {
-        throw "Unmocked git command: $args"
-    }
 
     function Invoke-MockGit([string] $gitCli, [object] $MockWith) {
         return Invoke-MockGitModule -ModuleName 'Get-Configuration' @PSBoundParameters

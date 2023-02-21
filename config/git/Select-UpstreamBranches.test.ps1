@@ -1,10 +1,7 @@
 BeforeAll {
+    . "$PSScriptRoot/config/core/Lock-Git.mocks.ps1"
     . $PSScriptRoot/Select-UpstreamBranches.ps1
     . $PSScriptRoot/../TestUtils.ps1
-
-    Mock git {
-        throw "Unmocked git command: $args"
-    }
 }
 
 Describe 'Select-UpstreamBranches' {

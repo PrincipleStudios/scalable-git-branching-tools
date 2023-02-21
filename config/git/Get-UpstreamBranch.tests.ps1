@@ -1,13 +1,10 @@
 BeforeAll {
+    . "$PSScriptRoot/../core/Lock-Git.mocks.ps1"
     Import-Module -Scope Local "$PSScriptRoot/Get-Configuration.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/Get-Configuration.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/Get-UpstreamBranch.psm1"
     Import-Module -Scope Local "$PSScriptRoot/Get-UpstreamBranch.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/../core/Invoke-VerifyMock.psm1"
-
-    Mock git {
-        throw "Unmocked git command: $args"
-    }
 }
 
 Describe 'Get-UpstreamBranch' {

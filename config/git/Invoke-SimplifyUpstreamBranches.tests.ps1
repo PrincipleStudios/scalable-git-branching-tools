@@ -1,7 +1,8 @@
 BeforeAll {
+    . "$PSScriptRoot/../core/Lock-Git.mocks.ps1"
     . $PSScriptRoot/Invoke-SimplifyUpstreamBranches.ps1
     . $PSScriptRoot/../TestUtils.ps1
-        
+
     Mock git -ParameterFilter { $args[0] -eq 'cat-file' } {}
 }
 

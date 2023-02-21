@@ -1,12 +1,9 @@
 BeforeAll {
+    . "$PSScriptRoot/../core/Lock-Git.mocks.ps1"
     Import-Module -Scope Local "$PSScriptRoot/Get-Configuration.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/Get-UpstreamBranch.mocks.psm1"
     . $PSScriptRoot/Set-UpstreamBranches.ps1
     . $PSScriptRoot/../TestUtils.ps1
-
-    Mock git {
-        throw "Unmocked git command: $args"
-    }
 
     # This command is more complex than I want to handle for low-level git commands in these tests
     . $PSScriptRoot/Invoke-WriteTree.ps1
@@ -17,9 +14,6 @@ Describe 'Set-UpstreamBranches' {
     It 'sets the git file' {
         Initialize-ToolConfiguration -remote 'github' -upstreamBranchName 'my-upstream'
         Initialize-FetchUpstreamBranch
-        Mock git {
-            throw "Unmocked git command: $args"
-        }
 
         $config = @{ remote = 'github'; upstreamBranch = 'my-upstream' }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify github/my-upstream -q' } { 'upstream-HEAD' }

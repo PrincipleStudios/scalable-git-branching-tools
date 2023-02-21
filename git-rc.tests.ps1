@@ -1,7 +1,5 @@
 BeforeAll {
-    Mock git {
-        throw "Unmocked git command: $args"
-    }
+    . "$PSScriptRoot/config/core/Lock-Git.mocks.ps1"
 
     # User-interface commands are a bit noisy; TODO: add quiet option and test it by making this throw
     Mock -CommandName Write-Host {}
