@@ -57,7 +57,7 @@ $result = Invoke-PreserveBranch {
         Write-Host -ForegroundColor yellow "Not all branches requested could be merged automatically. Please use the following commands to add it manually to your branch and then re-run ``git add-upstream``:"
         Write-Host -ForegroundColor yellow "    git merge $($mergeResult.branch)"
 
-        return New-Object ResultWithCleanup $false
+        return New-ResultAfterCleanup $false
     }
 
     $upstreamCommitish = Set-GitFiles @{ $branchName = ($finalBranches -join "`n") } -m $commitMessage -branchName $config.upstreamBranch -remote $config.remote -dryRun

@@ -12,6 +12,10 @@ class ResultWithCleanup {
     }
 }
 
+function New-ResultAfterCleanup([object] $result) {
+    return New-Object ResultWithCleanup $result
+}
+
 function Invoke-PreserveBranch([ScriptBlock]$scriptBlock, [ScriptBlock]$cleanup, [switch]$noDefaultCleanup, [switch]$onlyIfError) {
     Assert-CleanWorkingDirectory
     $prevHead = Get-CurrentBranch
@@ -36,11 +40,13 @@ function Invoke-PreserveBranch([ScriptBlock]$scriptBlock, [ScriptBlock]$cleanup,
         throw;
     }
 
-    if (-not $onlyIfError -or $result -is [ResultWithCleanup]) {
+    $resultIsResultWithCleanup = $result -ne $nil -AND $result.GetType().FullName -eq 'ResultWithCleanup'
+
+    if (-not $onlyIfError -or $resultIsResultWithCleanup) {
         & $fullCleanup
     }
 
-    if ($result -is [ResultWithCleanup]) {
+    if ($resultIsResultWithCleanup) {
         $result = $result.result
     }
 
