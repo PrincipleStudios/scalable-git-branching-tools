@@ -43,9 +43,6 @@ Describe 'git-new' {
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch' } {
             Write-Output 'main'
         }
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'diff --stat --exit-code --quiet' } {
-            $Global:LASTEXITCODE = 0
-        }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'clean -n' } {}
         Mock -CommandName Set-GitFiles -ParameterFilter {
             $files['feature/PS-100-some-work'] -eq 'main'
