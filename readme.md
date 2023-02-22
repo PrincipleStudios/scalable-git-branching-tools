@@ -57,6 +57,10 @@ There are also docker integration tests that actually run the git commands; run:
 
     docker build .
 
+Note that, due to the use of `Import-Module`, PowerShell caches scripts in the local environment. This won't affect users when updating, since each git alias launches a new `pwsh` scope. However, for developers, you can use the following commands to pick up changes in any `.psm1` files within this project:
+
+    import-module ./reset.psm1 -Force; Reset-GitModules
+
 ### Demo
 
 If you want to test it locally, but don't have a git repository set up, you can use one of the samples via Docker! Run one of the following:
