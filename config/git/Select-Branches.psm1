@@ -1,9 +1,6 @@
 Import-Module -Scope Local "$PSScriptRoot/Get-Configuration.psm1"
 
-function Select-Branches($config) {
-    if ($config -ne $nil) {
-        throw 'Obsolete: Select-Branches -config should not be used.'
-    }
+function Select-Branches() {
     $remote = $(Get-Configuration).remote
     $temp = $remote -eq $nil ? (git branch) : (git branch -r)
     return $temp | Foreach-Object { $_.split("`n") } | Foreach-Object {
