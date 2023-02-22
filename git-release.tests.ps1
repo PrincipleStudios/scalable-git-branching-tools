@@ -3,6 +3,7 @@ BeforeAll {
     Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Get-GitFile.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/config/git/Update-Git.mocks.psm1"
 
     # User-interface commands are a bit noisy; TODO: add quiet option and test it by making this throw
     Mock -CommandName Write-Host {}
@@ -75,18 +76,13 @@ BeforeAll {
         Initialize-GitFile 'origin/_upstream' 'integrate/FOO-125_XYZ-1' @("feature/FOO-124_FOO-125","feature/XYZ-1-services")
         Initialize-GitFile 'origin/_upstream' 'main' {}
     }
-
-    function Mock-UpdateGit() {
-        . $PSScriptRoot/config/git/Update-Git.ps1
-        Mock -CommandName Update-Git { }
-    }
 }
 
 
 Describe 'git-release' {
     It 'handles standard functionality' {
         Mock-RemoteUpstream
-        Mock-UpdateGit
+        Initialize-UpdateGit
 
         Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list origin/main ^origin/rc/2022-07-14 --count'} {
             "0"
@@ -114,7 +110,7 @@ Describe 'git-release' {
 
     It 'handles no remote' {
         Mock-NoRemoteUpstream
-        Mock-UpdateGit
+        Initialize-UpdateGit
 
         Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list main ^rc/2022-07-14 --count'} {
             "0"
@@ -175,7 +171,7 @@ Describe 'git-release' {
 
     It 'can issue a dry run' {
         Mock-RemoteUpstream
-        Mock-UpdateGit
+        Initialize-UpdateGit
 
         Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list origin/main ^origin/rc/2022-07-14 --count'} {
             "0"
@@ -201,7 +197,7 @@ Describe 'git-release' {
 
     It 'handles integration branches recursively' {
         Mock-RemoteUpstream
-        Mock-UpdateGit
+        Initialize-UpdateGit
 
         Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list origin/main ^origin/rc/2022-07-14 --count'} {
             "0"
@@ -231,7 +227,7 @@ Describe 'git-release' {
 
     It 'handles a single upstream branch' {
         Mock-RemoteUpstream
-        Mock-UpdateGit
+        Initialize-UpdateGit
 
         Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list origin/main ^origin/feature/FOO-123 --count'} {
             "0"
@@ -258,7 +254,7 @@ Describe 'git-release' {
 
     It 'aborts if not a fast-forward' {
         Mock-RemoteUpstream
-        Mock-UpdateGit
+        Initialize-UpdateGit
 
         Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list origin/main ^origin/rc/2022-07-14 --count'} {
             "1"
@@ -269,7 +265,7 @@ Describe 'git-release' {
 
     It 'can clean up if already released' {
         Mock-RemoteUpstream
-        Mock-UpdateGit
+        Initialize-UpdateGit
 
         Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list origin/rc/2022-07-14 ^origin/main --count'} {
             "0"
@@ -297,7 +293,7 @@ Describe 'git-release' {
 
     It 'aborts clean up if not already released' {
         Mock-RemoteUpstream
-        Mock-UpdateGit
+        Initialize-UpdateGit
 
         Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list origin/rc/2022-07-14 ^origin/main --count'} {
             "1"

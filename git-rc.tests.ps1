@@ -41,15 +41,13 @@ Describe 'git-rc' {
         Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CheckoutBranch.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CreateBranch.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/config/git/Select-Branches.mocks.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/config/git/Update-Git.mocks.psm1"
         Initialize-QuietMergeBranches
     }
 
     It 'handles standard functionality' {
         Initialize-ToolConfiguration
-
-        . $PSScriptRoot/config/git/Update-Git.ps1
-        Mock -CommandName Update-Git { }
-
+        Initialize-UpdateGit
         Initialize-CleanWorkingDirectory
         Initialize-SelectBranches $defaultBranches
         Initialize-CreateBranch 'rc/2022-07-28' 'origin/feature/FOO-123'
@@ -69,10 +67,7 @@ Describe 'git-rc' {
 
     It 'handles no remote' {
         Initialize-ToolConfiguration -noRemote
-
-        . $PSScriptRoot/config/git/Update-Git.ps1
-        Mock -CommandName Update-Git { }
-
+        Initialize-UpdateGit
         Initialize-CleanWorkingDirectory
         Initialize-SelectBranches $noRemoteBranches
         Initialize-CreateBranch 'rc/2022-07-28' 'feature/FOO-123'
@@ -90,10 +85,7 @@ Describe 'git-rc' {
 
     It 'does not push if there is a failure while merging' {
         Initialize-ToolConfiguration
-
-        . $PSScriptRoot/config/git/Update-Git.ps1
-        Mock -CommandName Update-Git { }
-
+        Initialize-UpdateGit
         Initialize-CleanWorkingDirectory
         Initialize-SelectBranches $defaultBranches
         Initialize-CreateBranch 'rc/2022-07-28' 'origin/feature/FOO-123'
@@ -106,10 +98,6 @@ Describe 'git-rc' {
 
     It 'can skip the initial fetch' {
         Initialize-ToolConfiguration
-
-        . $PSScriptRoot/config/git/Update-Git.ps1
-        Mock -CommandName Update-Git { throw 'should not call Update-Git' }
-
         Initialize-CleanWorkingDirectory
         Initialize-SelectBranches $defaultBranches
         Initialize-CreateBranch 'rc/2022-07-28' 'origin/feature/FOO-123'

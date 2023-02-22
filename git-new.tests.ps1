@@ -80,8 +80,6 @@ Describe 'git-new' {
     }
 
     It 'creates a remote branch when a remote is configured' {
-        . $PSScriptRoot/config/git/Update-Git.ps1
-
         Initialize-ToolConfiguration
         Mock -CommandName Update-Git { }
         Mock -CommandName Set-GitFiles -ParameterFilter {
@@ -96,8 +94,6 @@ Describe 'git-new' {
     }
 
     It 'creates a remote branch when a remote is configured and an upstream branch is provided' {
-        . $PSScriptRoot/config/git/Update-Git.ps1
-
         Initialize-ToolConfiguration
         Mock -CommandName Update-Git { }
         Mock -CommandName Set-GitFiles -ParameterFilter {
