@@ -1,27 +1,26 @@
 BeforeAll {
     . "$PSScriptRoot/../core/Lock-Git.mocks.ps1"
-    . $PSScriptRoot/Select-Branches.ps1
+    Import-Module -Scope Local "$PSScriptRoot/Get-Configuration.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/Select-Branches.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/Select-Branches.psm1"
     . $PSScriptRoot/../TestUtils.ps1
 }
 
 Describe 'Select-Branches' {
     Context 'With a remote branch specified' {
         BeforeEach{
-            Mock git {
-                Write-Output "
-                origin/feature/FOO-123
-                origin/feature/FOO-124-comment
-                origin/feature/FOO-124_FOO-125
-                origin/main
-                origin/rc/2022-07-14
-                origin/integrate/FOO-125_XYZ-1
-                other/feature/FOO-100
-                "
-            } -ParameterFilter {($args -join ' ') -eq 'branch -r'}
+            Initialize-ToolConfiguration
+            Initialize-SelectBranches @(
+                'origin/feature/FOO-123'
+                'origin/feature/FOO-124-comment'
+                'origin/feature/FOO-124_FOO-125'
+                'origin/main'
+                'origin/rc/2022-07-14'
+                'origin/integrate/FOO-125_XYZ-1'
+                'other/feature/FOO-100'
+            )
 
-            $config = @{ remote = 'origin'; upstreamBranch = '_upstream' }
-
-            $branches = Select-Branches -config $config
+            $branches = Select-Branches
         }
 
         It 'excludes feature FOO-100' {
@@ -56,20 +55,17 @@ Describe 'Select-Branches' {
 
     Context 'Without a remote specified uses local branches' {
         BeforeEach{
-            Mock git {
-                Write-Output "
-                feature/FOO-123
-                feature/FOO-124-comment
-                feature/FOO-124_FOO-125
-                main
-                rc/2022-07-14
-                integrate/FOO-125_XYZ-1
-                "
-            } -ParameterFilter {($args -join ' ') -eq 'branch'}
+            Initialize-ToolConfiguration -noRemote
+            Initialize-SelectBranches @(
+                'feature/FOO-123'
+                'feature/FOO-124-comment'
+                'feature/FOO-124_FOO-125'
+                'main'
+                'rc/2022-07-14'
+                'integrate/FOO-125_XYZ-1'
+            )
 
-            $config = @{ remote = $nil; upstreamBranch = '_upstream' }
-
-            $branches = Select-Branches -config $config
+            $branches = Select-Branches
         }
 
         It 'includes feature FOO-123' {

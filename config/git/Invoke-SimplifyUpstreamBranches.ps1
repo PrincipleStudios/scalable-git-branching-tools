@@ -1,9 +1,9 @@
-. $PSScriptRoot/Select-Branches.ps1
+Import-Module -Scope Local "$PSScriptRoot/Select-Branches.psm1"
 . $PSScriptRoot/Select-UpstreamBranches.ps1
 
 function Invoke-SimplifyUpstreamBranches([PSObject[]] $originalUpstream, [PSObject[]] $allBranchInfo, [Parameter(Mandatory)][PSObject] $config) {
     if ($allBranchInfo -eq $nil) {
-        $allBranchInfo = Select-Branches -config $config
+        $allBranchInfo = Select-Branches
     }
 
     $upstreamNames = $originalUpstream | ForEach-Object { $_.branch }

@@ -17,7 +17,7 @@ $branches = [String[]]($branches -eq $nil ? @() : (Split-String $branches))
 Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.psm1"
 . $PSScriptRoot/config/git/Update-Git.ps1
 Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-CleanWorkingDirectory.psm1"
-. $PSScriptRoot/config/git/Select-Branches.ps1
+Import-Module -Scope Local "$PSScriptRoot/config/git/Select-Branches.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CreateBranch.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CheckoutBranch.psm1";
@@ -33,7 +33,7 @@ if (-not $noFetch) {
 $tickets = $tickets | Where-Object { $_ -ne '' -AND $_ -ne $nil }
 
 Assert-CleanWorkingDirectory
-$allBranches = Select-Branches -config $config
+$allBranches = Select-Branches
 $selectedBranches = [PSObject[]]($allBranches | Where-Object {
         if ($branches -ne $nil -AND $branches -contains $_.branch) { return $true }
         return $false

@@ -19,26 +19,17 @@ BeforeAll {
     }
 
     $noRemoteBranches = @(
-        @{ remote = $nil; branch='feature/FOO-123' }
-        @{ remote = $nil; branch='feature/FOO-124-comment' }
-        @{ remote = $nil; branch='feature/FOO-124_FOO-125' }
-        @{ remote = $nil; branch='feature/FOO-76' }
-        @{ remote = $nil; branch='feature/XYZ-1-services' }
-        @{ remote = $nil; branch='main' }
-        @{ remote = $nil; branch='rc/2022-07-14' }
-        @{ remote = $nil; branch='integrate/FOO-125_XYZ-1' }
+        'feature/FOO-123'
+        'feature/FOO-124-comment'
+        'feature/FOO-124_FOO-125'
+        'feature/FOO-76'
+        'feature/XYZ-1-services'
+        'main'
+        'rc/2022-07-14'
+        'integrate/FOO-125_XYZ-1'
     )
 
-    $defaultBranches = @(
-        @{ remote = 'origin'; branch='feature/FOO-123' }
-        @{ remote = 'origin'; branch='feature/FOO-124-comment' }
-        @{ remote = 'origin'; branch='feature/FOO-124_FOO-125' }
-        @{ remote = 'origin'; branch='feature/FOO-76' }
-        @{ remote = 'origin'; branch='feature/XYZ-1-services' }
-        @{ remote = 'origin'; branch='main' }
-        @{ remote = 'origin'; branch='rc/2022-07-14' }
-        @{ remote = 'origin'; branch='integrate/FOO-125_XYZ-1' }
-    )
+    $defaultBranches = $noRemoteBranches | ForEach-Object { "origin/$_" }
 }
 
 
@@ -49,6 +40,7 @@ Describe 'git-rc' {
         Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-CleanWorkingDirectory.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CheckoutBranch.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CreateBranch.mocks.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/config/git/Select-Branches.mocks.psm1"
         Initialize-QuietMergeBranches
     }
 
@@ -59,10 +51,7 @@ Describe 'git-rc' {
         Mock -CommandName Update-Git { }
 
         Initialize-CleanWorkingDirectory
-
-        . $PSScriptRoot/config/git/Select-Branches.ps1
-        Mock -CommandName Select-Branches { return $defaultBranches }
-
+        Initialize-SelectBranches $defaultBranches
         Initialize-CreateBranch 'rc/2022-07-28' 'origin/feature/FOO-123'
         Initialize-CheckoutBranch 'rc/2022-07-28'
         Initialize-InvokeMergeSuccess 'origin/feature/FOO-124-comment'
@@ -85,10 +74,7 @@ Describe 'git-rc' {
         Mock -CommandName Update-Git { }
 
         Initialize-CleanWorkingDirectory
-
-        . $PSScriptRoot/config/git/Select-Branches.ps1
-        Mock -CommandName Select-Branches { return $noRemoteBranches }
-
+        Initialize-SelectBranches $noRemoteBranches
         Initialize-CreateBranch 'rc/2022-07-28' 'feature/FOO-123'
         Initialize-CheckoutBranch 'rc/2022-07-28'
         Initialize-InvokeMergeSuccess 'feature/FOO-124-comment'
@@ -109,10 +95,7 @@ Describe 'git-rc' {
         Mock -CommandName Update-Git { }
 
         Initialize-CleanWorkingDirectory
-
-        . $PSScriptRoot/config/git/Select-Branches.ps1
-        Mock -CommandName Select-Branches { return $defaultBranches }
-
+        Initialize-SelectBranches $defaultBranches
         Initialize-CreateBranch 'rc/2022-07-28' 'origin/feature/FOO-123'
         Initialize-CheckoutBranch 'rc/2022-07-28'
         Initialize-InvokeMergeFailure 'origin/feature/FOO-124-comment'
@@ -128,10 +111,7 @@ Describe 'git-rc' {
         Mock -CommandName Update-Git { throw 'should not call Update-Git' }
 
         Initialize-CleanWorkingDirectory
-
-        . $PSScriptRoot/config/git/Select-Branches.ps1
-        Mock -CommandName Select-Branches { return $defaultBranches }
-
+        Initialize-SelectBranches $defaultBranches
         Initialize-CreateBranch 'rc/2022-07-28' 'origin/feature/FOO-123'
         Initialize-CheckoutBranch 'rc/2022-07-28'
         Initialize-InvokeMergeSuccess 'origin/feature/FOO-124-comment'
