@@ -32,7 +32,7 @@ if ($branchName -eq $nil) {
 }
 
 Assert-CleanWorkingDirectory
-Update-Git -config $config
+Update-Git
 
 $parentBranches = [String[]](Select-UpstreamBranches $branchName -config $config)
 

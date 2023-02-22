@@ -14,7 +14,7 @@ Import-Module -Scope Local "$PSScriptRoot/config/git/Get-CurrentBranch.psm1"
 $config = Get-Configuration
 
 if (-not $noFetch) {
-    Update-Git -config $config
+    Update-Git
 }
 
 $noneSpecified = ($branchName -eq $nil -OR $branchName -eq '')

@@ -23,7 +23,7 @@ Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.psm1"
 
 $config = Get-Configuration
 if (-not $noFetch) {
-    Update-Git -config $config
+    Update-Git
 }
 
 if ($parentBranches -ne $nil -AND $parentBranches.length -gt 0) {

@@ -11,10 +11,8 @@ Import-Module -Scope Local "$PSScriptRoot/config/git/Get-CurrentBranch.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-CleanWorkingDirectory.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.psm1";
 
-$config = Get-Configuration
-
 if (-not $noFetch) {
-    Update-Git -config $config
+    Update-Git
 }
 $branchName = Get-CurrentBranch
 if ($branchName -eq $nil) {

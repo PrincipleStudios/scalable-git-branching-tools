@@ -27,7 +27,7 @@ Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.psm1";
 $config = Get-Configuration
 
 if (-not $noFetch) {
-    Update-Git -config $config
+    Update-Git
 }
 
 $tickets = $tickets | Where-Object { $_ -ne '' -AND $_ -ne $nil }

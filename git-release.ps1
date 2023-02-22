@@ -21,7 +21,7 @@ Import-Module -Scope Local "$PSScriptRoot/config/git/Get-GitFileNames.ps1"
 $config = Get-Configuration
 
 if (-not $noFetch) {
-    Update-Git -config $config
+    Update-Git
 }
 
 if ($cleanupOnly) {
