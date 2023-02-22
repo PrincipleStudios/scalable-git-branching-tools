@@ -94,14 +94,13 @@ Describe 'Invoke-PreserveBranch' {
         Mock -CommandName My-Func2 -Verifiable { }
 
         Initialize-NoCurrentBranch
-        $mocks = Initialize-PreserveBranchCleanup -detachedHead 'baadf00d'
+        $mocks = Initialize-PreserveBranchNoCleanup -detachedHead 'baadf00d'
 
         Invoke-PreserveBranch { My-Func } -cleanup { My-Func2 } -noDefaultCleanup
 
         Should -Invoke -CommandName My-Func -Times 1
         Should -Invoke -CommandName My-Func2 -Times 1
-        Should -Invoke git -ParameterFilter { ($args -join ' ') -eq 'reset --hard' } -Times 0
-        Should -Invoke git -ParameterFilter { ($args -join ' ') -eq 'checkout baadf00d' } -Times 0
+        Invoke-VerifyMock $mocks -Times 1
     }
 
     It 'by default returns the original value' {
