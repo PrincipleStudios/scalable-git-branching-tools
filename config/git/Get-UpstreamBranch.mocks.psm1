@@ -1,4 +1,4 @@
-Import-Module -Scope Local "$PSScriptRoot/../core/Invoke-MockGitModule.psm1"
+Import-Module -Scope Local "$PSScriptRoot/../testing/Invoke-MockGitModule.psm1"
 Import-Module -Scope Local "$PSScriptRoot/Get-UpstreamBranch.psm1"
 Import-Module -Scope Local "$PSScriptRoot/Get-Configuration.psm1"
 

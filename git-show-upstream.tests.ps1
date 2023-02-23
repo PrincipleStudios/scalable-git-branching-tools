@@ -1,5 +1,5 @@
 BeforeAll {
-    . "$PSScriptRoot/config/core/Lock-Git.mocks.ps1"
+    . "$PSScriptRoot/config/testing/Lock-Git.mocks.ps1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Get-CurrentBranch.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Select-UpstreamBranches.mocks.psm1"

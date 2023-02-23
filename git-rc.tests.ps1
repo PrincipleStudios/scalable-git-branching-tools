@@ -1,5 +1,5 @@
 BeforeAll {
-    . "$PSScriptRoot/config/core/Lock-Git.mocks.ps1"
+    . "$PSScriptRoot/config/testing/Lock-Git.mocks.ps1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.mocks.psm1"
 
     # User-interface commands are a bit noisy; TODO: add quiet option and test it by making this throw

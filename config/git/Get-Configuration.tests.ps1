@@ -1,7 +1,7 @@
 BeforeAll {
-    . "$PSScriptRoot/../core/Lock-Git.mocks.ps1"
+    . "$PSScriptRoot/../testing/Lock-Git.mocks.ps1"
     Import-Module -Scope Local "$PSScriptRoot/Get-Configuration.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/../core/Invoke-MockGitModule.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/../testing/Invoke-MockGitModule.psm1"
     . $PSScriptRoot/../TestUtils.ps1
 
     function Invoke-MockGit([string] $gitCli, [object] $MockWith) {

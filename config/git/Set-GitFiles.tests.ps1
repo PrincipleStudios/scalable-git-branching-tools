@@ -9,7 +9,7 @@ BeforeAll {
 
 Describe 'Set-GitFiles' {
     BeforeEach {
-        . "$PSScriptRoot/../core/Lock-Git.mocks.ps1"
+        . "$PSScriptRoot/../testing/Lock-Git.mocks.ps1"
     }
     Context 'Validates in advance' {
         It 'verifies that a file and folder are not set at the same time' {

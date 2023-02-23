@@ -1,5 +1,5 @@
 BeforeAll {
-    . "$PSScriptRoot/../core/Lock-Git.mocks.ps1"
+    . "$PSScriptRoot/../testing/Lock-Git.mocks.ps1"
     . $PSScriptRoot/Invoke-SimplifyUpstreamBranches.ps1
     . $PSScriptRoot/../TestUtils.ps1
 

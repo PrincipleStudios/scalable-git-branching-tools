@@ -1,4 +1,4 @@
-Import-Module -Scope Local "$PSScriptRoot/../core/Invoke-MockGitModule.psm1"
+Import-Module -Scope Local "$PSScriptRoot/../testing/Invoke-MockGitModule.psm1"
 Import-Module -Scope Local "$PSScriptRoot/Get-GitFileNames.psm1"
 
 function Invoke-MockGit([string] $gitCli, [object] $MockWith) {
