@@ -1,7 +1,7 @@
 BeforeAll {
     . "$PSScriptRoot/config/core/Lock-Git.mocks.ps1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/config/git/Get-GitFile.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/config/git/Select-UpstreamBranches.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Update-Git.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Get-GitFileNames.mocks.psm1"
@@ -37,14 +37,15 @@ BeforeAll {
         Initialize-ToolConfiguration -noRemote -defaultServiceLine $nil
 
         Initialize-GitFileNames '_upstream' $($noRemoteBranches | ForEach-Object { $_.branch })
-
-        Initialize-GitFile '_upstream' 'feature/FOO-123' @('main')
-        Initialize-GitFile '_upstream' 'feature/XYZ-1-services' @('main')
-        Initialize-GitFile '_upstream' 'feature/FOO-124-comment' @('main')
-        Initialize-GitFile '_upstream' 'feature/FOO-124_FOO-125' @("feature/FOO-124-comment")
-        Initialize-GitFile '_upstream' 'feature/FOO-76' @('main')
-        Initialize-GitFile '_upstream' 'integrate/FOO-125_XYZ-1' @("feature/FOO-124_FOO-125","feature/XYZ-1-services")
-        Initialize-GitFile '_upstream' 'main' {}
+        Initialize-UpstreamBranches @{
+            'feature/FOO-123' = @('main')
+            'feature/XYZ-1-services' = @('main')
+            'feature/FOO-124-comment' = @('main')
+            'feature/FOO-124_FOO-125' = @("feature/FOO-124-comment")
+            'feature/FOO-76' = @('main')
+            'integrate/FOO-125_XYZ-1' = @("feature/FOO-124_FOO-125","feature/XYZ-1-services")
+            'main' = @()
+        }
     }
 
     $defaultBranches = @(
@@ -62,14 +63,15 @@ BeforeAll {
         Initialize-ToolConfiguration -defaultServiceLine $nil
 
         Initialize-GitFileNames 'origin/_upstream' $($defaultBranches | ForEach-Object { $_.branch })
-
-        Initialize-GitFile 'origin/_upstream' 'feature/FOO-123' @('main')
-        Initialize-GitFile 'origin/_upstream' 'feature/XYZ-1-services' @('main')
-        Initialize-GitFile 'origin/_upstream' 'feature/FOO-124-comment' @('main')
-        Initialize-GitFile 'origin/_upstream' 'feature/FOO-124_FOO-125' @("feature/FOO-124-comment")
-        Initialize-GitFile 'origin/_upstream' 'feature/FOO-76' @('main')
-        Initialize-GitFile 'origin/_upstream' 'integrate/FOO-125_XYZ-1' @("feature/FOO-124_FOO-125","feature/XYZ-1-services")
-        Initialize-GitFile 'origin/_upstream' 'main' {}
+        Initialize-UpstreamBranches @{
+            'feature/FOO-123' = @('main')
+            'feature/XYZ-1-services' = @('main')
+            'feature/FOO-124-comment' = @('main')
+            'feature/FOO-124_FOO-125' = @("feature/FOO-124-comment")
+            'feature/FOO-76' = @('main')
+            'integrate/FOO-125_XYZ-1' = @("feature/FOO-124_FOO-125","feature/XYZ-1-services")
+            'main' = {}
+        }
     }
 }
 
@@ -82,8 +84,7 @@ Describe 'git-release' {
         Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list origin/main ^origin/rc/2022-07-14 --count'} {
             "0"
         }
-
-        Initialize-GitFile 'origin/_upstream' 'rc/2022-07-14' @("feature/FOO-123","feature/XYZ-1-services")
+        Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
 
         Mock -CommandName Set-GitFiles -ParameterFilter {
             $commitMessage -eq 'Release rc/2022-07-14 to main' -AND $branchName -eq '_upstream' -AND $remote -eq 'origin' -AND $dryRun `
@@ -110,8 +111,7 @@ Describe 'git-release' {
         Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list main ^rc/2022-07-14 --count'} {
             "0"
         }
-
-        Initialize-GitFile '_upstream' 'rc/2022-07-14' @("feature/FOO-123","feature/XYZ-1-services")
+        Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services")}
 
         Mock -CommandName Set-GitFiles -ParameterFilter {
             $commitMessage -eq 'Release rc/2022-07-14 to main' -AND $branchName -eq '_upstream' -AND -not $remote -AND $dryRun `
@@ -144,7 +144,7 @@ Describe 'git-release' {
             "0"
         }
 
-        Initialize-GitFile 'origin/_upstream' 'rc/2022-07-14' @("feature/FOO-123","feature/XYZ-1-services")
+        Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
 
         Mock -CommandName Set-GitFiles -ParameterFilter {
             $commitMessage -eq 'Release rc/2022-07-14 to main' -AND $branchName -eq '_upstream' -AND $remote -eq 'origin' -AND $dryRun `
@@ -172,7 +172,7 @@ Describe 'git-release' {
             "0"
         }
 
-        Initialize-GitFile 'origin/_upstream' 'rc/2022-07-14' @("feature/FOO-123","feature/XYZ-1-services")
+        Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
 
         Mock -CommandName Set-GitFiles -ParameterFilter {
             $commitMessage -eq 'Release rc/2022-07-14 to main' -AND $branchName -eq '_upstream' -AND $remote -eq 'origin' -AND $dryRun `
@@ -198,7 +198,7 @@ Describe 'git-release' {
             "0"
         }
 
-        Initialize-GitFile 'origin/_upstream' 'rc/2022-07-14' @("feature/FOO-123", "integrate/FOO-125_XYZ-1")
+        Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123", "integrate/FOO-125_XYZ-1") }
 
         Mock -CommandName Set-GitFiles -ParameterFilter {
             $commitMessage -eq 'Release rc/2022-07-14 to main' -AND $branchName -eq '_upstream' -AND $remote -eq 'origin' -AND $dryRun `
@@ -227,10 +227,10 @@ Describe 'git-release' {
         Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list origin/main ^origin/feature/FOO-123 --count'} {
             "0"
         }
-
-        Initialize-GitFile 'origin/_upstream' 'feature/FOO-123' @('main')
-
-        Initialize-GitFile 'origin/_upstream' 'rc/2022-07-14' @("integrate/FOO-125_XYZ-1")
+        Initialize-UpstreamBranches @{
+            'feature/FOO-123' = @('main')
+            'rc/2022-07-14' = @("integrate/FOO-125_XYZ-1")
+        }
 
         Mock -CommandName Set-GitFiles -ParameterFilter {
             $commitMessage -eq 'Release feature/FOO-123 to main' -AND $branchName -eq '_upstream' -AND $remote -eq 'origin' -AND $dryRun `
@@ -266,7 +266,7 @@ Describe 'git-release' {
             "0"
         }
 
-        Initialize-GitFile 'origin/_upstream' 'rc/2022-07-14' @("feature/FOO-123","feature/XYZ-1-services")
+        Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
 
         Mock -CommandName Set-GitFiles -ParameterFilter {
             $commitMessage -eq 'Release rc/2022-07-14 to main' -AND $branchName -eq '_upstream' -AND $remote -eq 'origin' -AND $dryRun `
