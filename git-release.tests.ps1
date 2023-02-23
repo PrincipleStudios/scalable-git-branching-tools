@@ -4,6 +4,7 @@ BeforeAll {
     Import-Module -Scope Local "$PSScriptRoot/config/git/Get-GitFile.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Update-Git.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/config/git/Get-GitFileNames.mocks.psm1"
 
     # User-interface commands are a bit noisy; TODO: add quiet option and test it by making this throw
     Mock -CommandName Write-Host {}
@@ -35,10 +36,7 @@ BeforeAll {
     function Mock-NoRemoteUpstream() {
         Initialize-ToolConfiguration -noRemote -defaultServiceLine $nil
 
-        . $PSScriptRoot/config/git/Get-GitFileNames.ps1
-        Mock -CommandName Get-GitFileNames -ParameterFilter {
-            $branchName -eq '_upstream' -AND -not $remote
-        } { return $noRemoteBranches | ForEach-Object { $_.branch } }
+        Initialize-GitFileNames '_upstream' $($noRemoteBranches | ForEach-Object { $_.branch })
 
         Initialize-GitFile '_upstream' 'feature/FOO-123' @('main')
         Initialize-GitFile '_upstream' 'feature/XYZ-1-services' @('main')
@@ -63,10 +61,7 @@ BeforeAll {
     function Mock-RemoteUpstream() {
         Initialize-ToolConfiguration -defaultServiceLine $nil
 
-        . $PSScriptRoot/config/git/Get-GitFileNames.ps1
-        Mock -CommandName Get-GitFileNames -ParameterFilter {
-            $branchName -eq '_upstream' -AND $remote -eq 'origin'
-        } { return $defaultBranches | ForEach-Object { $_.branch } }
+        Initialize-GitFileNames 'origin/_upstream' $($defaultBranches | ForEach-Object { $_.branch })
 
         Initialize-GitFile 'origin/_upstream' 'feature/FOO-123' @('main')
         Initialize-GitFile 'origin/_upstream' 'feature/XYZ-1-services' @('main')

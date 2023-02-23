@@ -15,7 +15,7 @@ Param(
 Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Update-Git.psm1"
 . $PSScriptRoot/config/git/Select-UpstreamBranches.ps1
-Import-Module -Scope Local "$PSScriptRoot/config/git/Get-GitFileNames.ps1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Get-GitFileNames.psm1"
 . $PSScriptRoot/config/git/Set-GitFiles.ps1
 
 $config = Get-Configuration

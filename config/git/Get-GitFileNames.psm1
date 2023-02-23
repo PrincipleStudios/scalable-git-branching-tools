@@ -23,3 +23,4 @@ function Get-GitFileNames(
 
     return Get-GitFileNamesFromTree -tree $tree -prefix ''
 }
+Export-ModuleMember -Function Get-GitFileNames
