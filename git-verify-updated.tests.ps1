@@ -1,6 +1,8 @@
 BeforeAll {
     . "$PSScriptRoot/config/core/Lock-Git.mocks.ps1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/config/git/Get-CurrentBranch.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/config/git/Update-Git.mocks.psm1"
 
     # User-interface commands are a bit noisy; TODO: add quiet option and test it by making this throw
     Mock -CommandName Write-Host {}
@@ -73,6 +75,7 @@ Describe 'git-verify-updated' {
     It 'uses the current branch if none specified, with a remote' {
         Initialize-ToolConfiguration
         Initialize-CurrentBranch 'feature/PS-2'
+        Initialize-UpdateGit
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'fetch origin -q' } { }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify feature/PS-2' } { 'target-branch-hash' }
@@ -92,6 +95,7 @@ Describe 'git-verify-updated' {
 
     It 'uses the branch specified, with a remote' {
         Initialize-ToolConfiguration
+        Initialize-UpdateGit
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'fetch origin -q' } { }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify origin/feature/PS-2' } { 'target-branch-hash' }
@@ -111,6 +115,7 @@ Describe 'git-verify-updated' {
 
     It 'uses the branch specified, recursively, with a remote' {
         Initialize-ToolConfiguration
+        Initialize-UpdateGit
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'fetch origin -q' } { }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify origin/feature/PS-2' } { 'target-branch-hash' }

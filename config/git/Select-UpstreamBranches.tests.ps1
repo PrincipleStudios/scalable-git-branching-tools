@@ -1,11 +1,14 @@
 BeforeAll {
-    . "$PSScriptRoot/config/core/Lock-Git.mocks.ps1"
+    . "$PSScriptRoot/../core/Lock-Git.mocks.ps1"
     . $PSScriptRoot/Select-UpstreamBranches.ps1
+    Import-Module -Scope Local "$PSScriptRoot/Get-Configuration.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/Get-GitFile.mocks.psm1"
     . $PSScriptRoot/../TestUtils.ps1
 }
 
 Describe 'Select-UpstreamBranches' {
     It 'finds upstream branches from git and does not include remote by default' {
+        Initialize-ToolConfiguration -upstreamBranchName 'my-upstream'
         $config = @{ remote = 'origin'; upstreamBranch = 'my-upstream' }
 
         Initialize-GitFile 'origin/my-upstream' 'my-branch' @("feature/FOO-123", "feature/XYZ-1-services")
@@ -15,6 +18,7 @@ Describe 'Select-UpstreamBranches' {
     }
 
     It 'finds upstream branches from git and includes remote when requested' {
+        Initialize-ToolConfiguration -upstreamBranchName 'my-upstream'
         $config = @{ remote = 'origin'; upstreamBranch = 'my-upstream' }
 
         Initialize-GitFile 'origin/my-upstream' 'my-branch' @("feature/FOO-123", "feature/XYZ-1-services")
@@ -24,6 +28,7 @@ Describe 'Select-UpstreamBranches' {
     }
 
     It 'finds upstream branches from git (when there is one) and includes remote when requested' {
+        Initialize-ToolConfiguration -upstreamBranchName 'my-upstream'
         $config = @{ remote = 'origin'; upstreamBranch = 'my-upstream' }
 
         Initialize-GitFile 'origin/my-upstream' 'my-branch' @("feature/FOO-123")
@@ -33,6 +38,7 @@ Describe 'Select-UpstreamBranches' {
     }
 
     It 'allows some to be excluded' {
+        Initialize-ToolConfiguration -upstreamBranchName 'my-upstream'
         $config = @{ remote = 'origin'; upstreamBranch = 'my-upstream' }
 
         Initialize-GitFile 'origin/my-upstream' 'rc/1.1.0' @("feature/FOO-123", "line/1.0")
@@ -42,6 +48,7 @@ Describe 'Select-UpstreamBranches' {
     }
 
     It 'allows some to be excluded even through ancestors' {
+        Initialize-ToolConfiguration -upstreamBranchName 'my-upstream'
         $config = @{ remote = 'origin'; upstreamBranch = 'my-upstream' }
 
         Initialize-GitFile 'origin/my-upstream' 'rc/1.1.0' @("feature/FOO-123", "feature/XYZ-1-services")
