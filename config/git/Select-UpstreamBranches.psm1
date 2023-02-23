@@ -30,3 +30,4 @@ function Select-UpstreamBranches([String]$branchName, [switch] $includeRemote, [
         return $parentBranches
     }
 }
+Export-ModuleMember -Function Select-UpstreamBranches

@@ -3,6 +3,7 @@ BeforeAll {
     Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Get-CurrentBranch.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Update-Git.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/config/git/Select-UpstreamBranches.psm1"
 
     # User-interface commands are a bit noisy; TODO: add quiet option and test it by making this throw
     Mock -CommandName Write-Host {}
@@ -23,7 +24,6 @@ Describe 'git-verify-updated' {
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify feature/PS-2' } { 'target-branch-hash' }
 
-        . $PSScriptRoot/config/git/Select-UpstreamBranches.ps1
         Mock -CommandName Select-UpstreamBranches -ParameterFilter { $branchName -eq 'feature/PS-2' -AND $includeRemote -AND -not $recurse } {
             'feature/PS-1'
             'infra/build-improvements'
@@ -41,7 +41,6 @@ Describe 'git-verify-updated' {
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify feature/PS-2' } { 'target-branch-hash' }
 
-        . $PSScriptRoot/config/git/Select-UpstreamBranches.ps1
         Mock -CommandName Select-UpstreamBranches -ParameterFilter { $branchName -eq 'feature/PS-2' -AND $includeRemote -AND -not $recurse } {
             'feature/PS-1'
             'infra/build-improvements'
@@ -59,7 +58,6 @@ Describe 'git-verify-updated' {
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify feature/PS-2' } { 'target-branch-hash' }
 
-        . $PSScriptRoot/config/git/Select-UpstreamBranches.ps1
         Mock -CommandName Select-UpstreamBranches -ParameterFilter { $branchName -eq 'feature/PS-2' -AND $includeRemote -AND -not $recurse } {
             'feature/PS-1'
             'infra/build-improvements'
@@ -80,7 +78,6 @@ Describe 'git-verify-updated' {
         Mock git -ParameterFilter { ($args -join ' ') -eq 'fetch origin -q' } { }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify feature/PS-2' } { 'target-branch-hash' }
 
-        . $PSScriptRoot/config/git/Select-UpstreamBranches.ps1
         Mock -CommandName Select-UpstreamBranches -ParameterFilter { $branchName -eq 'feature/PS-2' -AND $includeRemote -AND -not $recurse } {
             'origin/feature/PS-1'
             'origin/infra/build-improvements'
@@ -100,7 +97,6 @@ Describe 'git-verify-updated' {
         Mock git -ParameterFilter { ($args -join ' ') -eq 'fetch origin -q' } { }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify origin/feature/PS-2' } { 'target-branch-hash' }
 
-        . $PSScriptRoot/config/git/Select-UpstreamBranches.ps1
         Mock -CommandName Select-UpstreamBranches -ParameterFilter { $branchName -eq 'feature/PS-2' -AND $includeRemote -AND -not $recurse} {
             'origin/feature/PS-1'
             'origin/infra/build-improvements'
@@ -120,7 +116,6 @@ Describe 'git-verify-updated' {
         Mock git -ParameterFilter { ($args -join ' ') -eq 'fetch origin -q' } { }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify origin/feature/PS-2' } { 'target-branch-hash' }
 
-        . $PSScriptRoot/config/git/Select-UpstreamBranches.ps1
         Mock -CommandName Select-UpstreamBranches -ParameterFilter { $branchName -eq 'feature/PS-2' -AND $includeRemote -AND $recurse } {
             'origin/feature/PS-1'
             'origin/infra/build-improvements'

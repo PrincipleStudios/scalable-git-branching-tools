@@ -1,5 +1,5 @@
 Import-Module -Scope Local "$PSScriptRoot/Select-Branches.psm1"
-. $PSScriptRoot/Select-UpstreamBranches.ps1
+Import-Module -Scope Local "$PSScriptRoot/Select-UpstreamBranches.psm1"
 
 function Invoke-SimplifyUpstreamBranches([PSObject[]] $originalUpstream, [PSObject[]] $allBranchInfo, [Parameter(Mandatory)][PSObject] $config) {
     if ($allBranchInfo -eq $nil) {
