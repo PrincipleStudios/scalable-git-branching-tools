@@ -1,6 +1,6 @@
 Import-Module -Scope Local "$PSScriptRoot/Get-UpstreamBranch.psm1"
 . $PSScriptRoot/Set-GitFiles.ps1
-. $PSScriptRoot/Update-UpstreamBranch.ps1
+Import-Module -Scope Local "$PSScriptRoot/Update-UpstreamBranch.psm1"
 . $PSScriptRoot/../core/ArrayToHash.ps1
 
 function Set-MultipleUpstreamBranches(
@@ -14,5 +14,5 @@ function Set-MultipleUpstreamBranches(
     if ($commitish -eq $nil -OR $commitish -eq '') {
         throw "Failed to create commit"
     }
-    Update-UpstreamBranch $commitish $config
+    Update-UpstreamBranch $commitish
 }
