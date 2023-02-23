@@ -39,9 +39,9 @@ if ($cleanupOnly) {
 
 $allPreserve = [String[]](@($target, $preserve) | ForEach-Object { $_ } | Select-Object -uniq)
 
-$allUpstream = Select-UpstreamBranches $branchName -config $config -recurse
+$allUpstream = Select-UpstreamBranches $branchName -recurse
 
-$upstreamCache = @($allUpstream, $allPreserve) | ForEach-Object { $_ } | ArrayToHash -getValue { Select-UpstreamBranches $_ -config $config -recurse }
+$upstreamCache = @($allUpstream, $allPreserve) | ForEach-Object { $_ } | ArrayToHash -getValue { Select-UpstreamBranches $_ -recurse }
 
 $preservedUpstream = [String[]]($allPreserve
     | ForEach-Object { $_; $upstreamCache[$_] }
@@ -59,7 +59,7 @@ function Invoke-RemoveBranches($branch) {
 
 $updates = Get-GitFileNames -branchName $config.upstreamBranch -remote $config.remote | ForEach-Object {
     if ($toRemove -contains $_) { return $nil }
-    $upstream = Select-UpstreamBranches $_ -config $config
+    $upstream = Select-UpstreamBranches $_
     if (($upstream | Where-Object { $toRemove -contains $_ })) {
         # Needs to change
         return @{

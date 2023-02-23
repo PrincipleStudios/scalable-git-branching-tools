@@ -18,7 +18,7 @@ if ($branchName -eq $nil) {
 }
 
 $parentBranches = [String[]]($recurse `
-    ? (Select-UpstreamBranches $branchName -includeRemote -config $config -recurse) `
-    : (Select-UpstreamBranches $branchName -includeRemote -config $config))
+    ? (Select-UpstreamBranches $branchName -includeRemote -recurse) `
+    : (Select-UpstreamBranches $branchName -includeRemote))
 
 $parentBranches

@@ -34,7 +34,7 @@ if ($branchName -eq $nil) {
 Assert-CleanWorkingDirectory
 Update-Git
 
-$parentBranches = [String[]](Select-UpstreamBranches $branchName -config $config)
+$parentBranches = [String[]](Select-UpstreamBranches $branchName)
 
 $finalBranches = [String[]](@($branches, $parentBranches) | ForEach-Object { $_ } | Select-Object -uniq)
 
