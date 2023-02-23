@@ -1,6 +1,6 @@
-. $PSScriptRoot/../Variables.ps1
+. $PSScriptRoot/Variables.ps1
 . $PSScriptRoot/../core/coalesce.ps1
-. $PSScriptRoot/../core/format-branch.ps1
+. $PSScriptRoot/format-branch.ps1
 
 $featureTypePartialRegex = '(feature|bugfix)'
 $featureTypeRegex = "^$featureTypePartialRegex$"
@@ -10,7 +10,7 @@ function ConvertTo-GitFeatureInfo($branchName) {
     if ($branchName -notmatch $branchTypeFeature.regex) {
         return $nil
     }
-    
+
     $result = @{ type = $Matches.type; ticket = $Matches.ticket }
     if ($Matches.comment -ne $nil) {
         $result.comment = $Matches.comment

@@ -1,6 +1,6 @@
-. $PSScriptRoot/../Variables.ps1
+. $PSScriptRoot/Variables.ps1
 . $PSScriptRoot/../core/coalesce.ps1
-. $PSScriptRoot/../core/format-branch.ps1
+. $PSScriptRoot/format-branch.ps1
 
 function Format-GitInfrastructure($type, $tickets, $comment) { return Format-Branch 'infra' $tickets -m $comment }
 function ConvertTo-GitInfrastructureInfo($branchName) {
