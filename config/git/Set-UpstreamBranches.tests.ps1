@@ -3,12 +3,11 @@ BeforeAll {
     Import-Module -Scope Local "$PSScriptRoot/Get-Configuration.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/Get-UpstreamBranch.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/Update-UpstreamBranch.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/Invoke-WriteTree.mocks.psm1"
     . $PSScriptRoot/Set-UpstreamBranches.ps1
     . $PSScriptRoot/../TestUtils.ps1
 
-    # This command is more complex than I want to handle for low-level git commands in these tests
-    . $PSScriptRoot/Invoke-WriteTree.ps1
-    Mock -CommandName Invoke-WriteTree { throw "Unexpected parameters for Invoke-WriteTree: $treeEntries" }
+    Lock-InvokeWriteTree
 }
 
 Describe 'Set-UpstreamBranches' {

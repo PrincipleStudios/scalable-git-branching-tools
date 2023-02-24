@@ -14,6 +14,9 @@ RUN  git config --global user.email "test@example.com" \
 
 ADD . /git-tools
 
+WORKDIR /git-tools
+RUN pwsh -c 'Install-Module Pester -Force; Import-Module Pester -PassThru; Invoke-Pester'
+
 WORKDIR /repos/
 
 FROM base AS demo-local

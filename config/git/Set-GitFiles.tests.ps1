@@ -1,10 +1,9 @@
 BeforeAll {
     . $PSScriptRoot/Set-GitFiles.ps1
     . $PSScriptRoot/../TestUtils.ps1
+    Import-Module -Scope Local "$PSScriptRoot/Invoke-WriteTree.mocks.psm1"
 
-    # This command is more complex than I want to handle for low-level git commands in these tests
-    . $PSScriptRoot/Invoke-WriteTree.ps1
-    Mock -CommandName Invoke-WriteTree { throw "Unexpected parameters for Invoke-WriteTree: $treeEntries" }
+    Lock-InvokeWriteTree
 }
 
 Describe 'Set-GitFiles' {

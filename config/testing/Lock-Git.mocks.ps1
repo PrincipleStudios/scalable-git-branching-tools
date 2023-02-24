@@ -9,3 +9,7 @@ Get-ChildItem -Path "$PSScriptRoot/.." -Include "*.psm1" -Exclude "*.mocks.psm1"
     Mock -CommandName git -ModuleName $moduleName `
         -MockWith $([scriptblock]::Create("throw `"Unmocked git command in module $($moduleName): `$args`""))
 }
+
+# Prevent accidentally invoking a real process for most tests
+Import-Module -Scope Local "$PSScriptRoot/../core/Invoke-PipeToProcess.psm1"
+Mock -CommandName New-Object -ModuleName Invoke-PipeToProcess { throw 'Process was being created; make sure you use a mock for Invoke-PipeToProcess'}

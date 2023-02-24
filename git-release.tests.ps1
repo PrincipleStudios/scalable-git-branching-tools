@@ -5,6 +5,7 @@ BeforeAll {
     Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Update-Git.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Get-GitFileNames.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-WriteTree.mocks.psm1"
 
     # User-interface commands are a bit noisy; TODO: add quiet option and test it by making this throw
     Mock -CommandName Write-Host {}
@@ -13,9 +14,7 @@ BeforeAll {
     . $PSScriptRoot/config/git/Set-UpstreamBranches.ps1
     Mock -CommandName Set-UpstreamBranches { throw "Unexpected parameters for Set-UpstreamBranches: $branchName $upstreamBranches $commitMessage" }
 
-    # This command is more complex than I want to handle for low-level git commands in these tests
-    . $PSScriptRoot/config/git/Invoke-WriteTree.ps1
-    Mock -CommandName Invoke-WriteTree { throw "Unexpected parameters for Invoke-WriteTree: $treeEntries" }
+    Lock-InvokeWriteTree
 
     . $PSScriptRoot/config/git/Set-GitFiles.ps1
     Mock -CommandName Set-GitFiles {
