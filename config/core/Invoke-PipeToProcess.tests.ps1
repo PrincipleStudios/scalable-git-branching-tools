@@ -25,33 +25,6 @@ Describe 'Invoke-PipeToProcess' {
         $result | Should -BeLike 'git version *'
     }
 
-    It 'can pass data to stdin' {
-        $result = Invoke-PipeToProcess `
-            -ProcessStartInfo $(New-Object -TypeName System.Diagnostics.ProcessStartInfo -Property @{
-                FileName = 'pwsh'
-                Arguments = '-c Write-Output'
-            }) `
-            -Action {
-                param([System.IO.Stream] $StdoutStream, [System.IO.Stream] $StdinStream)
-
-                $writer = New-Object System.IO.StreamWriter $StdinStream
-                $reader = New-Object System.IO.StreamReader $StdoutStream
-                try
-                {
-                    $writer.Write('hello world')
-                    $writer.Flush()
-                    $writer.Close()
-                    return $reader.ReadToEnd().Trim()
-                }
-                finally
-                {
-                    $writer.Dispose()
-                    $reader.Dispose()
-                }
-            }
-        $result | Should -BeLike '*hello world*'
-    }
-
     It 'can pass data to git stdin' {
         $result = Invoke-PipeToProcess `
             -ProcessStartInfo $(New-Object -TypeName System.Diagnostics.ProcessStartInfo -Property @{
