@@ -3,8 +3,7 @@ Param(
     [Parameter(Mandatory)][string] $branchName,
     [Parameter()][Alias('message')][Alias('m')][string] $commitMessage,
     [switch] $force,
-    [Switch] $noFetch,
-    [Parameter()][string] $search
+    [Switch] $noFetch
 )
 
 
@@ -15,7 +14,6 @@ function Select-Branch {
     )
 
 
-    $branches = (Get-Branches | ForEach-Object { $_.Trim() }) | Where-Object { $_ -ne 'main' -and $_ -ne '_upstream' }
     $availableBranches = [PSObject[]]($allBranches | Where-Object { $_.branch -notin $selectedBranches })
     
     $selectedBranches = New-Object System.Collections.ArrayList
@@ -67,14 +65,6 @@ function Select-Branch {
     }
 }
 
-function Get-Branches {
-    return @('branch1', 'branch2', 'branch3', 'branch4', 'branch5')
-}
-
-
-
-
-
 function ToDictionary([System.Collections.Generic.IEnumerable[PSObject]] $input, [scriptblock] $keySelector, [scriptblock] $valueSelector) {
     $output = @{}
     foreach ($item in $input) {
@@ -105,15 +95,7 @@ if (-not $noFetch) {
     Update-Git -config $config
 }
 
-if ($search) {
-    # comment
-    Write-Host "some selected branches"
-    $selectedBranches = Select-Branch -Prompt $search
-}
-else {
-    $selectedBranches = @()
-}
-
+$selectedBranches = @()
 
 Assert-CleanWorkingDirectory
 $allBranches = Select-Branches -config $config
