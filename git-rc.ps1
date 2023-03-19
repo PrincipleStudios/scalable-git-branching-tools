@@ -7,28 +7,6 @@ Param(
     [Parameter()][string] $search
 )
 
-function Show-Menu {
-    param (
-        [Parameter(Mandatory)][string]$Prompt,
-        [Parameter(Mandatory)][hashtable]$MenuItems
-    )
- 
-    do {
-        $MenuItemKeys = $MenuItems.Keys | Sort-Object
-        Write-Host $Prompt
-        foreach ($key in $MenuItemKeys) {
-            Write-Host "[$key]" -NoNewline
-            Write-Host " " -NoNewline
-        }
-        #write out options for next and clear
-        Write-Host "`tNext(n) " -NoNewline
-        Write-Host "`tClear(c)" -NoNewline
-        Write-Host ""
-        $userInput = Read-Host
-    } until (($MenuItems.ContainsKey($userInput)) -or ($userInput -eq 'n') -or ($userInput -eq 'c'))
-
-    return $userInput
-}
 
 
 function Select-Branch {
@@ -36,49 +14,45 @@ function Select-Branch {
         [string]$Prompt
     )
 
+
     $branches = (Get-Branches | ForEach-Object { $_.Trim() }) | Where-Object { $_ -ne 'main' -and $_ -ne '_upstream' }
-
+    $availableBranches = [PSObject[]]($allBranches | Where-Object { $_.branch -notin $selectedBranches })
+    
     $selectedBranches = New-Object System.Collections.ArrayList
+    $currentIndex = 0
 
-    $selected = $null
-    while ($null -eq $selected) {
+    while ($true) {
         Clear-Host
-
         Write-Host "Available Branches for '$Prompt'" -ForegroundColor Cyan
         Write-Host ""
 
-        $index = 1
-        foreach ($branch in $branches) {
+        for ($i = 0; $i -lt $availableBranches.Count; $i++) {
             $isSelected = $false
-            if ($branch -in $selectedBranches) { $isSelected = $true }
+            if ($availableBranches[$i] -in $selectedBranches) { $isSelected = $true }
+
+            if ($i -eq $currentIndex) {
+                Write-Host "->" -NoNewline -ForegroundColor Yellow
+            } else {
+                Write-Host "  " -NoNewline
+            }
 
             Write-Host ("[" + ($isSelected ? "x" : " ") + "]") -NoNewline -ForegroundColor Yellow
-            Write-Host (" $index. $branch") -ForegroundColor Green
-            $index++
+            Write-Host (" $($availableBranches[$i].branch)") -ForegroundColor Green
         }
 
         Write-Host ""
         Write-Host "Selected Branches:" -ForegroundColor Cyan
         foreach ($branch in $selectedBranches) {
-            Write-Host "  $branch"
+            Write-Host "  $($branch.branch)"
         }
 
-        Write-Host ""
-        $choice = Read-Host -Prompt "Type the number of a branch to select/deselect, 'n' for Next, 'd' to delete selection, or 'c' to cancel"
+        $key = $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
 
-        if ($selectedBranches.Count -gt 0 -and $choice -eq 'n') {
-            $selected = $true
-        }
-        elseif ($choice -eq 'd') {
-            $selectedBranches.Clear()
-        }
-        elseif ($choice -eq 'c') {
-            return $null
-        }
-        else {
-            $branchIndex = $choice - 1
-            if ($branchIndex -ge 0 -and $branchIndex -lt $branches.Count) {
-                $selectedBranch = $branches[$branchIndex]
+        switch ($key.VirtualKeyCode) {
+            38 { if ($currentIndex -gt 0) { $currentIndex-- } }         # Up arrow
+            40 { if ($currentIndex -lt $branches.Count - 1) { $currentIndex++ } } # Down arrow
+            13 {                                                        # Enter
+                $selectedBranch = $availableBranches[$currentIndex]
                 if ($selectedBranches.Contains($selectedBranch)) {
                     $selectedBranches.Remove($selectedBranch)
                 }
@@ -86,11 +60,18 @@ function Select-Branch {
                     $selectedBranches.Add($selectedBranch)
                 }
             }
+            27 { 
+                #log selectedBranches
+                return $selectedBranches }                             # Escape
         }
     }
-
-    return $selectedBranches
 }
+
+function Get-Branches {
+    return @('branch1', 'branch2', 'branch3', 'branch4', 'branch5')
+}
+
+
 
 
 
@@ -158,81 +139,39 @@ else {
 $availableBranches = [PSObject[]]($allBranches | Where-Object { $_.branch -notin $selectedBranches })
 
 if ($availableBranches.Count -gt 0) {
-    $selectMenuItems = @{}
-    foreach ($branch in $availableBranches) {
-        $selectMenuItems[$branch.branch] = $branch.branch
+    Write-Host "selected branches before select"
+    foreach ($branch in $selectedBranches) {
+        Write-Host "  $($branch.branch)"
     }
-    Write-Host "Available Branches:" -ForegroundColor Cyan
-
-    while ($true) {
-        Write-host "Branches"
-        foreach ($branch in $availableBranches) {
-            Write-Host "  $($branch.branch)"
-        }
-    
-        $choice = Show-Menu -Prompt "Select branch to merge, 'n' to proceed to next step, or 'x' to cancel:" -MenuItems $selectMenuItems
-        #Write the choice
-        Write-Host "Choice: $choice"
-        if ($choice -eq 'n') {
-            break
-        }
-        elseif ($choice -eq 'c') {
-            throw "Branch selection canceled."
-        }
-        else {
-            $selectedBranches = $availableBranches| Where-Object { $_.branch -ne $choice }
-            #log the selected branches
-            Write-Host "Selected branches:"
-            foreach ($branch in $selectedBranches) {
-                Write-Host "  $($branch.branch)"
-            }
-
-            if ($null -ne $selectMenuItems) {
-                $selectMenuItems.Remove($choice)
-            }
-            
-
-        }
+    $selectedBranches = Select-Branch -Prompt "Select branch to merge"
+    $selectedBranches = $selectedBranches | Where-Object { $_.branch -ne '' }
+    Write-Host "selectedBranches before copy"
+    foreach ($branch in $selectedBranches) {
+        Write-Host "  $($branch.branch)"
     }
 }
 
-#output selected branches
-Write-Host "selected branches"
-foreach ($branch in $selectedBranches) {
-    Write-Host "  $($branch.branch)"
-}
-
-$upstreamBranches = [string[]]($selectedBranches | Foreach-Object { ConvertTo-BranchName $_ -includeRemote }) | Select-Object -Unique
+$upstreamBranches = [string[]]($selectedBranches | Where-Object { $_.branch -ne '' } | Foreach-Object { ConvertTo-BranchName $_ -includeRemote } | Where-Object { $_ -ne '' -and $_ -notmatch '^\s*$' }) | Select-Object -Unique
 
 Invoke-PreserveBranch {
+    Write-Host "Selected Branches:" -ForegroundColor Cyan
+    foreach ($branch in $selectedBranches) {
+        Write-Host "  $($branch.branch)"
+    }
+
+    Write-Host "Upstream Branches:" -ForegroundColor Cyan
+    foreach ($branch in $upstreamBranches) {
+        Write-Host "  $branch"
+    }
+
+    Write-Host "branchName: $branchName"
+    Write-Host "upstreamBranches[0]: $($upstreamBranches[0])"
+
     Invoke-CreateBranch $branchName $upstreamBranches[0]
     Invoke-CheckoutBranch $branchName
     
+    $selectedBranches = $selectedBranches | Where-Object { $_.branch -ne '' }
 
-    while ($true) {
-        Write-Host "Selected Branches:" -ForegroundColor Cyan
-        foreach ($branch in $selectedBranches) {
-            Write-Host "  $($branch.branch)"
-        }
-
-        $choice = Show-Menu -Prompt "Select branch to delete, or 'd' to continue, or 'c' to cancel:" -MenuItems $selectMenuItems
-
-        if ($choice -eq 'n') {
-            break
-        }
-        elseif ($choice -eq 'c') {
-            throw "Branch selection canceled."
-        }
-        else {
-            $selectedBranches = $selectedBranches | Where-Object { $_.branch -ne $choice }
-            
-            if ($selectMenuItems -ne $null) {
-                $selectMenuItems.Remove($choice)
-            }
-            
-
-        }
-    }
 }
 
 $upstreamBranches = [string[]]($selectedBranches | Foreach-Object { ConvertTo-BranchName $_ -includeRemote }) | Select-Object -Unique
