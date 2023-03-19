@@ -152,35 +152,7 @@ if ($availableBranches.Count -gt 0) {
 }
 
 $upstreamBranches = [string[]]($selectedBranches | Where-Object { $_.branch -ne '' } | Foreach-Object { ConvertTo-BranchName $_ -includeRemote } | Where-Object { $_ -ne '' -and $_ -notmatch '^\s*$' }) | Select-Object -Unique
-
-Invoke-PreserveBranch {
-    Write-Host "Selected Branches:" -ForegroundColor Cyan
-    foreach ($branch in $selectedBranches) {
-        Write-Host "  $($branch.branch)"
-    }
-
-    Write-Host "Upstream Branches:" -ForegroundColor Cyan
-    foreach ($branch in $upstreamBranches) {
-        Write-Host "  $branch"
-    }
-
-    Write-Host "branchName: $branchName"
-    Write-Host "upstreamBranches[0]: $($upstreamBranches[0])"
-
-    Invoke-CreateBranch $branchName $upstreamBranches[0]
-    Invoke-CheckoutBranch $branchName
-    Write-Host "branch checked out"
-
-    
-    $selectedBranches = $selectedBranches | Where-Object { $_.branch -ne '' }
-
-}
-Write-Host "upstream branches"
-
-$upstreamBranches = [string[]]($selectedBranches | Foreach-Object { ConvertTo-BranchName $_ -includeRemote }) | Select-Object -Unique
-
-
-Write-Host "preserve branches"
+$upstreamBranchesNoRemote = [string[]]($selectedBranches | Where-Object { $_.branch -ne '' } | Foreach-Object { ConvertTo-BranchName $_ } | Where-Object { $_ -ne '' -and $_ -notmatch '^\s*$' }) | Select-Object -Unique
 
 Invoke-PreserveBranch {
     Invoke-CreateBranch $branchName $upstreamBranches[0]
