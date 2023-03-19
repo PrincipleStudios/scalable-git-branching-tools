@@ -169,22 +169,29 @@ Invoke-PreserveBranch {
 
     Invoke-CreateBranch $branchName $upstreamBranches[0]
     Invoke-CheckoutBranch $branchName
+    Write-Host "branch checked out"
+
     
     $selectedBranches = $selectedBranches | Where-Object { $_.branch -ne '' }
 
 }
+Write-Host "upstream branches"
 
 $upstreamBranches = [string[]]($selectedBranches | Foreach-Object { ConvertTo-BranchName $_ -includeRemote }) | Select-Object -Unique
+
+
+Write-Host "preserve branches"
 
 Invoke-PreserveBranch {
     Invoke-CreateBranch $branchName $upstreamBranches[0]
     Invoke-CheckoutBranch $branchName
-
+    #log here
+    Write-Host "made it here 1"
     $(Invoke-MergeBranches ($upstreamBranches | select -skip 1)).ThrowIfInvalid()
 
-    $commitMessage = Coalesce $commitMessage "Add branch $branchName"
+    $commitMessage = Coalesce $commitMessage "Add branch $branchName$($comment -eq $nil ? '' : " for $comment")"
 
-    Set-UpstreamBranches $branchName $selectedBranches -m $commitMessage -config $config
+    Set-UpstreamBranches $branchName $upstreamBranchesNoRemote -m $commitMessage -config $config
 
     if ($config.remote -ne $nil) {
         $params = $force ? @('--force') : @()
@@ -198,51 +205,3 @@ Invoke-PreserveBranch {
         git branch -D $branchName 2> $nil
     }
 }
-
-Write-Host ""
-Write-Host "New Branch: $branchName" -ForegroundColor Cyan
-Write-Host "Upstream Branches: $($upstreamBranches -join ', ')" -ForegroundColor Cyan
-Write-Host "Selected Branches:" -ForegroundColor Cyan
-foreach ($branch in $selectedBranches) {
-    Write-Host " $branch.branch"
-}
-$(Invoke-MergeBranches ($upstreamBranches | select -skip 1)).ThrowIfInvalid()
-
-$commitMessage = Coalesce $commitMessage "Add branch $branchName"
-
-Set-UpstreamBranches $branchName $selectedBranches -m $commitMessage -config $config
-
-if ($config.remote -ne $nil) {
-    $params = $force ? @('--force') : @()
-    git push $config.remote "$($branchName):refs/heads/$($branchName)" @params
-    if ($global:LASTEXITCODE -ne 0) {
-        throw "Unable to push $branchName to $($config.remote)"
-    }
-}
-$(Invoke-MergeBranches ($upstreamBranches | select -skip 1)).ThrowIfInvalid()
-
-$commitMessage = Coalesce $commitMessage "Add branch $branchName"
-
-Set-UpstreamBranches $branchName $selectedBranches -m $commitMessage -config $config
-
-if ($config.remote -ne $nil) {
-    $params = $force ? @('--force') : @()
-    git push $config.remote "$($branchName):refs/heads/$($branchName)" @params
-    if ($global:LASTEXITCODE -ne 0) {
-        throw "Unable to push $branchName to $($config.remote)"
-    }
-
-} -cleanup {
-    if ($config.remote -ne $nil) {
-        git branch -D $branchName 2> $nil
-    }
-}
-    
-Write-Host ""
-Write-Host "New Branch: $branchName" -ForegroundColor Cyan
-Write-Host "Upstream Branches: $($upstreamBranches -join ', ')" -ForegroundColor Cyan
-Write-Host "Selected Branches:" -ForegroundColor Cyan
-foreach ($branch in $selectedBranches) {
-    Write-Host " $branch.branch"
-}
-
