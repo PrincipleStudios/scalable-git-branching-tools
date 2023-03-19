@@ -48,7 +48,7 @@ function Select-Branch {
 
         switch ($key.VirtualKeyCode) {
             38 { if ($currentIndex -gt 0) { $currentIndex-- } }         # Up arrow
-            40 { if ($currentIndex -lt $branches.Count - 1) { $currentIndex++ } } # Down arrow
+            40 { if ($currentIndex -lt $availableBranches.Count - 1) { $currentIndex++ } } # Down arrow
             13 {
                 # Enter
                 $selectedBranch = $availableBranches[$currentIndex]
