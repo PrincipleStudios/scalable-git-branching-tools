@@ -15,7 +15,6 @@ function Select-Branch {
 
 
     $availableBranches = [PSObject[]]($allBranches | Where-Object { $_.branch -notin $selectedBranches })
-    
     $selectedBranches = New-Object System.Collections.ArrayList
     $currentIndex = 0
 
