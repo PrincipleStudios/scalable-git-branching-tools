@@ -29,7 +29,8 @@ function Select-Branch {
 
             if ($i -eq $currentIndex) {
                 Write-Host "->" -NoNewline -ForegroundColor Yellow
-            } else {
+            }
+            else {
                 Write-Host "  " -NoNewline
             }
 
@@ -48,7 +49,8 @@ function Select-Branch {
         switch ($key.VirtualKeyCode) {
             38 { if ($currentIndex -gt 0) { $currentIndex-- } }         # Up arrow
             40 { if ($currentIndex -lt $branches.Count - 1) { $currentIndex++ } } # Down arrow
-            13 {                                                        # Enter
+            13 {
+                # Enter
                 $selectedBranch = $availableBranches[$currentIndex]
                 if ($selectedBranches.Contains($selectedBranch)) {
                     $selectedBranches.Remove($selectedBranch)
@@ -59,7 +61,8 @@ function Select-Branch {
             }
             27 { 
                 #log selectedBranches
-                return $selectedBranches }                             # Escape
+                return $selectedBranches 
+            }                             # Escape
         }
     }
 }
@@ -98,25 +101,9 @@ $selectedBranches = @()
 
 Assert-CleanWorkingDirectory
 $allBranches = Select-Branches -config $config
-#filter out all branches with names "main" and "_upstream
 $allBranches = $allBranches | Where-Object { $_.branch -ne 'main' -and $_.branch -ne '_upstream' }
-if ($selectedBranches.Count -eq 0) {
-    Write-Host "No selected branches"
-}
-else {
-    #output selected branches before
-    Write-Host "selected branches before"
-    foreach ($branch in $selectedBranches) {
-        Write-Host "  $($branch.branch)"
-    }
 
-    $selectedBranches = [PSObject[]]($allBranches | Where-Object { $_.branch -in $selectedBranches })
-    #output selected branches after
-    Write-Host "selected branches after"
-    foreach ($branch in $selectedBranches) {
-        Write-Host "  $($branch.branch)"
-    }
-}
+$selectedBranches = [PSObject[]]($allBranches | Where-Object { $_.branch -in $selectedBranches })
 $availableBranches = [PSObject[]]($allBranches | Where-Object { $_.branch -notin $selectedBranches })
 
 if ($availableBranches.Count -gt 0) {
