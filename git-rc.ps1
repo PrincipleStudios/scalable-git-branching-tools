@@ -6,13 +6,10 @@ Param(
     [Switch] $noFetch
 )
 
-
-
 function Select-Branch {
     param(
         [string]$Prompt
     )
-
 
     $availableBranches = [PSObject[]]($allBranches | Where-Object { $_.branch -notin $selectedBranches })
     $selectedBranches = New-Object System.Collections.ArrayList
@@ -50,7 +47,6 @@ function Select-Branch {
             38 { if ($currentIndex -gt 0) { $currentIndex-- } }         # Up arrow
             40 { if ($currentIndex -lt $availableBranches.Count - 1) { $currentIndex++ } } # Down arrow
             13 {
-                # Enter
                 $selectedBranch = $availableBranches[$currentIndex]
                 if ($selectedBranches.Contains($selectedBranch)) {
                     $selectedBranches.Remove($selectedBranch)
@@ -60,9 +56,8 @@ function Select-Branch {
                 }
             }
             27 { 
-                #log selectedBranches
                 return $selectedBranches 
-            }                             # Escape
+            }                             
         }
     }
 }
@@ -107,16 +102,8 @@ $selectedBranches = [PSObject[]]($allBranches | Where-Object { $_.branch -in $se
 $availableBranches = [PSObject[]]($allBranches | Where-Object { $_.branch -notin $selectedBranches })
 
 if ($availableBranches.Count -gt 0) {
-    Write-Host "selected branches before select"
-    foreach ($branch in $selectedBranches) {
-        Write-Host "  $($branch.branch)"
-    }
     $selectedBranches = Select-Branch -Prompt "Select branch to merge"
     $selectedBranches = $selectedBranches | Where-Object { $_.branch -ne '' }
-    Write-Host "selectedBranches before copy"
-    foreach ($branch in $selectedBranches) {
-        Write-Host "  $($branch.branch)"
-    }
 }
 
 $upstreamBranches = [string[]]($selectedBranches | Where-Object { $_.branch -ne '' } | Foreach-Object { ConvertTo-BranchName $_ -includeRemote } | Where-Object { $_ -ne '' -and $_ -notmatch '^\s*$' }) | Select-Object -Unique
@@ -125,8 +112,6 @@ $upstreamBranchesNoRemote = [string[]]($selectedBranches | Where-Object { $_.bra
 Invoke-PreserveBranch {
     Invoke-CreateBranch $branchName $upstreamBranches[0]
     Invoke-CheckoutBranch $branchName
-    #log here
-    Write-Host "made it here 1"
     $(Invoke-MergeBranches ($upstreamBranches | select -skip 1)).ThrowIfInvalid()
 
     $commitMessage = Coalesce $commitMessage "Add branch $branchName$($comment -eq $nil ? '' : " for $comment")"
