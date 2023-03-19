@@ -62,17 +62,6 @@ function Select-Branch {
     }
 }
 
-function ToDictionary([System.Collections.Generic.IEnumerable[PSObject]] $input, [scriptblock] $keySelector, [scriptblock] $valueSelector) {
-    $output = @{}
-    foreach ($item in $input) {
-        $key = Invoke-Command -ScriptBlock $keySelector -ArgumentList $item
-        $value = Invoke-Command -ScriptBlock $valueSelector -ArgumentList $item
-        $output[$key] = $value
-    }
-    return $output
-}
-
-
 . $PSScriptRoot/config/core/split-string.ps1
 . $PSScriptRoot/config/core/coalesce.ps1
 . $PSScriptRoot/config/branch-utils/ConvertTo-BranchName.ps1
