@@ -61,8 +61,8 @@ function Select-Branch {
                     $selectedBranches.Add($selectedBranch)
                 }
             }
-            27 { 
-                return $selectedBranches 
+            27 {
+                return $selectedBranches
             }
             8 {  # Backspace
                 if ($filterText.Length -gt 0) {
@@ -101,8 +101,8 @@ if (-not $noFetch) {
 $tickets = $tickets | Where-Object { $_ -ne '' -AND $_ -ne $nil }
 
 Assert-CleanWorkingDirectory
-$allBranches = Select-Branches
-$allBranches = $allBranches | Where-Object { $_.branch -ne $config.defaultServiceLine -and $_.branch -ne $config.upstreamBranch }
+$allBranches = Select-Branches -config $config
+$allBranches = $allBranches | Where-Object { $_.branch -ne $config.defaultServiceLine -and $_.branch -ne $config.upstreamBranch}
 
 $selectedBranches = [PSObject[]]($allBranches | Where-Object { $_.branch -in $selectedBranches })
 $availableBranches = [PSObject[]]($allBranches | Where-Object { $_.branch -notin $selectedBranches })
