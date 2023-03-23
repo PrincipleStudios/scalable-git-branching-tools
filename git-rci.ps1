@@ -102,7 +102,7 @@ $selectedBranches = @()
 
 Assert-CleanWorkingDirectory
 $allBranches = Select-Branches -config $config
-$allBranches = $allBranches | Where-Object { $_.branch -ne 'main' -and $_.branch -ne '_upstream' }
+$allBranches = $allBranches | Where-Object { $_.branch -ne $config.defaultServiceLine -and $_.branch -ne $config.upstreamBranch}
 
 $selectedBranches = [PSObject[]]($allBranches | Where-Object { $_.branch -in $selectedBranches })
 $availableBranches = [PSObject[]]($allBranches | Where-Object { $_.branch -notin $selectedBranches })
