@@ -23,6 +23,9 @@ git config alias.add-upstream "!$dir/git-add-upstream.ps1"
 # Build a release candidate from other branches
 git config alias.rc "!$dir/git-rc.ps1"
 
+# Build a release candidate from other branches using interactive prompts
+git config alias.rci "!$dir/git-rci.ps1"
+
 # Verify that a branch has all of its upstream up-to-date
 git config alias.verify-updated "!$dir/git-verify-updated.ps1"
 
