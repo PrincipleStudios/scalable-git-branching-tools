@@ -12,15 +12,16 @@ Param(
 $branches = [String[]]($branches -eq $nil ? @() : (Split-String $branches))
 
 . $PSScriptRoot/config/core/coalesce.ps1
-. $PSScriptRoot/config/git/Get-Configuration.ps1
-. $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
-. $PSScriptRoot/config/git/Update-Git.ps1
-. $PSScriptRoot/config/git/Get-UpstreamBranch.ps1
-. $PSScriptRoot/config/git/Select-UpstreamBranches.ps1
-Import-Module "$PSScriptRoot/config/git/Invoke-MergeBranches.psm1";
+Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-CleanWorkingDirectory.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Update-Git.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Get-UpstreamBranch.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Select-UpstreamBranches.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CheckoutBranch.psm1"
 . $PSScriptRoot/config/git/Set-GitFiles.ps1
-. $PSScriptRoot/config/git/Invoke-PreserveBranch.ps1
-. $PSScriptRoot/config/git/Get-CurrentBranch.ps1
+Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Get-CurrentBranch.psm1"
 
 $config = Get-Configuration
 
@@ -31,9 +32,9 @@ if ($branchName -eq $nil) {
 }
 
 Assert-CleanWorkingDirectory
-Update-Git -config $config
+Update-Git
 
-$parentBranches = [String[]](Select-UpstreamBranches $branchName -config $config)
+$parentBranches = [String[]](Select-UpstreamBranches $branchName)
 
 $finalBranches = [String[]](@($branches, $parentBranches) | ForEach-Object { $_ } | Select-Object -uniq)
 
@@ -48,7 +49,7 @@ $commitMessage = Coalesce $commitMessage "Adding $($branches -join ',') to $bran
 $result = Invoke-PreserveBranch {
     $fullBranchName = $config.remote -eq $nil ? $branchName : "$($config.remote)/$($branchName)"
     $sha = git rev-parse --verify $fullBranchName -q 2> $nil
-    git checkout $sha --quiet
+    Invoke-CheckoutBranch $sha -quiet
     Assert-CleanWorkingDirectory
 
     $mergeResult = Invoke-MergeBranches ($config.remote -eq $nil ? $addedBranches : ($addedBranches | ForEach-Object { "$($config.remote)/$($_)" }))
@@ -56,7 +57,7 @@ $result = Invoke-PreserveBranch {
         Write-Host -ForegroundColor yellow "Not all branches requested could be merged automatically. Please use the following commands to add it manually to your branch and then re-run ``git add-upstream``:"
         Write-Host -ForegroundColor yellow "    git merge $($mergeResult.branch)"
 
-        return New-Object ResultWithCleanup $false
+        return New-ResultAfterCleanup $false
     }
 
     $upstreamCommitish = Set-GitFiles @{ $branchName = ($finalBranches -join "`n") } -m $commitMessage -branchName $config.upstreamBranch -remote $config.remote -dryRun

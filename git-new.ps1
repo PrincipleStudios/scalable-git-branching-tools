@@ -12,21 +12,19 @@ $parentBranches = [String[]]($parentBranches -eq $nil ? @() : (Split-String $par
 
 # TODO: allow explicit branch name specification for an "other" branch type
 
-. $PSScriptRoot/config/git/Get-Configuration.ps1
-. $PSScriptRoot/config/git/Update-Git.ps1
-. $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
-. $PSScriptRoot/config/git/Invoke-CreateBranch.ps1
-. $PSScriptRoot/config/git/Invoke-CheckoutBranch.ps1
-Import-Module "$PSScriptRoot/config/git/Invoke-MergeBranches.psm1";
-. $PSScriptRoot/config/git/Invoke-PreserveBranch.ps1
+Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Update-Git.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-CleanWorkingDirectory.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CreateBranch.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CheckoutBranch.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.psm1"
 . $PSScriptRoot/config/git/Set-GitFiles.ps1
 
 $config = Get-Configuration
 if (-not $noFetch) {
-    Update-Git -config $config
+    Update-Git
 }
-
-$type = Coalesce $type $defaultFeatureType
 
 if ($parentBranches -ne $nil -AND $parentBranches.length -gt 0) {
     $parentBranchesNoRemote = $parentBranches

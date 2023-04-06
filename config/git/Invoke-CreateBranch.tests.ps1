@@ -1,20 +1,16 @@
 BeforeAll {
-    . $PSScriptRoot/Invoke-CreateBranch.ps1
-    
-    Mock git {
-        throw "Unmocked git command: $args"
-    }
+    . "$PSScriptRoot/../testing/Lock-Git.mocks.ps1"
+    Import-Module -Scope Local "$PSScriptRoot/Invoke-CreateBranch.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/Invoke-CreateBranch.mocks.psm1"
 }
 
 Describe 'Invoke-CreateBranch' {
     It 'throws if exit code is non-zero' {
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch some-branch source --quiet --no-track' } { $Global:LASTEXITCODE = 1 }
-            
+        Initialize-CreateBranchFailed -branchName 'some-branch' -source 'source'
         { Invoke-CreateBranch some-branch source } | Should -Throw
     }
     It 'does not throw if exit code is zero' {
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch some-branch source --quiet --no-track' } { $Global:LASTEXITCODE = 0 }
-        
-        Invoke-CreateBranch some-branch source
+        Initialize-CreateBranch -branchName 'some-branch1' -source 'source'
+        Invoke-CreateBranch some-branch1 source
     }
 }

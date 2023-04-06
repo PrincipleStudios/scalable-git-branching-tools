@@ -14,26 +14,26 @@ $branches = [String[]]($branches -eq $nil ? @() : (Split-String $branches))
 
 . $PSScriptRoot/config/core/coalesce.ps1
 . $PSScriptRoot/config/branch-utils/ConvertTo-BranchName.ps1
-. $PSScriptRoot/config/git/Get-Configuration.ps1
-. $PSScriptRoot/config/git/Update-Git.ps1
-. $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
-. $PSScriptRoot/config/git/Select-Branches.ps1
-. $PSScriptRoot/config/git/Invoke-PreserveBranch.ps1
-. $PSScriptRoot/config/git/Invoke-CreateBranch.ps1
-. $PSScriptRoot/config/git/Invoke-CheckoutBranch.ps1
-Import-Module "$PSScriptRoot/config/git/Invoke-MergeBranches.psm1";
+Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Update-Git.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-CleanWorkingDirectory.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Select-Branches.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CreateBranch.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CheckoutBranch.psm1";
+Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.psm1";
 . $PSScriptRoot/config/git/Set-UpstreamBranches.ps1
 
 $config = Get-Configuration
 
 if (-not $noFetch) {
-    Update-Git -config $config
+    Update-Git
 }
 
 $tickets = $tickets | Where-Object { $_ -ne '' -AND $_ -ne $nil }
 
 Assert-CleanWorkingDirectory
-$allBranches = Select-Branches -config $config
+$allBranches = Select-Branches
 $selectedBranches = [PSObject[]]($allBranches | Where-Object {
         if ($branches -ne $nil -AND $branches -contains $_.branch) { return $true }
         return $false

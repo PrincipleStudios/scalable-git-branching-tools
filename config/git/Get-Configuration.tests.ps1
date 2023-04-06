@@ -1,113 +1,54 @@
 BeforeAll {
-    . $PSScriptRoot/Get-Configuration.ps1
+    . "$PSScriptRoot/../testing/Lock-Git.mocks.ps1"
+    Import-Module -Scope Local "$PSScriptRoot/Get-Configuration.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/../testing/Invoke-MockGitModule.psm1"
     . $PSScriptRoot/../TestUtils.ps1
-    
-    Mock git {
-        throw "Unmocked git command: $args"
+
+    function Invoke-MockGit([string] $gitCli, [object] $MockWith) {
+        return Invoke-MockGitModule -ModuleName 'Get-Configuration' @PSBoundParameters
     }
 }
 
 Describe 'Get-Configuration' {
 
     It 'Defaults values' {
-        Mock git {
-            $global:LASTEXITCODE = 0
-        } -ParameterFilter {($args -join ' ') -eq 'config scaled-git.remote'}
-        Mock git {
-            $global:LASTEXITCODE = 0
-        } -ParameterFilter {($args -join ' ') -eq 'remote'}
-
-        Mock git {
-            $global:LASTEXITCODE = 0
-        } -ParameterFilter {($args -join ' ') -eq 'config scaled-git.defaultServiceLine'}
-        Mock git -ParameterFilter {($args -join ' ') -eq 'rev-parse --verify main -q'} {
-            'some-hash'
-            $Global:LASTEXITCODE = 0
-        }
-        
-        Mock git {
-            $global:LASTEXITCODE = 0
-        } -ParameterFilter {($args -join ' ') -eq 'config scaled-git.upstreamBranch'}
-
-        Mock git {
-            $global:LASTEXITCODE = 0
-        } -ParameterFilter {($args -join ' ') -eq 'config scaled-git.atomicPushEnabled'}
+        Invoke-MockGit 'config scaled-git.remote'
+        Invoke-MockGit 'remote'
+        Invoke-MockGit 'config scaled-git.defaultServiceLine'
+        Invoke-MockGit 'rev-parse --verify main -q' { 'some-hash' }
+        Invoke-MockGit 'config scaled-git.upstreamBranch'
+        Invoke-MockGit 'config scaled-git.atomicPushEnabled'
 
         Get-Configuration | Should-BeObject @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = 'main'; atomicPushEnabled = $true }
     }
 
     It 'Defaults values with no main branch' {
-        Mock git {
-            $global:LASTEXITCODE = 0
-        } -ParameterFilter {($args -join ' ') -eq 'config scaled-git.remote'}
-        Mock git {
-            $global:LASTEXITCODE = 0
-        } -ParameterFilter {($args -join ' ') -eq 'remote'}
-        Mock git {
-            $global:LASTEXITCODE = 0
-        } -ParameterFilter {($args -join ' ') -eq 'config scaled-git.defaultServiceLine'}
-        Mock git {
-            $global:LASTEXITCODE = 128
-        } -ParameterFilter {($args -join ' ') -eq 'rev-parse --verify main -q'}
-        
-        
-        Mock git {
-        } -ParameterFilter {($args -join ' ') -eq 'config scaled-git.upstreamBranch'}
-
-        Mock git {
-        } -ParameterFilter {($args -join ' ') -eq 'config scaled-git.atomicPushEnabled'}
+        Invoke-MockGit 'config scaled-git.remote'
+        Invoke-MockGit 'remote'
+        Invoke-MockGit 'config scaled-git.defaultServiceLine'
+        Invoke-MockGit 'rev-parse --verify main -q' { $global:LASTEXITCODE = 128 }
+        Invoke-MockGit 'config scaled-git.upstreamBranch'
+        Invoke-MockGit 'config scaled-git.atomicPushEnabled'
 
         Get-Configuration | Should-BeObject @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = $nil; atomicPushEnabled = $true }
     }
 
     It 'Defaults values with a remote main branch' {
-        Mock git {
-            $global:LASTEXITCODE = 0
-        } -ParameterFilter {($args -join ' ') -eq 'config scaled-git.remote'}
-        Mock git {
-            'origin'
-            $global:LASTEXITCODE = 0
-        } -ParameterFilter {($args -join ' ') -eq 'remote'}
-        Mock git {
-            $global:LASTEXITCODE = 0
-        } -ParameterFilter {($args -join ' ') -eq 'config scaled-git.defaultServiceLine'}
-        Mock git {
-            'some-hash'
-            $global:LASTEXITCODE = 0
-        } -ParameterFilter {($args -join ' ') -eq 'rev-parse --verify origin/main -q'}
-        
-        
-        Mock git {
-            $global:LASTEXITCODE = 0
-        } -ParameterFilter {($args -join ' ') -eq 'config scaled-git.upstreamBranch'}
-
-        Mock git {
-            $global:LASTEXITCODE = 0
-        } -ParameterFilter {($args -join ' ') -eq 'config scaled-git.atomicPushEnabled'}
+        Invoke-MockGit 'config scaled-git.remote'
+        Invoke-MockGit 'remote' { 'origin' }
+        Invoke-MockGit 'config scaled-git.defaultServiceLine'
+        Invoke-MockGit 'rev-parse --verify origin/main -q' { 'some-hash'}
+        Invoke-MockGit 'config scaled-git.upstreamBranch'
+        Invoke-MockGit 'config scaled-git.atomicPushEnabled'
 
         Get-Configuration | Should-BeObject @{ remote = 'origin'; upstreamBranch = '_upstream'; defaultServiceLine = 'main'; atomicPushEnabled = $true }
     }
 
     It 'Overrides defaults' {
-        Mock git {
-            "github"
-            $global:LASTEXITCODE = 0
-        } -ParameterFilter {($args -join ' ') -eq 'config scaled-git.remote'}
-        
-        Mock git {
-            "upstream-config"
-            $global:LASTEXITCODE = 0
-        } -ParameterFilter {($args -join ' ') -eq 'config scaled-git.upstreamBranch'}
-        
-        Mock git {
-            'trunk'
-            $global:LASTEXITCODE = 0
-        } -ParameterFilter {($args -join ' ') -eq 'config scaled-git.defaultServiceLine'}
-
-        Mock git {
-			$false
-            $global:LASTEXITCODE = 0
-        } -ParameterFilter {($args -join ' ') -eq 'config scaled-git.atomicPushEnabled'}
+        Invoke-MockGit 'config scaled-git.remote' { 'github' }
+        Invoke-MockGit 'config scaled-git.upstreamBranch' { 'upstream-config' }
+        Invoke-MockGit 'config scaled-git.defaultServiceLine' { 'trunk' }
+        Invoke-MockGit 'config scaled-git.atomicPushEnabled' { $false }
 
         Get-Configuration | Should-BeObject @{ remote = 'github'; upstreamBranch = 'upstream-config'; defaultServiceLine = 'trunk'; atomicPushEnabled = $false }
     }

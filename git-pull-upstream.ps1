@@ -4,17 +4,15 @@ Param(
     [Switch] $noFetch
 )
 
-. $PSScriptRoot/config/git/Get-Configuration.ps1
-. $PSScriptRoot/config/git/Update-Git.ps1
-. $PSScriptRoot/config/git/Get-CurrentBranch.ps1
-. $PSScriptRoot/config/git/Select-UpstreamBranches.ps1
-. $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
-Import-Module "$PSScriptRoot/config/git/Invoke-MergeBranches.psm1";
-
-$config = Get-Configuration
+Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Update-Git.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Get-CurrentBranch.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Select-UpstreamBranches.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-CleanWorkingDirectory.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.psm1";
 
 if (-not $noFetch) {
-    Update-Git -config $config
+    Update-Git
 }
 $branchName = Get-CurrentBranch
 if ($branchName -eq $nil) {

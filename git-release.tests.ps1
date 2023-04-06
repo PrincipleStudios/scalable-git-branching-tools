@@ -1,27 +1,20 @@
 BeforeAll {
-    Mock git {
-        throw "Unmocked git command: $args"
-    }
+    . "$PSScriptRoot/config/testing/Lock-Git.mocks.ps1"
+    Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/config/git/Select-UpstreamBranches.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/config/git/Update-Git.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/config/git/Get-GitFileNames.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-WriteTree.mocks.psm1"
 
     # User-interface commands are a bit noisy; TODO: add quiet option and test it by making this throw
     Mock -CommandName Write-Host {}
-
-	. $PSScriptRoot/config/git/Get-Configuration.ps1
-	Mock -CommandName Get-ConfiguredAtomicPushEnabled { return $true }
 
     # This command is more complex than I want to handle for low-level git commands in these tests
     . $PSScriptRoot/config/git/Set-UpstreamBranches.ps1
     Mock -CommandName Set-UpstreamBranches { throw "Unexpected parameters for Set-UpstreamBranches: $branchName $upstreamBranches $commitMessage" }
 
-    # This command is more complex than I want to handle for low-level git commands in these tests
-    . $PSScriptRoot/config/git/Invoke-WriteTree.ps1
-    Mock -CommandName Invoke-WriteTree { throw "Unexpected parameters for Invoke-WriteTree: $treeEntries" }
-
-    . $PSScriptRoot/config/git/Invoke-PreserveBranch.ps1
-    Mock -CommandName Invoke-PreserveBranch {
-        & $scriptBlock
-        & $cleanup
-    }
+    Lock-InvokeWriteTree
 
     . $PSScriptRoot/config/git/Set-GitFiles.ps1
     Mock -CommandName Set-GitFiles {
@@ -38,36 +31,20 @@ BeforeAll {
         @{ remote = $nil; branch='rc/2022-07-14' }
         @{ remote = $nil; branch='integrate/FOO-125_XYZ-1' }
     )
-    
+
     function Mock-NoRemoteUpstream() {
-        . $PSScriptRoot/config/git/Get-Configuration.ps1
-        Mock -CommandName Get-Configuration { return @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = $nil } }
-        
-        . $PSScriptRoot/config/git/Get-GitFileNames.ps1
-        Mock -CommandName Get-GitFileNames -ParameterFilter { 
-            $branchName -eq '_upstream' -AND -not $remote
-        } { return $noRemoteBranches | ForEach-Object { $_.branch } }
-        
-        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p _upstream:feature/FOO-123'} {
-            "main"
+        Initialize-ToolConfiguration -noRemote -defaultServiceLine $nil
+
+        Initialize-GitFileNames '_upstream' $($noRemoteBranches | ForEach-Object { $_.branch })
+        Initialize-UpstreamBranches @{
+            'feature/FOO-123' = @('main')
+            'feature/XYZ-1-services' = @('main')
+            'feature/FOO-124-comment' = @('main')
+            'feature/FOO-124_FOO-125' = @("feature/FOO-124-comment")
+            'feature/FOO-76' = @('main')
+            'integrate/FOO-125_XYZ-1' = @("feature/FOO-124_FOO-125","feature/XYZ-1-services")
+            'main' = @()
         }
-        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p _upstream:feature/XYZ-1-services'} {
-            "main"
-        }
-        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p _upstream:feature/FOO-124-comment'} {
-            "main"
-        }
-        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p _upstream:feature/FOO-124_FOO-125'} {
-            "feature/FOO-124-comment"
-        }
-        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p _upstream:feature/FOO-76'} {
-            "main"
-        }
-        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p _upstream:integrate/FOO-125_XYZ-1'} {
-            "feature/FOO-124_FOO-125"
-            "feature/XYZ-1-services"
-        }
-        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p _upstream:main'} {}
     }
 
     $defaultBranches = @(
@@ -80,41 +57,20 @@ BeforeAll {
         @{ remote = 'origin'; branch='rc/2022-07-14' }
         @{ remote = 'origin'; branch='integrate/FOO-125_XYZ-1' }
     )
-    
-    function Mock-RemoteUpstream() {
-        . $PSScriptRoot/config/git/Get-Configuration.ps1
-        Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream'; defaultServiceLine = $nil; atomicPushEnabled = $true } }
-        
-        . $PSScriptRoot/config/git/Get-GitFileNames.ps1
-        Mock -CommandName Get-GitFileNames -ParameterFilter { 
-            $branchName -eq '_upstream' -AND $remote -eq 'origin'
-        } { return $defaultBranches | ForEach-Object { $_.branch } }
-        
-        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p origin/_upstream:feature/FOO-123'} {
-            "main"
-        }
-        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p origin/_upstream:feature/XYZ-1-services'} {
-            "main"
-        }
-        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p origin/_upstream:feature/FOO-124-comment'} {
-            "main"
-        }
-        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p origin/_upstream:feature/FOO-124_FOO-125'} {
-            "feature/FOO-124-comment"
-        }
-        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p origin/_upstream:feature/FOO-76'} {
-            "main"
-        }
-        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p origin/_upstream:integrate/FOO-125_XYZ-1'} {
-            "feature/FOO-124_FOO-125"
-            "feature/XYZ-1-services"
-        }
-        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p origin/_upstream:main'} {}
-    }
 
-    function Mock-UpdateGit() {
-        . $PSScriptRoot/config/git/Update-Git.ps1
-        Mock -CommandName Update-Git { }
+    function Mock-RemoteUpstream() {
+        Initialize-ToolConfiguration -defaultServiceLine $nil
+
+        Initialize-GitFileNames 'origin/_upstream' $($defaultBranches | ForEach-Object { $_.branch })
+        Initialize-UpstreamBranches @{
+            'feature/FOO-123' = @('main')
+            'feature/XYZ-1-services' = @('main')
+            'feature/FOO-124-comment' = @('main')
+            'feature/FOO-124_FOO-125' = @("feature/FOO-124-comment")
+            'feature/FOO-76' = @('main')
+            'integrate/FOO-125_XYZ-1' = @("feature/FOO-124_FOO-125","feature/XYZ-1-services")
+            'main' = {}
+        }
     }
 }
 
@@ -122,24 +78,20 @@ BeforeAll {
 Describe 'git-release' {
     It 'handles standard functionality' {
         Mock-RemoteUpstream
-        Mock-UpdateGit
+        Initialize-UpdateGit
 
         Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list origin/main ^origin/rc/2022-07-14 --count'} {
             "0"
         }
-        
-        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p origin/_upstream:rc/2022-07-14'} {
-            "feature/FOO-123"
-            "feature/XYZ-1-services"
-        }
-        
-        Mock -CommandName Set-GitFiles -ParameterFilter { 
+        Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
+
+        Mock -CommandName Set-GitFiles -ParameterFilter {
             $commitMessage -eq 'Release rc/2022-07-14 to main' -AND $branchName -eq '_upstream' -AND $remote -eq 'origin' -AND $dryRun `
                 -AND $files['feature/FOO-123'] -eq $nil `
                 -AND $files['integrate/FOO-125_XYZ-1'] -eq "feature/FOO-124_FOO-125`nmain" `
                 -AND $files['rc/2022-07-14'] -eq $nil `
                 -AND $files['feature/XYZ-1-services'] -eq $nil
-        } { 
+        } {
             'new-commit'
         }
 
@@ -150,27 +102,23 @@ Describe 'git-release' {
 
         Should -Invoke -CommandName git -Times 1 -ParameterFilter $pushParameterFilter
     }
-    
+
     It 'handles no remote' {
         Mock-NoRemoteUpstream
-        Mock-UpdateGit
-        
+        Initialize-UpdateGit
+
         Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list main ^rc/2022-07-14 --count'} {
             "0"
         }
-        
-        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p _upstream:rc/2022-07-14'} {
-            "feature/FOO-123"
-            "feature/XYZ-1-services"
-        }
-        
-        Mock -CommandName Set-GitFiles -ParameterFilter { 
+        Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services")}
+
+        Mock -CommandName Set-GitFiles -ParameterFilter {
             $commitMessage -eq 'Release rc/2022-07-14 to main' -AND $branchName -eq '_upstream' -AND -not $remote -AND $dryRun `
                 -AND $files['feature/FOO-123'] -eq $nil `
                 -AND $files['integrate/FOO-125_XYZ-1'] -eq "feature/FOO-124_FOO-125`nmain" `
                 -AND $files['rc/2022-07-14'] -eq $nil `
                 -AND $files['feature/XYZ-1-services'] -eq $nil
-        } { 
+        } {
             'new-commit'
         }
 
@@ -182,31 +130,28 @@ Describe 'git-release' {
             {($args -join ' ') -eq 'branch -D rc/2022-07-14'}
         )
         $updateBranchFilters | ForEach-Object { Mock git -ParameterFilter $_ {} -Verifiable }
-        
+
         & $PSScriptRoot/git-release.ps1 rc/2022-07-14 main
 
         $updateBranchFilters | ForEach-Object { Should -Invoke -CommandName git -Times 1 -ParameterFilter $_ }
     }
-    
+
     It 'can skip the initial fetch' {
         Mock-RemoteUpstream
 
         Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list origin/main ^origin/rc/2022-07-14 --count'} {
             "0"
         }
-        
-        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p origin/_upstream:rc/2022-07-14'} {
-            "feature/FOO-123"
-            "feature/XYZ-1-services"
-        }
-        
-        Mock -CommandName Set-GitFiles -ParameterFilter { 
+
+        Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
+
+        Mock -CommandName Set-GitFiles -ParameterFilter {
             $commitMessage -eq 'Release rc/2022-07-14 to main' -AND $branchName -eq '_upstream' -AND $remote -eq 'origin' -AND $dryRun `
                 -AND $files['feature/FOO-123'] -eq $nil `
                 -AND $files['integrate/FOO-125_XYZ-1'] -eq "feature/FOO-124_FOO-125`nmain" `
                 -AND $files['rc/2022-07-14'] -eq $nil `
                 -AND $files['feature/XYZ-1-services'] -eq $nil
-        } { 
+        } {
             'new-commit'
         }
 
@@ -217,27 +162,24 @@ Describe 'git-release' {
 
         Should -Invoke -CommandName git -Times 1 -ParameterFilter $pushParameterFilter
     }
-    
+
     It 'can issue a dry run' {
         Mock-RemoteUpstream
-        Mock-UpdateGit
+        Initialize-UpdateGit
 
         Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list origin/main ^origin/rc/2022-07-14 --count'} {
             "0"
         }
-        
-        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p origin/_upstream:rc/2022-07-14'} {
-            "feature/FOO-123"
-            "feature/XYZ-1-services"
-        }
-        
-        Mock -CommandName Set-GitFiles -ParameterFilter { 
+
+        Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
+
+        Mock -CommandName Set-GitFiles -ParameterFilter {
             $commitMessage -eq 'Release rc/2022-07-14 to main' -AND $branchName -eq '_upstream' -AND $remote -eq 'origin' -AND $dryRun `
                 -AND $files['feature/FOO-123'] -eq $nil `
                 -AND $files['integrate/FOO-125_XYZ-1'] -eq "feature/FOO-124_FOO-125`nmain" `
                 -AND $files['rc/2022-07-14'] -eq $nil `
                 -AND $files['feature/XYZ-1-services'] -eq $nil
-        } { 
+        } {
             'new-commit'
         }
 
@@ -246,21 +188,18 @@ Describe 'git-release' {
 
         & $PSScriptRoot/git-release.ps1 rc/2022-07-14 main -dryrun
     }
-    
+
     It 'handles integration branches recursively' {
         Mock-RemoteUpstream
-        Mock-UpdateGit
+        Initialize-UpdateGit
 
         Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list origin/main ^origin/rc/2022-07-14 --count'} {
             "0"
         }
-        
-        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p origin/_upstream:rc/2022-07-14'} {
-            "feature/FOO-123"
-            "integrate/FOO-125_XYZ-1"
-        }
-        
-        Mock -CommandName Set-GitFiles -ParameterFilter { 
+
+        Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123", "integrate/FOO-125_XYZ-1") }
+
+        Mock -CommandName Set-GitFiles -ParameterFilter {
             $commitMessage -eq 'Release rc/2022-07-14 to main' -AND $branchName -eq '_upstream' -AND $remote -eq 'origin' -AND $dryRun `
                 -AND $files['feature/FOO-123'] -eq $nil `
                 -AND $files['integrate/FOO-125_XYZ-1'] -eq $nil `
@@ -268,7 +207,7 @@ Describe 'git-release' {
                 -AND $files['feature/XYZ-1-services'] -eq $nil `
                 -AND $files['feature/FOO-124_FOO-125'] -eq $nil `
                 -AND $files['feature/FOO-124-comment'] -eq $nil
-        } { 
+        } {
             'new-commit'
         }
 
@@ -279,27 +218,23 @@ Describe 'git-release' {
 
         Should -Invoke -CommandName git -Times 1 -ParameterFilter $pushParameterFilter
     }
-    
+
     It 'handles a single upstream branch' {
         Mock-RemoteUpstream
-        Mock-UpdateGit
+        Initialize-UpdateGit
 
         Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list origin/main ^origin/feature/FOO-123 --count'} {
             "0"
         }
-        
-        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p origin/_upstream:feature/FOO-123'} {
-            "main"
+        Initialize-UpstreamBranches @{
+            'feature/FOO-123' = @('main')
+            'rc/2022-07-14' = @("integrate/FOO-125_XYZ-1")
         }
-        
-        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p origin/_upstream:rc/2022-07-14'} {
-            "integrate/FOO-125_XYZ-1"
-        }
-        
-        Mock -CommandName Set-GitFiles -ParameterFilter { 
+
+        Mock -CommandName Set-GitFiles -ParameterFilter {
             $commitMessage -eq 'Release feature/FOO-123 to main' -AND $branchName -eq '_upstream' -AND $remote -eq 'origin' -AND $dryRun `
                 -AND $files['feature/FOO-123'] -eq $nil
-        } { 
+        } {
             'new-commit'
         }
 
@@ -310,38 +245,35 @@ Describe 'git-release' {
 
         Should -Invoke -CommandName git -Times 1 -ParameterFilter $pushParameterFilter
     }
-    
+
     It 'aborts if not a fast-forward' {
         Mock-RemoteUpstream
-        Mock-UpdateGit
+        Initialize-UpdateGit
 
         Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list origin/main ^origin/rc/2022-07-14 --count'} {
             "1"
         }
-        
+
         { & $PSScriptRoot/git-release.ps1 rc/2022-07-14 main } | Should -Throw
     }
-    
+
     It 'can clean up if already released' {
         Mock-RemoteUpstream
-        Mock-UpdateGit
+        Initialize-UpdateGit
 
         Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list origin/rc/2022-07-14 ^origin/main --count'} {
             "0"
         }
-        
-        Mock git -ParameterFilter {($args -join ' ') -eq 'cat-file -p origin/_upstream:rc/2022-07-14'} {
-            "feature/FOO-123"
-            "feature/XYZ-1-services"
-        }
-        
-        Mock -CommandName Set-GitFiles -ParameterFilter { 
+
+        Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
+
+        Mock -CommandName Set-GitFiles -ParameterFilter {
             $commitMessage -eq 'Release rc/2022-07-14 to main' -AND $branchName -eq '_upstream' -AND $remote -eq 'origin' -AND $dryRun `
                 -AND $files['feature/FOO-123'] -eq $nil `
                 -AND $files['integrate/FOO-125_XYZ-1'] -eq "feature/FOO-124_FOO-125`nmain" `
                 -AND $files['rc/2022-07-14'] -eq $nil `
                 -AND $files['feature/XYZ-1-services'] -eq $nil
-        } { 
+        } {
             'new-commit'
         }
 
@@ -352,16 +284,16 @@ Describe 'git-release' {
 
         Should -Invoke -CommandName git -Times 1 -ParameterFilter $pushParameterFilter
     }
-    
+
     It 'aborts clean up if not already released' {
         Mock-RemoteUpstream
-        Mock-UpdateGit
+        Initialize-UpdateGit
 
         Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list origin/rc/2022-07-14 ^origin/main --count'} {
             "1"
         }
-        
+
         { & $PSScriptRoot/git-release.ps1 rc/2022-07-14 main -cleanupOnly } | Should -Throw
     }
-    
+
 }

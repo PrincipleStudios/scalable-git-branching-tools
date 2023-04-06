@@ -1,5 +1,7 @@
-function Select-Branches([Parameter(Mandatory)][PSObject] $config) {
-    $remote = $config.remote
+Import-Module -Scope Local "$PSScriptRoot/Get-Configuration.psm1"
+
+function Select-Branches() {
+    $remote = $(Get-Configuration).remote
     $temp = $remote -eq $nil ? (git branch) : (git branch -r)
     return $temp | Foreach-Object { $_.split("`n") } | Foreach-Object {
         if ($remote -eq $nil) {
@@ -18,3 +20,4 @@ function Select-Branches([Parameter(Mandatory)][PSObject] $config) {
         return @{ remote = $remote; branch = $branchName }
     } | Where-Object { $_ -ne $nil }
 }
+Export-ModuleMember -Function Select-Branches

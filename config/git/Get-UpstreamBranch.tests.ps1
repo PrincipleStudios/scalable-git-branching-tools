@@ -1,31 +1,26 @@
 BeforeAll {
-    . $PSScriptRoot/Get-UpstreamBranch.ps1
-    . $PSScriptRoot/../TestUtils.ps1
+    . "$PSScriptRoot/../testing/Lock-Git.mocks.ps1"
+    Import-Module -Scope Local "$PSScriptRoot/Get-Configuration.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/Get-Configuration.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/Get-UpstreamBranch.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/Get-UpstreamBranch.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/../testing/Invoke-VerifyMock.psm1"
 }
 
 Describe 'Get-UpstreamBranch' {
     It 'computes the upstream tracking branch name' {
-        Mock git {
-            throw "Unmocked git command: $args"
-        }
-
-        Get-UpstreamBranch -config @{ remote = 'github'; upstreamBranch = 'my-upstream' } | Should -Be 'github/my-upstream'
+        Initialize-ToolConfiguration -upstreamBranchName 'my-upstream' -remote 'github'
+        Get-UpstreamBranch | Should -Be 'github/my-upstream'
     }
     It 'can handle no remote' {
-        Mock git {
-            throw "Unmocked git command: $args"
-        }
-
-        Get-UpstreamBranch -config @{ remote = $nil; upstreamBranch = 'my-upstream' } | Should -Be 'my-upstream'
+        Initialize-ToolConfiguration -upstreamBranchName 'my-upstream' -noRemote
+        Get-UpstreamBranch | Should -Be 'my-upstream'
     }
     It 'fetches if requested' {
-        Mock git {
-            throw "Unmocked git command: $args"
-        }
+        Initialize-ToolConfiguration -upstreamBranchName 'my-upstream' -remote 'github'
+        $mock = Initialize-FetchUpstreamBranch
 
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'fetch github my-upstream' } -Verifiable { $global:LASTEXITCODE = 0 }
-
-        Get-UpstreamBranch -config @{ remote = 'github'; upstreamBranch = 'my-upstream' } -fetch | Should -Be 'github/my-upstream'
-        Should -Invoke git -ParameterFilter { ($args -join ' ') -eq 'fetch github my-upstream' } -Times 1
+        Get-UpstreamBranch -fetch | Should -Be 'github/my-upstream'
+        Invoke-VerifyMock $mock -Times 1
     }
 }

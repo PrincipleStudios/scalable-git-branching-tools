@@ -1,7 +1,8 @@
 BeforeAll {
-    Mock git {
-        throw "Unmocked git command: $args"
-    }
+    . "$PSScriptRoot/config/testing/Lock-Git.mocks.ps1"
+    Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-WriteTree.mocks.psm1"
 
     # User-interface commands are a bit noisy; TODO: add quiet option and test it by making this throw
     Mock -CommandName Write-Host {}
@@ -12,26 +13,26 @@ BeforeAll {
         throw "Unexpected parameters for Set-GitFiles: $(@{ files = $files; commitMessage = $commitMessage; branchName = $branchName; remote = $remote; dryRun = $dryRun } | ConvertTo-Json)"
     }
 
-    . $PSScriptRoot/config/git/Invoke-PreserveBranch.ps1
     Mock -CommandName Invoke-PreserveBranch -ParameterFilter { $onlyIfError } {
         & $scriptBlock
     }
 
     # This command is more complex than I want to handle for low-level git commands in these tests
-    . $PSScriptRoot/config/git/Invoke-WriteTree.ps1
-    Mock -CommandName Invoke-WriteTree { throw "Unexpected parameters for Invoke-WriteTree: $treeEntries" }
+    Lock-InvokeWriteTree
 }
 
 Describe 'git-new' {
     BeforeAll {
-        Import-Module "$PSScriptRoot/config/git/Invoke-MergeBranches.mocks.psm1" -Force
+        Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.mocks.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-CleanWorkingDirectory.mocks.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CheckoutBranch.mocks.psm1";
+        Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CreateBranch.mocks.psm1"
         Initialize-QuietMergeBranches
     }
 
     It 'handles standard functionality' {
-        . $PSScriptRoot/config/git/Get-Configuration.ps1
-
-        Mock -CommandName Get-Configuration { return @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = 'main' } }
+        Initialize-ToolConfiguration -noRemote
+        Initialize-CleanWorkingDirectory
 
         # Mock git -ParameterFilter { ($args -join ' ') -eq 'config scaled-git.remote' } {}
         # Mock git -ParameterFilter { ($args -join ' ') -eq 'remote' } {}
@@ -40,111 +41,67 @@ Describe 'git-new' {
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch' } {
             Write-Output 'main'
         }
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'diff --stat --exit-code --quiet' } {
-            $Global:LASTEXITCODE = 0
-        }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'clean -n' } {}
         Mock -CommandName Set-GitFiles -ParameterFilter {
             $files['feature/PS-100-some-work'] -eq 'main'
         } { 'new-commit' }
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch feature/PS-100-some-work main --quiet --no-track' } { $Global:LASTEXITCODE = 0 }
+        Initialize-CreateBranch 'feature/PS-100-some-work' 'main'
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f _upstream new-commit --quiet' } { $Global:LASTEXITCODE = 0 }
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout feature/PS-100-some-work --quiet' } { $Global:LASTEXITCODE = 0 }
+        Initialize-CheckoutBranch 'feature/PS-100-some-work'
 
         & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -m 'some work'
     }
 
     It 'creates a local branch when no remotes are configured' {
-        . $PSScriptRoot/config/git/Get-Configuration.ps1
-        . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
-        . $PSScriptRoot/config/git/Invoke-CreateBranch.ps1
-        . $PSScriptRoot/config/git/Invoke-CheckoutBranch.ps1
+        Initialize-ToolConfiguration -noRemote
 
-        Mock -CommandName Get-Configuration { return @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = 'main' } }
         Mock -CommandName Set-GitFiles -ParameterFilter {
             $files['feature/PS-100-some-work'] -eq 'main'
         } { 'new-commit' }
-        Mock -CommandName Assert-CleanWorkingDirectory {}
-        Mock -CommandName Invoke-CreateBranch -ParameterFilter {
-            $branchName -eq 'feature/PS-100-some-work' `
-                -AND $source -eq 'main'
-        } {}
-        Mock -CommandName Invoke-CheckoutBranch -ParameterFilter {
-            $branchName -eq 'feature/PS-100-some-work'
-        } {}
+        Initialize-CleanWorkingDirectory
+        Initialize-CreateBranch -branchName 'feature/PS-100-some-work' -source 'main'
+        Initialize-CheckoutBranch 'feature/PS-100-some-work'
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f _upstream new-commit --quiet' } { $Global:LASTEXITCODE = 0 }
 
         & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -m 'some work'
     }
 
     It 'creates a local branch from the specified branch when no remotes are configured' {
-        . $PSScriptRoot/config/git/Get-Configuration.ps1
-        . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
-        . $PSScriptRoot/config/git/Invoke-CreateBranch.ps1
-        . $PSScriptRoot/config/git/Invoke-CheckoutBranch.ps1
-
-        Mock -CommandName Get-Configuration { return @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = $nil } }
+        Initialize-ToolConfiguration -noRemote
         Mock -CommandName Set-GitFiles -ParameterFilter {
             $files['feature/PS-600-some-work'] -eq 'infra/foo'
         } { 'new-commit' }
-        Mock -CommandName Assert-CleanWorkingDirectory {}
-        Mock -CommandName Invoke-CreateBranch -ParameterFilter {
-            $branchName -eq 'feature/PS-600-some-work' `
-                -AND $source -eq 'infra/foo'
-        } {}
-        Mock -CommandName Invoke-CheckoutBranch -ParameterFilter {
-            $branchName -eq 'feature/PS-600-some-work'
-        } {}
+        Initialize-CleanWorkingDirectory
+        Initialize-CreateBranch -branchName 'feature/PS-600-some-work' -source 'infra/foo'
+        Initialize-CheckoutBranch 'feature/PS-600-some-work'
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f _upstream new-commit --quiet' } { $Global:LASTEXITCODE = 0 }
 
         & $PSScriptRoot/git-new.ps1 feature/PS-600-some-work -from 'infra/foo' -m 'some work'
     }
 
     It 'creates a remote branch when a remote is configured' {
-        . $PSScriptRoot/config/git/Get-Configuration.ps1
-        . $PSScriptRoot/config/git/Update-Git.ps1
-        . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
-        . $PSScriptRoot/config/git/Invoke-CreateBranch.ps1
-        . $PSScriptRoot/config/git/Invoke-CheckoutBranch.ps1
-
-        Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream'; defaultServiceLine = 'main'; atomicPushEnabled = $true } }
+        Initialize-ToolConfiguration
         Mock -CommandName Update-Git { }
         Mock -CommandName Set-GitFiles -ParameterFilter {
             $files['feature/PS-100-some-work'] -eq 'main'
         } { 'new-commit' }
-        Mock -CommandName Assert-CleanWorkingDirectory {}
-        Mock -CommandName Invoke-CreateBranch -ParameterFilter {
-            $branchName -eq 'feature/PS-100-some-work' `
-                -AND $source -eq 'origin/main'
-        } {}
-        Mock -CommandName Invoke-CheckoutBranch -ParameterFilter {
-            $branchName -eq 'feature/PS-100-some-work'
-        } {}
+        Initialize-CleanWorkingDirectory
+        Initialize-CreateBranch -branchName 'feature/PS-100-some-work' -source 'origin/main'
+        Initialize-CheckoutBranch 'feature/PS-100-some-work'
         Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin --atomic feature/PS-100-some-work:refs/heads/feature/PS-100-some-work new-commit:refs/heads/_upstream' } { $Global:LASTEXITCODE = 0 }
 
         & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -m 'some work'
     }
 
     It 'creates a remote branch when a remote is configured and an upstream branch is provided' {
-        . $PSScriptRoot/config/git/Get-Configuration.ps1
-        . $PSScriptRoot/config/git/Update-Git.ps1
-        . $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
-        . $PSScriptRoot/config/git/Invoke-CreateBranch.ps1
-        . $PSScriptRoot/config/git/Invoke-CheckoutBranch.ps1
-
-        Mock -CommandName Get-Configuration { return @{ remote = 'origin'; upstreamBranch = '_upstream'; defaultServiceLine = $nil; atomicPushEnabled = $true } }
+        Initialize-ToolConfiguration
         Mock -CommandName Update-Git { }
         Mock -CommandName Set-GitFiles -ParameterFilter {
             $files['feature/PS-100-some-work'] -eq 'infra/foo'
         } { 'new-commit' }
-        Mock -CommandName Assert-CleanWorkingDirectory {}
-        Mock -CommandName Invoke-CreateBranch -ParameterFilter {
-            $branchName -eq 'feature/PS-100-some-work' `
-                -AND $source -eq 'origin/infra/foo'
-        } {}
-        Mock -CommandName Invoke-CheckoutBranch -ParameterFilter {
-            $branchName -eq 'feature/PS-100-some-work'
-        } {}
+        Initialize-CleanWorkingDirectory
+        Initialize-CreateBranch -branchName 'feature/PS-100-some-work' -source 'origin/infra/foo'
+        Initialize-CheckoutBranch 'feature/PS-100-some-work'
         Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin --atomic feature/PS-100-some-work:refs/heads/feature/PS-100-some-work new-commit:refs/heads/_upstream' } { $Global:LASTEXITCODE = 0 }
 
         & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -from 'infra/foo' -m 'some work'

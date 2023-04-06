@@ -16,7 +16,9 @@ function Invoke-WrapMock([Object] $verifiableMock,
 function Invoke-VerifyMock([Object] $verifiableMock,
     [int] $Times
 ) {
-    Should -ModuleName $verifiableMock.ModuleName -Invoke -CommandName $verifiableMock.commandName -ParameterFilter $verifiableMock.parameterFilter -Times $Times
+    $verifiableMock | ForEach-Object {
+        Should -ModuleName $_.ModuleName -Invoke -CommandName $_.commandName -ParameterFilter $_.parameterFilter -Times $Times
+    }
 }
 
 Export-ModuleMember New-VerifiableMock, Invoke-VerifyMock, Invoke-WrapMock

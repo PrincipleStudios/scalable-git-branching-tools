@@ -1,5 +1,5 @@
 . $PSScriptRoot/../core/ArrayToHash.ps1
-. $PSScriptRoot/Invoke-WriteTree.ps1
+Import-Module -Scope Local "$PSScriptRoot/Invoke-WriteTree.psm1"
 
 function Set-GitFiles(
     [Parameter(Position=1, Mandatory)][PSObject]$files,
@@ -47,7 +47,7 @@ function Set-GitFiles(
 
 function ConvertTo-Alterations([Parameter(Position=1, Mandatory)][PSObject]$files) {
     $grouped = $files.Keys | Group-Object -Property { $_ -match '/' ? $_.Split('/')[0] : $_ } -AsHashTable
-    $result = $grouped.Keys | ArrayToHash -getValue { 
+    $result = $grouped.Keys | ArrayToHash -getValue {
         if ($files[$_] -ne $nil) { return $files[$_] }
         $grouped[$_] | ArrayToHash `
             -getKey { ($_.Split('/') | Select-Object -Skip 1) -join '/' } `

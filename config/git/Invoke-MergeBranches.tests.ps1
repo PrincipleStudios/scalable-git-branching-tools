@@ -2,9 +2,9 @@ using module "./Invoke-MergeBranches.psm1"
 
 Describe 'Invoke-MergeBranches' {
     BeforeAll {
-        Import-Module "$PSScriptRoot/Invoke-MergeBranches.psm1" -Force
-        Import-Module "$PSScriptRoot/Invoke-MergeBranches.mocks.psm1" -Force
-        Import-Module "$PSScriptRoot/../core/Invoke-VerifyMock.psm1" -Force
+        Import-Module -Scope Local "$PSScriptRoot/Invoke-MergeBranches.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/Invoke-MergeBranches.mocks.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/../testing/Invoke-VerifyMock.psm1"
         Initialize-QuietMergeBranches
     }
 

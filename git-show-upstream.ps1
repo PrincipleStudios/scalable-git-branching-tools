@@ -5,10 +5,10 @@ Param(
     [switch] $recurse
 )
 
-. $PSScriptRoot/config/git/Get-Configuration.ps1
+Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.psm1"
 . $PSScriptRoot/config/core/coalesce.ps1
-. $PSScriptRoot/config/git/Get-CurrentBranch.ps1
-. $PSScriptRoot/config/git/Select-UpstreamBranches.ps1
+Import-Module -Scope Local "$PSScriptRoot/config/git/Get-CurrentBranch.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Select-UpstreamBranches.psm1"
 
 $config = Get-Configuration
 
@@ -18,7 +18,7 @@ if ($branchName -eq $nil) {
 }
 
 $parentBranches = [String[]]($recurse `
-    ? (Select-UpstreamBranches $branchName -includeRemote -config $config -recurse) `
-    : (Select-UpstreamBranches $branchName -includeRemote -config $config))
+    ? (Select-UpstreamBranches $branchName -includeRemote -recurse) `
+    : (Select-UpstreamBranches $branchName -includeRemote))
 
 $parentBranches

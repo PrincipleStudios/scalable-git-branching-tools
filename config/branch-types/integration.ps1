@@ -1,6 +1,6 @@
-. $PSScriptRoot/../Variables.ps1
+. $PSScriptRoot/Variables.ps1
 . $PSScriptRoot/../core/coalesce.ps1
-. $PSScriptRoot/../core/format-branch.ps1
+. $PSScriptRoot/format-branch.ps1
 
 function Format-GitIntegration($type, $tickets) { return Format-Branch 'integrate' $tickets }
 function ConvertTo-GitIntegrationInfo($branchName) {

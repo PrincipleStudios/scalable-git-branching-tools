@@ -5,3 +5,5 @@ function Assert-CleanWorkingDirectory() {
         throw 'Git working directory is not clean.'
     }
 }
+
+Export-ModuleMember -Function Assert-CleanWorkingDirectory

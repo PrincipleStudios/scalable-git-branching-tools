@@ -1,8 +1,10 @@
-. $PSScriptRoot/Get-UpstreamBranch.ps1
-. $PSScriptRoot/Get-GitFile.ps1
+Import-Module -Scope Local "$PSScriptRoot/Get-UpstreamBranch.psm1"
+Import-Module -Scope Local "$PSScriptRoot/Get-GitFile.psm1"
+Import-Module -Scope Local "$PSScriptRoot/Get-Configuration.psm1"
 
-function Select-UpstreamBranches([String]$branchName, [switch] $includeRemote, [switch] $recurse, [string[]] $exclude, [Parameter(Mandatory)][PSObject] $config) {
-    $upstreamBranch = Get-UpstreamBranch $config
+function Select-UpstreamBranches([String]$branchName, [switch] $includeRemote, [switch] $recurse, [string[]] $exclude) {
+    $config = Get-Configuration
+    $upstreamBranch = Get-UpstreamBranch
     $parentBranches = [string[]](Get-GitFile $branchName $upstreamBranch)
 
     $parentBranches = $parentBranches | Where-Object { $exclude -notcontains $_ }
@@ -14,7 +16,7 @@ function Select-UpstreamBranches([String]$branchName, [switch] $includeRemote, [
     if ($recurse) {
         $currentExclude = [string[]]( @($branchName, $exclude) | ForEach-Object { $_ } )
         $finalParents = [string[]]( $parentBranches | ForEach-Object {
-            $newParents = [string[]](Select-UpstreamBranches $_ -recurse -exclude $currentExclude -config $config)
+            $newParents = [string[]](Select-UpstreamBranches $_ -recurse -exclude $currentExclude)
             if ($newParents -eq $nil) {
                 return @()
             }
@@ -30,3 +32,4 @@ function Select-UpstreamBranches([String]$branchName, [switch] $includeRemote, [
         return $parentBranches
     }
 }
+Export-ModuleMember -Function Select-UpstreamBranches

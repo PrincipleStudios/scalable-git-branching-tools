@@ -1,16 +1,12 @@
 BeforeAll {
-    . $PSScriptRoot/Get-CurrentBranch.ps1
-    . $PSScriptRoot/../TestUtils.ps1
+    . "$PSScriptRoot/../testing/Lock-Git.mocks.ps1"
+    Import-Module -Scope Local "$PSScriptRoot/Get-CurrentBranch.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/Get-CurrentBranch.mocks.psm1"
 }
 
 Describe 'Get-CurrentBranch' {
-    BeforeEach{
-        Mock git {
-            Write-Output "feature/FOO-1"
-        } -ParameterFilter {($args -join ' ') -eq 'branch --show-current'}
-    }
-
-    It 'excludes feature FOO-100' {
+    It 'returns what is initialized' {
+        Initialize-CurrentBranch 'feature/FOO-1'
         Get-CurrentBranch | Should -Be 'feature/FOO-1'
     }
 }

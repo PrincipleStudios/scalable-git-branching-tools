@@ -1,4 +1,5 @@
-. $PSScriptRoot/Assert-CleanWorkingDirectory.ps1
+Import-Module -Scope Local "$PSScriptRoot/Assert-CleanWorkingDirectory.psm1"
+Import-Module -Scope Local "$PSScriptRoot/Get-CurrentBranch.psm1"
 
 class ResultWithCleanup {
     [object] $result
@@ -11,9 +12,13 @@ class ResultWithCleanup {
     }
 }
 
+function New-ResultAfterCleanup([object] $result) {
+    return New-Object ResultWithCleanup $result
+}
+
 function Invoke-PreserveBranch([ScriptBlock]$scriptBlock, [ScriptBlock]$cleanup, [switch]$noDefaultCleanup, [switch]$onlyIfError) {
     Assert-CleanWorkingDirectory
-    $prevHead = (git branch --show-current)
+    $prevHead = Get-CurrentBranch
     if ($prevHead -eq $nil) {
         $prevHead = (git rev-parse HEAD)
     }
@@ -35,13 +40,16 @@ function Invoke-PreserveBranch([ScriptBlock]$scriptBlock, [ScriptBlock]$cleanup,
         throw;
     }
 
-    if (-not $onlyIfError -or $result -is [ResultWithCleanup]) {
+    $resultIsResultWithCleanup = $result -is [ResultWithCleanup]
+
+    if (-not $onlyIfError -or $resultIsResultWithCleanup) {
         & $fullCleanup
     }
 
-    if ($result -is [ResultWithCleanup]) {
+    if ($resultIsResultWithCleanup) {
         $result = $result.result
     }
 
     return $result
 }
+Export-ModuleMember -Function Invoke-PreserveBranch, New-ResultAfterCleanup

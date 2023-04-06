@@ -1,8 +1,9 @@
+Import-Module -Scope Local "$PSScriptRoot/Get-Configuration.psm1"
 
 function Get-UpstreamBranch(
-    [Parameter(Mandatory)][PSObject] $config, 
     [switch] $fetch
 ) {
+    $config = Get-Configuration
     $upstreamBranch = $config.remote -eq $nil ? $config.upstreamBranch : "$($config.remote)/$($config.upstreamBranch)"
 
     if ($config.remote -ne $nil -AND $fetch) {
@@ -11,3 +12,4 @@ function Get-UpstreamBranch(
 
     return $upstreamBranch
 }
+Export-ModuleMember -Function Get-UpstreamBranch

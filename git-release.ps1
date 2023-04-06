@@ -12,16 +12,16 @@ Param(
 
 . $PSScriptRoot/config/core/coalesce.ps1
 . $PSScriptRoot/config/core/ArrayToHash.ps1
-. $PSScriptRoot/config/git/Get-Configuration.ps1
-. $PSScriptRoot/config/git/Update-Git.ps1
-. $PSScriptRoot/config/git/Select-UpstreamBranches.ps1
-. $PSScriptRoot/config/git/Get-GitFileNames.ps1
+Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Update-Git.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Select-UpstreamBranches.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Get-GitFileNames.psm1"
 . $PSScriptRoot/config/git/Set-GitFiles.ps1
 
 $config = Get-Configuration
 
 if (-not $noFetch) {
-    Update-Git -config $config
+    Update-Git
 }
 
 if ($cleanupOnly) {
@@ -39,11 +39,11 @@ if ($cleanupOnly) {
 
 $allPreserve = [String[]](@($target, $preserve) | ForEach-Object { $_ } | Select-Object -uniq)
 
-$allUpstream = Select-UpstreamBranches $branchName -config $config -recurse
+$allUpstream = Select-UpstreamBranches $branchName -recurse
 
-$upstreamCache = @($allUpstream, $allPreserve) | ForEach-Object { $_ } | ArrayToHash -getValue { Select-UpstreamBranches $_ -config $config -recurse }
+$upstreamCache = @($allUpstream, $allPreserve) | ForEach-Object { $_ } | ArrayToHash -getValue { Select-UpstreamBranches $_ -recurse }
 
-$preservedUpstream = [String[]]($allPreserve 
+$preservedUpstream = [String[]]($allPreserve
     | ForEach-Object { $_; $upstreamCache[$_] }
     | ForEach-Object { $_ }
     | Select-Object -uniq)
@@ -59,7 +59,7 @@ function Invoke-RemoveBranches($branch) {
 
 $updates = Get-GitFileNames -branchName $config.upstreamBranch -remote $config.remote | ForEach-Object {
     if ($toRemove -contains $_) { return $nil }
-    $upstream = Select-UpstreamBranches $_ -config $config
+    $upstream = Select-UpstreamBranches $_
     if (($upstream | Where-Object { $toRemove -contains $_ })) {
         # Needs to change
         return @{

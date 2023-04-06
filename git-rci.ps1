@@ -61,8 +61,8 @@ function Select-Branch {
                     $selectedBranches.Add($selectedBranch)
                 }
             }
-            27 { 
-                return $selectedBranches 
+            27 {
+                return $selectedBranches
             }
             8 {  # Backspace
                 if ($filterText.Length -gt 0) {
@@ -82,23 +82,23 @@ function Select-Branch {
 . $PSScriptRoot/config/core/split-string.ps1
 . $PSScriptRoot/config/core/coalesce.ps1
 . $PSScriptRoot/config/branch-utils/ConvertTo-BranchName.ps1
-. $PSScriptRoot/config/git/Get-Configuration.ps1
-. $PSScriptRoot/config/git/Update-Git.ps1
-. $PSScriptRoot/config/git/Assert-CleanWorkingDirectory.ps1
-. $PSScriptRoot/config/git/Select-Branches.ps1
-. $PSScriptRoot/config/git/Invoke-PreserveBranch.ps1
-. $PSScriptRoot/config/git/Invoke-CreateBranch.ps1
-. $PSScriptRoot/config/git/Invoke-CheckoutBranch.ps1
-Import-Module "$PSScriptRoot/config/git/Invoke-MergeBranches.psm1";
+Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Update-Git.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-CleanWorkingDirectory.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Select-Branches.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CreateBranch.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CheckoutBranch.psm1";
+Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.psm1";
 . $PSScriptRoot/config/git/Set-UpstreamBranches.ps1
 
 $config = Get-Configuration
 
 if (-not $noFetch) {
-    Update-Git -config $config
+    Update-Git
 }
 
-$selectedBranches = @()
+$tickets = $tickets | Where-Object { $_ -ne '' -AND $_ -ne $nil }
 
 Assert-CleanWorkingDirectory
 $allBranches = Select-Branches -config $config
@@ -118,6 +118,8 @@ $upstreamBranchesNoRemote = [string[]]($selectedBranches | Where-Object { $_.bra
 Invoke-PreserveBranch {
     Invoke-CreateBranch $branchName $upstreamBranches[0]
     Invoke-CheckoutBranch $branchName
+    # TODO: do we need to reassert clean here?
+    # Assert-CleanWorkingDirectory # checkouts can change ignored files; reassert clean
     $(Invoke-MergeBranches ($upstreamBranches | select -skip 1)).ThrowIfInvalid()
 
     $commitMessage = Coalesce $commitMessage "Add branch $branchName$($comment -eq $nil ? '' : " for $comment")"

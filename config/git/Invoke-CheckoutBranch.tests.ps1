@@ -1,16 +1,15 @@
 BeforeAll {
-    . $PSScriptRoot/Invoke-CheckoutBranch.ps1
+    Import-Module -Scope Local "$PSScriptRoot/Invoke-CheckoutBranch.psm1";
+    Import-Module -Scope Local "$PSScriptRoot/Invoke-CheckoutBranch.mocks.psm1";
 }
 
 Describe 'Invoke-CheckoutBranch' {
     It 'throws if exit code is non-zero' {
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout some-branch --quiet' } { $Global:LASTEXITCODE = 1 }
-            
+        Initialize-CheckoutBranchFailed 'some-branch'
         { Invoke-CheckoutBranch some-branch -quiet } | Should -Throw
     }
     It 'does not throw if exit code is zero' {
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'checkout some-branch --quiet' } { $Global:LASTEXITCODE = 0 }
-        
+        Initialize-CheckoutBranch 'some-branch'
         Invoke-CheckoutBranch some-branch -quiet
     }
 }
