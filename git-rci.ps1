@@ -46,8 +46,11 @@ function Select-Branch {
 
         Write-Host ""
         Write-Host "Filter: '$filterText'" -ForegroundColor Cyan
+		Write-Host ""
+		Write-Host "'Use Arrow Keys to navigate. [Enter] to select/deselect the branch. [Esc] to complete"
 
-        $key = $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+		# If testing locally on Powershell, switch IncludeKeyDown => IncludeKeyUp
+        $key = $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyUp")
 
         switch ($key.VirtualKeyCode) {
             38 { if ($currentIndex -gt 0) { $currentIndex-- } }         # Up arrow
@@ -108,12 +111,14 @@ $selectedBranches = [PSObject[]]($allBranches | Where-Object { $_.branch -in $se
 $availableBranches = [PSObject[]]($allBranches | Where-Object { $_.branch -notin $selectedBranches })
 
 if ($availableBranches.Count -gt 0) {
-    $selectedBranches = Select-Branch -Prompt "Select branch to merge. Press escape to finish selection."
+    $selectedBranches = Select-Branch -Prompt "Select branch to merge"
     $selectedBranches = $selectedBranches | Where-Object { $_.branch -ne '' }
 }
 
-$upstreamBranches = [string[]]($selectedBranches | Where-Object { $_.branch -ne '' } | Foreach-Object { ConvertTo-BranchName $_ -includeRemote } | Where-Object { $_ -ne '' -and $_ -notmatch '^\s*$' }) | Select-Object -Unique
-$upstreamBranchesNoRemote = [string[]]($selectedBranches | Where-Object { $_.branch -ne '' } | Foreach-Object { ConvertTo-BranchName $_ } | Where-Object { $_ -ne '' -and $_ -notmatch '^\s*$' }) | Select-Object -Unique
+$upstreamBranches = [string[]](($selectedBranches | Where-Object { $_.branch -ne '' } | Foreach-Object { ConvertTo-BranchName $_ -includeRemote } | Where-Object { $_ -ne '' -and $_ -notmatch '^\s*$' }) | Select-Object -Unique)
+$upstreamBranchesNoRemote = [string[]](($selectedBranches | Where-Object { $_.branch -ne '' } | Foreach-Object { ConvertTo-BranchName $_ } | Where-Object { $_ -ne '' -and $_ -notmatch '^\s*$' }) | Select-Object -Unique)
+
+Write-Host "RC command: git rc" $branchName $upstreamBranchesNoRemote -ForegroundColor Green
 
 Invoke-PreserveBranch {
     Invoke-CreateBranch $branchName $upstreamBranches[0]
@@ -121,7 +126,7 @@ Invoke-PreserveBranch {
     # TODO: do we need to reassert clean here?
     # Assert-CleanWorkingDirectory # checkouts can change ignored files; reassert clean
     $(Invoke-MergeBranches ($upstreamBranches | select -skip 1)).ThrowIfInvalid()
-
+	
     $commitMessage = Coalesce $commitMessage "Add branch $branchName$($comment -eq $nil ? '' : " for $comment")"
 
     Set-UpstreamBranches $branchName $upstreamBranchesNoRemote -m $commitMessage -config $config
