@@ -46,10 +46,10 @@ function Select-Branch {
 
         Write-Host ""
         Write-Host "Filter: '$filterText'" -ForegroundColor Cyan
-		Write-Host ""
-		Write-Host "'Use Arrow Keys to navigate. [Enter] to select/deselect the branch. [Esc] to complete"
+        Write-Host ""
+        Write-Host "'Use Arrow Keys to navigate. [Enter] to select/deselect the branch. [Esc] to complete"
 		
-		# If testing locally on Powershell, switch IncludeKeyDown => IncludeKeyUp
+        # If testing locally on Powershell, switch IncludeKeyDown => IncludeKeyUp
         $key = $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
 
         switch ($key.VirtualKeyCode) {
