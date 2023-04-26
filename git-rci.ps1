@@ -48,9 +48,9 @@ function Select-Branch {
         Write-Host "Filter: '$filterText'" -ForegroundColor Cyan
 		Write-Host ""
 		Write-Host "'Use Arrow Keys to navigate. [Enter] to select/deselect the branch. [Esc] to complete"
-
+		
 		# If testing locally on Powershell, switch IncludeKeyDown => IncludeKeyUp
-        $key = $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyUp")
+        $key = $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
 
         switch ($key.VirtualKeyCode) {
             38 { if ($currentIndex -gt 0) { $currentIndex-- } }         # Up arrow
@@ -126,7 +126,7 @@ Invoke-PreserveBranch {
     # TODO: do we need to reassert clean here?
     # Assert-CleanWorkingDirectory # checkouts can change ignored files; reassert clean
     $(Invoke-MergeBranches ($upstreamBranches | select -skip 1)).ThrowIfInvalid()
-	
+
     $commitMessage = Coalesce $commitMessage "Add branch $branchName$($comment -eq $nil ? '' : " for $comment")"
 
     Set-UpstreamBranches $branchName $upstreamBranchesNoRemote -m $commitMessage -config $config
