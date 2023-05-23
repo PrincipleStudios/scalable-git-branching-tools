@@ -67,11 +67,8 @@ $result = Invoke-PreserveBranch {
 
     if (-not $dryRun) {
         if ($config.remote) {
-            if ($config.atomicPushEnabled) {
-				git push $config.remote --atomic "HEAD:$($branchName)" "$($upstreamCommitish):refs/heads/$($config.upstreamBranch)"
-			} else {
-				git push $config.remote "HEAD:$($branchName)" "$($upstreamCommitish):refs/heads/$($config.upstreamBranch)"
-			}
+            $atomicPart = $config.atomicPushEnabled ? @("--atomic") : @()
+            git push $config.remote @atomicPart "HEAD:$($branchName)" "$($upstreamCommitish):refs/heads/$($config.upstreamBranch)"
         } else {
             git branch -f $config.upstreamBranch $upstreamCommitish
         }
