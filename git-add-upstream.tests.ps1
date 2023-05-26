@@ -198,10 +198,10 @@ Describe 'git-add-upstream' {
         Initialize-CleanWorkingDirectory
         Initialize-CurrentBranch 'my-branch'
         Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
-        Initialize-BranchNotPushed 'rc/2022-07-14'
+        Initialize-BranchNoUpstream 'rc/2022-07-14'
 
         { & ./git-add-upstream.ps1 @('feature/FOO-76') -branchName 'rc/2022-07-14' -m "" }
-            | Should -Throw "Branch rc/2022-07-14 has changes not pushed to origin/rc/2022-07-14. Please ensure changes are pushed (or reset) and try again."
+            | Should -Throw "Branch rc/2022-07-14 does not have a remote tracking branch. Please ensure changes are pushed (or reset) and try again."
     }
 
 }
