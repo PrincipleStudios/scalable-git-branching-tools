@@ -8,6 +8,6 @@ function Invoke-MockGit([string] $gitCli, [object] $MockWith) {
 
 function Initialize-SetRemoteTracking($branchName) {
     $remote = $(Get-Configuration).remote
-    return Invoke-MockGit "branch --set-upstream-to=refs/heads/$($remote)/$($branchName) $($branchName)"
+    return Invoke-MockGit "branch --set-upstream-to=refs/remotes/$($remote)/$($branchName) $($branchName)"
 }
 Export-ModuleMember -Function Initialize-SetRemoteTracking
