@@ -8,28 +8,6 @@ BeforeAll {
     Mock -CommandName Set-GitFiles {
         throw "Unexpected parameters for Set-GitFiles: $(@{ files = $files; commitMessage = $commitMessage; branchName = $branchName; remote = $remote; dryRun = $dryRun } | ConvertTo-Json)"
     }
-
-    $noRemoteBranches = @(
-        @{ remote = $nil; branch='feature/FOO-123'; type = 'feature'; ticket='FOO-123' }
-        @{ remote = $nil; branch='feature/FOO-124-comment'; type = 'feature'; ticket='FOO-124'; comment='comment' }
-        @{ remote = $nil; branch='feature/FOO-124_FOO-125'; type = 'feature'; ticket='FOO-125'; parents=@('FOO-124') }
-        @{ remote = $nil; branch='feature/FOO-76'; type = 'feature'; ticket='FOO-76' }
-        @{ remote = $nil; branch='feature/XYZ-1-services'; type = 'feature'; ticket='XYZ-1'; comment='services' }
-        @{ remote = $nil; branch='main'; type = 'service-line' }
-        @{ remote = $nil; branch='rc/2022-07-14'; type = 'rc'; comment='2022-07-14' }
-        @{ remote = $nil; branch='integrate/FOO-125_XYZ-1'; type = 'integration'; tickets=@('FOO-125','XYZ-1') }
-    )
-
-    $defaultBranches = @(
-        @{ remote = 'origin'; branch='feature/FOO-123'; type = 'feature'; ticket='FOO-123' }
-        @{ remote = 'origin'; branch='feature/FOO-124-comment'; type = 'feature'; ticket='FOO-124'; comment='comment' }
-        @{ remote = 'origin'; branch='feature/FOO-124_FOO-125'; type = 'feature'; ticket='FOO-125'; parents=@('FOO-124') }
-        @{ remote = 'origin'; branch='feature/FOO-76'; type = 'feature'; ticket='FOO-76' }
-        @{ remote = 'origin'; branch='feature/XYZ-1-services'; type = 'feature'; ticket='XYZ-1'; comment='services' }
-        @{ remote = 'origin'; branch='main'; type = 'service-line' }
-        @{ remote = 'origin'; branch='rc/2022-07-14'; type = 'rc'; comment='2022-07-14' }
-        @{ remote = 'origin'; branch='integrate/FOO-125_XYZ-1'; type = 'integration'; tickets=@('FOO-125','XYZ-1') }
-    )
 }
 
 Describe 'git-add-upstream' {
@@ -44,6 +22,7 @@ Describe 'git-add-upstream' {
         Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CheckoutBranch.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/config/git/Update-Git.mocks.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-BranchPushed.mocks.psm1"
         Initialize-QuietMergeBranches
     }
 
@@ -51,6 +30,7 @@ Describe 'git-add-upstream' {
         { git branch -a } | Should -Throw -Because 'we should have locked git down'
 
         Initialize-ToolConfiguration -noRemote
+
         Initialize-CleanWorkingDirectory
         Initialize-CurrentBranch 'rc/2022-07-14'
         Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
@@ -66,7 +46,7 @@ Describe 'git-add-upstream' {
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f _upstream new-upstream-commit' } { $Global:LASTEXITCODE = 0 }
 
-        $result = & ./git-add-upstream.ps1 'feature/FOO-76' -m ""
+        & ./git-add-upstream.ps1 'feature/FOO-76' -m ""
     }
 
     It 'works locally with multiple branches' {
@@ -87,7 +67,7 @@ Describe 'git-add-upstream' {
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f _upstream new-upstream-commit' } { $Global:LASTEXITCODE = 0 }
 
-        $result = & ./git-add-upstream.ps1 'feature/FOO-76','feature/FOO-84' -m ""
+        & ./git-add-upstream.ps1 'feature/FOO-76','feature/FOO-84' -m ""
 
         Invoke-VerifyMock $merge1Filter -Times 1
         Invoke-VerifyMock $merge2Filter -Times 1
@@ -110,7 +90,7 @@ Describe 'git-add-upstream' {
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f _upstream new-upstream-commit' } { $Global:LASTEXITCODE = 0 }
 
-        $result = & ./git-add-upstream.ps1 'feature/FOO-76' -branchName 'rc/2022-07-14' -m ""
+        & ./git-add-upstream.ps1 -upstream 'feature/FOO-76' -branchName 'rc/2022-07-14' -m ""
     }
 
     It 'works locally with multiple branches' {
@@ -131,7 +111,7 @@ Describe 'git-add-upstream' {
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f _upstream new-upstream-commit' } { $Global:LASTEXITCODE = 0 }
 
-        $result = & ./git-add-upstream.ps1 'feature/FOO-76','feature/FOO-84' -branchName 'rc/2022-07-14' -m ""
+        & ./git-add-upstream.ps1 'feature/FOO-76','feature/FOO-84' -branchName 'rc/2022-07-14' -m ""
 
         Invoke-VerifyMock $merge1Filter -Times 1
         Invoke-VerifyMock $merge2Filter -Times 1
@@ -144,6 +124,7 @@ Describe 'git-add-upstream' {
         Initialize-CleanWorkingDirectory
         Initialize-CurrentBranch 'my-branch'
         Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
+        Initialize-BranchPushed 'rc/2022-07-14'
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify origin/rc/2022-07-14 -q' } { 'rc-old-commit' }
         Initialize-CheckoutBranch 'rc-old-commit'
@@ -156,7 +137,30 @@ Describe 'git-add-upstream' {
         Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin --atomic HEAD:rc/2022-07-14 new-upstream-commit:refs/heads/_upstream' } { $Global:LASTEXITCODE = 0 }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
 
-        $result = & ./git-add-upstream.ps1 @('feature/FOO-76') -branchName 'rc/2022-07-14' -m ""
+        & ./git-add-upstream.ps1 @('feature/FOO-76') -branchName 'rc/2022-07-14' -m ""
+    }
+
+    It 'works with a remote when the target branch doesn''t exist locally' {
+        Initialize-ToolConfiguration
+        Initialize-UpdateGit
+        Initialize-FetchUpstreamBranch
+        Initialize-CleanWorkingDirectory
+        Initialize-CurrentBranch 'my-branch'
+        Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
+        Initialize-BranchDoesNotExist 'rc/2022-07-14'
+
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify origin/rc/2022-07-14 -q' } { 'rc-old-commit' }
+        Initialize-CheckoutBranch 'rc-old-commit'
+        Initialize-InvokeMergeSuccess 'origin/feature/FOO-76'
+        Initialize-PreserveBranchCleanup
+
+        . $PSScriptRoot/config/git/Set-GitFiles.ps1
+        Mock -CommandName Set-GitFiles -ParameterFilter { $files['rc/2022-07-14'] -eq "feature/FOO-76`nfeature/FOO-123`nfeature/XYZ-1-services" } { 'new-upstream-commit' }
+
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin --atomic HEAD:rc/2022-07-14 new-upstream-commit:refs/heads/_upstream' } { $Global:LASTEXITCODE = 0 }
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
+
+        & ./git-add-upstream.ps1 @('feature/FOO-76') -branchName 'rc/2022-07-14' -m ""
     }
 
     It 'outputs a helpful message if it fails' {
@@ -164,18 +168,45 @@ Describe 'git-add-upstream' {
         Initialize-CleanWorkingDirectory
         Initialize-CurrentBranch 'rc/2022-07-14'
         Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
+        Initialize-BranchPushed 'rc/2022-07-14'
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify rc/2022-07-14 -q' } { 'rc-old-commit' }
         Initialize-CheckoutBranch 'rc-old-commit'
         Initialize-InvokeMergeFailure 'feature/FOO-76'
         $mocks = Initialize-PreserveBranchCleanup
 
-        $result = & ./git-add-upstream.ps1 'feature/FOO-76' -m ""
+        & ./git-add-upstream.ps1 'feature/FOO-76' -m ""
 
         $LASTEXITCODE | Should -Be 1
 
         Should -Invoke -CommandName Write-Host -Times 1 -ParameterFilter { $Object -ne $nil -and $Object[0] -match 'git merge feature/FOO-76' }
         Invoke-VerifyMock $mocks -Times 1
+    }
+
+    It 'ensures the remote is up-to-date' {
+        Initialize-ToolConfiguration
+        Initialize-UpdateGit
+        Initialize-FetchUpstreamBranch
+        Initialize-CleanWorkingDirectory
+        Initialize-CurrentBranch 'my-branch'
+        Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
+        Initialize-BranchNotPushed 'rc/2022-07-14'
+
+        { & ./git-add-upstream.ps1 @('feature/FOO-76') -branchName 'rc/2022-07-14' -m "" }
+            | Should -Throw "Branch rc/2022-07-14 has changes not pushed to origin/rc/2022-07-14. Please ensure changes are pushed (or reset) and try again."
+    }
+
+    It 'ensures the remote is tracked' {
+        Initialize-ToolConfiguration
+        Initialize-UpdateGit
+        Initialize-FetchUpstreamBranch
+        Initialize-CleanWorkingDirectory
+        Initialize-CurrentBranch 'my-branch'
+        Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
+        Initialize-BranchNotPushed 'rc/2022-07-14'
+
+        { & ./git-add-upstream.ps1 @('feature/FOO-76') -branchName 'rc/2022-07-14' -m "" }
+            | Should -Throw "Branch rc/2022-07-14 has changes not pushed to origin/rc/2022-07-14. Please ensure changes are pushed (or reset) and try again."
     }
 
 }

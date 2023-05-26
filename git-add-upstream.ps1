@@ -1,7 +1,7 @@
 #!/usr/bin/env pwsh
 
 Param(
-    [Parameter(Mandatory, Position=0)][String[]] $branches,
+    [Parameter(Mandatory, Position=0)][Alias('upstream')][String[]] $branches,
     [Parameter()][String] $branchName,
     [Parameter()][Alias('message')][Alias('m')][string] $commitMessage,
     [switch] $dryRun
@@ -13,9 +13,9 @@ $branches = [String[]]($branches -eq $nil ? @() : (Split-String $branches))
 
 . $PSScriptRoot/config/core/coalesce.ps1
 Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-BranchPushed.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-CleanWorkingDirectory.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Update-Git.psm1"
-Import-Module -Scope Local "$PSScriptRoot/config/git/Get-UpstreamBranch.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Select-UpstreamBranches.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CheckoutBranch.psm1"
@@ -26,13 +26,15 @@ Import-Module -Scope Local "$PSScriptRoot/config/git/Get-CurrentBranch.psm1"
 $config = Get-Configuration
 
 $isCurrentBranch = ($branchName -eq $nil -OR $branchName -eq '')
-$branchName = ($branchName -eq $nil -OR $branchName -eq '') ? (Get-CurrentBranch) : $branchName
+$branchName = $isCurrentBranch ? (Get-CurrentBranch) : $branchName
 if ($branchName -eq $nil) {
     throw 'Must specify a branch'
 }
 
 Assert-CleanWorkingDirectory
 Update-Git
+
+Assert-BranchPushed $branchName -m 'Please ensure changes are pushed (or reset) and try again.' -failIfNoUpstream
 
 $parentBranches = [String[]](Select-UpstreamBranches $branchName)
 
