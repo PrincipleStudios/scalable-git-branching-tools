@@ -18,7 +18,6 @@ Describe 'git-add-upstream' {
         Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/config/testing/Invoke-VerifyMock.psm1"
         Import-Module -Scope Local "$PSScriptRoot/config/git/Select-UpstreamBranches.mocks.psm1"
-        Import-Module -Scope Local "$PSScriptRoot/config/git/Get-UpstreamBranch.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CheckoutBranch.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/config/git/Update-Git.mocks.psm1"
@@ -120,7 +119,6 @@ Describe 'git-add-upstream' {
     It 'works with a remote' {
         Initialize-ToolConfiguration
         Initialize-UpdateGit
-        Initialize-FetchUpstreamBranch
         Initialize-CleanWorkingDirectory
         Initialize-CurrentBranch 'my-branch'
         Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
@@ -143,7 +141,6 @@ Describe 'git-add-upstream' {
     It 'works with a remote when the target branch doesn''t exist locally' {
         Initialize-ToolConfiguration
         Initialize-UpdateGit
-        Initialize-FetchUpstreamBranch
         Initialize-CleanWorkingDirectory
         Initialize-CurrentBranch 'my-branch'
         Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
@@ -186,7 +183,6 @@ Describe 'git-add-upstream' {
     It 'ensures the remote is up-to-date' {
         Initialize-ToolConfiguration
         Initialize-UpdateGit
-        Initialize-FetchUpstreamBranch
         Initialize-CleanWorkingDirectory
         Initialize-CurrentBranch 'my-branch'
         Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
@@ -199,7 +195,6 @@ Describe 'git-add-upstream' {
     It 'ensures the remote is tracked' {
         Initialize-ToolConfiguration
         Initialize-UpdateGit
-        Initialize-FetchUpstreamBranch
         Initialize-CleanWorkingDirectory
         Initialize-CurrentBranch 'my-branch'
         Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
