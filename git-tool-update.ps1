@@ -26,13 +26,19 @@ try {
                 }
             } elseif ($currentBranch -eq $nil) {
                 throw "Tools are not currently on a branch - you must specify one via -branchName."
+            } else {
+                $branchName = $currentBranch
             }
+            Write-Host "Updating git-tools to latest on $($branchName)"
             git pull --ff-only
             if ($Global:LASTEXITCODE -ne 0) {
-                throw "Could not pull latest for $($branchName ?? $currentBranch)"
+                throw "Could not pull latest for $($branchName)"
             }
 
-            Import-Module -Scope Local "$PSScriptRoot/migration/Invoke-Migration.psm1" -Force
+            # Ideally, we'd force reloading of this, but it breaks mocks, and
+            # realistically, this script is being run in its own scope due to
+            # how git will invoke it. This should be safe.
+            Import-Module -Scope Local "$PSScriptRoot/migration/Invoke-Migration.psm1"
             Invoke-Migration -from $oldCommit
 
             Write-Host $oldBranch

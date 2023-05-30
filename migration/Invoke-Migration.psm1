@@ -23,7 +23,10 @@ function Invoke-Migration([Parameter(Mandatory)][String] $from) {
         $newCommit = $entry.commit
         $scriptBlock = $entry.script
 
-        $diff = git rev-list --count "^$from" $newCommit
+        $diff = git rev-list --count ^$from $newCommit
+        if ($Global:LASTEXITCODE -ne 0) {
+            throw "Unable to run migrations; could not detect what was previously included"
+        }
         if ($diff -gt 0) {
             Write-Debug "Running migration for $newCommit"
             & $scriptBlock
