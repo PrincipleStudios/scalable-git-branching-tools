@@ -25,10 +25,10 @@ function Invoke-Migration([Parameter(Mandatory)][String] $from) {
 
         $diff = git rev-list --count "^$from" $newCommit
         if ($diff -gt 0) {
-            Write-Information "Running migration for $newCommit"
+            Write-Debug "Running migration for $newCommit"
             & $scriptBlock
         } else {
-            Write-Information "Skipping migration for $newCommit"
+            Write-Debug "Skipping migration for $newCommit"
         }
     }
 }

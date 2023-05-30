@@ -2,7 +2,7 @@
 
 Mock git { throw "Unmocked git command: $args" }
 
-Get-ChildItem -Path "$PSScriptRoot/.." -Include "*.psm1" -Exclude "*.mocks.psm1" -Recurse | ForEach-Object {
+Get-ChildItem -Path "$PSScriptRoot/../.." -Include "*.psm1" -Exclude "*.mocks.psm1" -Recurse | ForEach-Object {
     Import-Module -Scope Local $_.FullName
     $moduleName = ([System.IO.Path]::GetFileNameWithoutExtension($_.Name))
 
