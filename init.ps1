@@ -2,11 +2,11 @@
 
 $dir = $PSScriptRoot -replace '\\','/' -replace ' ', '\ '
 
-# Updates self
-git config alias.tool-update "!$dir/init.ps1"
-
 # Configure tool settings
 git config alias.tool-config "!$dir/git-tool-config.ps1"
+
+# Allow self-updating on the current branch
+git config alias.tool-update "!$dir/git-tool-update.ps1"
 
 # Create a new branch
 git config alias.new "!$dir/git-new.ps1"
