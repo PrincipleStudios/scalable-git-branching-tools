@@ -138,6 +138,46 @@ Describe 'git-add-upstream' {
         & ./git-add-upstream.ps1 @('feature/FOO-76') -branchName 'rc/2022-07-14' -m ""
     }
 
+    It 'does nothing if the added branch is already included' {
+        Initialize-ToolConfiguration
+        Initialize-UpdateGit
+        Initialize-CleanWorkingDirectory
+        Initialize-CurrentBranch 'my-branch'
+        Initialize-UpstreamBranches @{
+            'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services")
+            'feature/FOO-123' = @('infra/shared')
+            'feature/XYZ-1-services' = @('infra/shared')
+        }
+        Initialize-BranchPushed 'rc/2022-07-14'
+
+        { & ./git-add-upstream.ps1 @('infra/shared') -branchName 'rc/2022-07-14' } | Should -Throw 'All branches already upstream of target branch'
+    }
+
+    It 'simplifies if the added branch makes another redundant' {
+        Initialize-ToolConfiguration
+        Initialize-UpdateGit
+        Initialize-CleanWorkingDirectory
+        Initialize-CurrentBranch 'my-branch'
+        Initialize-UpstreamBranches @{
+            'rc/2022-07-14' = @("infra/shared","feature/XYZ-1-services")
+            'feature/FOO-123' = @('infra/shared')
+        }
+        Initialize-BranchPushed 'rc/2022-07-14'
+
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify origin/rc/2022-07-14 -q' } { 'rc-old-commit' }
+        Initialize-CheckoutBranch 'rc-old-commit'
+        Initialize-InvokeMergeSuccess 'origin/feature/FOO-123'
+        Initialize-PreserveBranchCleanup
+
+        . $PSScriptRoot/config/git/Set-GitFiles.ps1
+        Mock -CommandName Set-GitFiles -ParameterFilter { $files['rc/2022-07-14'] -eq "feature/FOO-123`nfeature/XYZ-1-services" } { 'new-upstream-commit' }
+
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin --atomic HEAD:rc/2022-07-14 new-upstream-commit:refs/heads/_upstream' } { $Global:LASTEXITCODE = 0 }
+        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
+
+        & ./git-add-upstream.ps1 @('feature/FOO-123') -branchName 'rc/2022-07-14' -m ""
+    }
+
     It 'works with a remote when the target branch doesn''t exist locally' {
         Initialize-ToolConfiguration
         Initialize-UpdateGit

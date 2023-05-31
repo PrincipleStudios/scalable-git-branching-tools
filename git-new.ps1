@@ -20,6 +20,7 @@ Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CheckoutBranch.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Set-RemoteTracking.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Compress-UpstreamBranches.psm1"
 . $PSScriptRoot/config/git/Set-GitFiles.ps1
 
 $config = Get-Configuration
@@ -29,16 +30,19 @@ if (-not $noFetch) {
 
 if ($parentBranches -ne $nil -AND $parentBranches.length -gt 0) {
     $parentBranchesNoRemote = $parentBranches
-    if ($config.remote -ne $nil) {
-        $parentBranches = [string[]]$parentBranches | Foreach-Object { "$($config.remote)/$_" }
-    }
 } elseif ($config.defaultServiceLine -ne $nil) {
     $parentBranchesNoRemote = [string[]] @( $config.defaultServiceLine )
-    $parentBranches = [string[]] @( $config.remote ? "$($config.remote)/$($config.defaultServiceLine)" : $config.defaultServiceLine )
+}
+$parentBranchesNoRemote = Compress-UpstreamBranches $parentBranchesNoRemote
+
+if ($parentBranchesNoRemote.Length -eq 0) {
+    throw "No parents could be determined for new branch '$branchName'."
 }
 
-if ($parentBranches.Length -eq 0) {
-    throw "No parents could be determined for new branch '$branchName'."
+if ($config.remote -ne $nil) {
+    $parentBranches = [string[]]$parentBranchesNoRemote | Foreach-Object { "$($config.remote)/$_" }
+} else {
+    $parentBranches = $parentBranchesNoRemote
 }
 
 Assert-CleanWorkingDirectory

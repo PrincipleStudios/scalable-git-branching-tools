@@ -22,6 +22,7 @@ Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CheckoutBranch.psm1"
 . $PSScriptRoot/config/git/Set-GitFiles.ps1
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Get-CurrentBranch.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Compress-UpstreamBranches.psm1"
 
 $config = Get-Configuration
 
@@ -38,7 +39,7 @@ Assert-BranchPushed $branchName -m 'Please ensure changes are pushed (or reset) 
 
 $parentBranches = [String[]](Select-UpstreamBranches $branchName)
 
-$finalBranches = [String[]](@($branches, $parentBranches) | ForEach-Object { $_ } | Select-Object -uniq)
+$finalBranches = [String[]](Compress-UpstreamBranches (@($branches, $parentBranches) | ForEach-Object { $_ } | Select-Object -uniq))
 
 $addedBranches = [String[]]($finalBranches | Where-Object { $parentBranches -notcontains $_ })
 
