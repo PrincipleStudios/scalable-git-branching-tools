@@ -19,6 +19,7 @@ Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CreateBranch.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CheckoutBranch.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Set-RemoteTracking.psm1"
 . $PSScriptRoot/config/git/Set-GitFiles.ps1
 
 $config = Get-Configuration
@@ -48,14 +49,12 @@ Invoke-PreserveBranch {
     Invoke-CreateBranch $branchName $parentBranches[0]
     Invoke-CheckoutBranch $branchName
     Assert-CleanWorkingDirectory # checkouts can change ignored files; reassert clean
-    $(Invoke-MergeBranches ($parentBranches | select -skip 1)).ThrowIfInvalid()
+    $(Invoke-MergeBranches ($parentBranches | Select-Object -skip 1)).ThrowIfInvalid()
 
     if ($config.remote -ne $nil) {
-		if ($config.atomicPushEnabled) {
-        	git push $config.remote --atomic "$($branchName):refs/heads/$($branchName)" "$($upstreamCommitish):refs/heads/$($config.upstreamBranch)"
-		} else {
-			git push $config.remote "$($branchName):refs/heads/$($branchName)" "$($upstreamCommitish):refs/heads/$($config.upstreamBranch)"
-		}
+        $atomicPart = $config.atomicPushEnabled ? @("--atomic") : @()
+        git push $config.remote @atomicPart "$($branchName):refs/heads/$($branchName)" "$($upstreamCommitish):refs/heads/$($config.upstreamBranch)"
+        Set-RemoteTracking $branchName
     } else {
         git branch -f $config.upstreamBranch $upstreamCommitish --quiet
     }

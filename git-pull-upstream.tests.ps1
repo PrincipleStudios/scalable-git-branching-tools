@@ -6,6 +6,7 @@ BeforeAll {
     Import-Module -Scope Local "$PSScriptRoot/config/git/Select-UpstreamBranches.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-CleanWorkingDirectory.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.mocks.psm1";
+    Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-BranchPushed.mocks.psm1";
 }
 
 Describe 'git-pull-upstream' {
@@ -25,6 +26,7 @@ Describe 'git-pull-upstream' {
         It 'fails if the working directory is not clean' {
             Initialize-CurrentBranch 'feature/FOO-123'
             Initialize-DirtyWorkingDirectory
+            Initialize-BranchPushed 'feature/FOO-123'
 
             { & $PSScriptRoot/git-pull-upstream.ps1 } | Should -Throw 'Git working directory is not clean.'
         }
@@ -34,8 +36,30 @@ Describe 'git-pull-upstream' {
             Initialize-CleanWorkingDirectory
             Initialize-InvokeMergeSuccess 'origin/main'
             Initialize-InvokeMergeSuccess 'origin/infra/add-services'
+            Initialize-BranchPushed 'feature/FOO-123'
+            Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin HEAD:feature/FOO-123' } { $Global:LASTEXITCODE = 0 }
 
             & $PSScriptRoot/git-pull-upstream.ps1
+        }
+
+        It 'ensures the remote is up-to-date' {
+            Initialize-CleanWorkingDirectory
+            Initialize-CurrentBranch 'feature/FOO-76'
+            Initialize-BranchNotPushed 'feature/FOO-76'
+
+            { & ./git-pull-upstream.ps1 }
+                | Should -Throw "Branch feature/FOO-76 has changes not pushed to origin/feature/FOO-76. Please ensure changes are pushed (or reset) and try again."
+        }
+
+        It 'ensures the remote is tracked' {
+            Initialize-ToolConfiguration
+            Initialize-UpdateGit
+            Initialize-CleanWorkingDirectory
+            Initialize-CurrentBranch 'feature/FOO-76'
+            Initialize-BranchNoUpstream 'feature/FOO-76'
+
+            { & ./git-pull-upstream.ps1 }
+                | Should -Throw "Branch feature/FOO-76 does not have a remote tracking branch. Please ensure changes are pushed (or reset) and try again."
         }
     }
 
