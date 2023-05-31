@@ -6,9 +6,18 @@ function Invoke-MockGit([string] $gitCli, [object] $MockWith) {
     return Invoke-MockGitModule -ModuleName 'Invoke-PreserveBranch' @PSBoundParameters
 }
 
+function Initialize-GetGitDetachedHead([string] $detachedHead) {
+    Invoke-MockGit 'rev-parse HEAD' $detachedHead
+}
+
+function Initialize-RestoreGitHead([string] $previousHead) {
+    Invoke-MockGit 'reset --hard'
+    Invoke-MockGit "checkout $previousHead"
+}
+
 function Initialize-PreserveBranchNoCleanup([string] $detachedHead) {
     if ($detachedHead -ne $nil -AND $detachedHead -ne '') {
-        Invoke-MockGit 'rev-parse HEAD' $detachedHead
+        Initialize-GetGitDetachedHead $detachedHead
     }
 }
 function Initialize-PreserveBranchCleanup([string] $detachedHead) {
@@ -16,11 +25,10 @@ function Initialize-PreserveBranchCleanup([string] $detachedHead) {
         $resetTo = Get-CurrentBranch
     } else {
         $resetTo = $detachedHead
-        Invoke-MockGit 'rev-parse HEAD' $detachedHead
+        Initialize-GetGitDetachedHead $detachedHead
     }
 
-    Invoke-MockGit 'reset --hard'
-    Invoke-MockGit "checkout $resetTo"
+    Initialize-RestoreGitHead $resetTo
 }
 
-Export-ModuleMember -Function Initialize-PreserveBranchNoCleanup,Initialize-PreserveBranchCleanup
+Export-ModuleMember -Function Initialize-GetGitDetachedHead,Initialize-RestoreGitHead,Initialize-PreserveBranchNoCleanup,Initialize-PreserveBranchCleanup
