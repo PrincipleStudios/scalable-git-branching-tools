@@ -27,6 +27,7 @@ Describe 'git-new' {
         Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-CleanWorkingDirectory.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CheckoutBranch.mocks.psm1";
         Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CreateBranch.mocks.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/config/git/Set-RemoteTracking.mocks.psm1"
         Initialize-QuietMergeBranches
     }
 
@@ -88,9 +89,11 @@ Describe 'git-new' {
         Initialize-CleanWorkingDirectory
         Initialize-CreateBranch -branchName 'feature/PS-100-some-work' -source 'origin/main'
         Initialize-CheckoutBranch 'feature/PS-100-some-work'
+        $verifySetRemoteTracking = Initialize-SetRemoteTracking 'feature/PS-100-some-work'
         Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin --atomic feature/PS-100-some-work:refs/heads/feature/PS-100-some-work new-commit:refs/heads/_upstream' } { $Global:LASTEXITCODE = 0 }
 
         & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -m 'some work'
+        Invoke-VerifyMock $verifySetRemoteTracking -Times 1
     }
 
     It 'creates a remote branch when a remote is configured and an upstream branch is provided' {
@@ -102,9 +105,11 @@ Describe 'git-new' {
         Initialize-CleanWorkingDirectory
         Initialize-CreateBranch -branchName 'feature/PS-100-some-work' -source 'origin/infra/foo'
         Initialize-CheckoutBranch 'feature/PS-100-some-work'
+        $verifySetRemoteTracking = Initialize-SetRemoteTracking 'feature/PS-100-some-work'
         Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin --atomic feature/PS-100-some-work:refs/heads/feature/PS-100-some-work new-commit:refs/heads/_upstream' } { $Global:LASTEXITCODE = 0 }
 
         & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -from 'infra/foo' -m 'some work'
+        Invoke-VerifyMock $verifySetRemoteTracking -Times 1
     }
 
 }

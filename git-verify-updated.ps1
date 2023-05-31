@@ -19,6 +19,8 @@ if (-not $noFetch) {
 
 $noneSpecified = ($branchName -eq $nil -OR $branchName -eq '')
 $branchName = $noneSpecified ? (Get-CurrentBranch) : $branchName
+Assert-BranchPushed $branchName -m 'Please ensure changes are pushed (or reset) and try again.' -failIfNoUpstream
+
 $fullBranchName = $noneSpecified -OR $config.remote -eq $nil ? $branchName
     : "$($config.remote)/$($branchName)"
 if ($fullBranchName -eq $nil) {
