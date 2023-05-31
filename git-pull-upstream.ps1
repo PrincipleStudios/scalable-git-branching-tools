@@ -19,7 +19,7 @@ if ($branchName -eq '') {
     $branchName = Get-CurrentBranch
 }
 if ($branchName -eq $nil) {
-    throw 'Must have a branch cheked out or specify one.'
+    throw 'Must have a branch checked out or specify one.'
 }
 # TODO - check to see if current branch is pulled, too?
 Assert-BranchPushed $branchName -m 'Please ensure changes are pushed (or reset) and try again.' -failIfNoUpstream

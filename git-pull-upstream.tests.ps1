@@ -25,7 +25,7 @@ Describe 'git-pull-upstream' {
         It 'fails if no branch is checked out' {
             Initialize-NoCurrentBranch
 
-            { & $PSScriptRoot/git-pull-upstream.ps1 } | Should -Throw 'Must have a branch cheked out or specify one.'
+            { & $PSScriptRoot/git-pull-upstream.ps1 } | Should -Throw 'Must have a branch checked out or specify one.'
         }
 
         It 'fails if the working directory is not clean' {
@@ -110,7 +110,7 @@ Describe 'git-pull-upstream' {
         It 'fails if no branch is checked out' {
             Initialize-NoCurrentBranch
 
-            { & $PSScriptRoot/git-pull-upstream.ps1 } | Should -Throw 'Must have a branch cheked out or specify one.'
+            { & $PSScriptRoot/git-pull-upstream.ps1 } | Should -Throw 'Must have a branch checked out or specify one.'
         }
 
         It 'fails if the working directory is not clean' {
