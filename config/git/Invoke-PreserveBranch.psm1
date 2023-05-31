@@ -16,17 +16,26 @@ function New-ResultAfterCleanup([object] $result) {
     return New-Object ResultWithCleanup $result
 }
 
-function Invoke-PreserveBranch([ScriptBlock]$scriptBlock, [ScriptBlock]$cleanup, [switch]$noDefaultCleanup, [switch]$onlyIfError) {
-    Assert-CleanWorkingDirectory
+function Get-GitHead() {
     $prevHead = Get-CurrentBranch
     if ($prevHead -eq $nil) {
         $prevHead = (git rev-parse HEAD)
     }
+    return $prevHead
+}
+
+function Restore-GitHead([String] $previousHead) {
+    git reset --hard
+    git checkout $previousHead
+}
+
+function Invoke-PreserveBranch([ScriptBlock]$scriptBlock, [ScriptBlock]$cleanup, [switch]$noDefaultCleanup, [switch]$onlyIfError) {
+    Assert-CleanWorkingDirectory
+    $prevHead = Get-GitHead
 
     $fullCleanup = {
         if (-not $noDefaultCleanup) {
-            git reset --hard
-            git checkout $prevHead
+            Restore-GitHead $prevHead
         }
         if ($cleanup -ne $nil) {
             & $cleanup $prevHead
@@ -52,4 +61,4 @@ function Invoke-PreserveBranch([ScriptBlock]$scriptBlock, [ScriptBlock]$cleanup,
 
     return $result
 }
-Export-ModuleMember -Function Invoke-PreserveBranch, New-ResultAfterCleanup
+Export-ModuleMember -Function Invoke-PreserveBranch, New-ResultAfterCleanup, Get-GitHead, Restore-GitHead
