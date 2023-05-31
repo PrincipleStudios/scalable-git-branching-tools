@@ -4,8 +4,7 @@ Param(
     [Parameter(Mandatory)][string] $branchName,
     [Parameter()][String[]] $branches,
     [Parameter()][Alias('message')][Alias('m')][string] $commitMessage,
-    [switch] $force,
-    [Switch] $noFetch
+    [switch] $force
 )
 
 # git doesn't pass them as separate items in the array
@@ -25,12 +24,7 @@ Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.psm1";
 . $PSScriptRoot/config/git/Set-UpstreamBranches.ps1
 
 $config = Get-Configuration
-
-if (-not $noFetch) {
-    Update-Git
-}
-
-$tickets = $tickets | Where-Object { $_ -ne '' -AND $_ -ne $nil }
+Update-Git
 
 Assert-CleanWorkingDirectory
 $allBranches = Select-Branches

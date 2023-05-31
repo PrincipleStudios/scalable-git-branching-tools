@@ -2,8 +2,7 @@
 Param(
     [Parameter(Mandatory)][string] $branchName,
     [Parameter()][Alias('message')][Alias('m')][string] $commitMessage,
-    [switch] $force,
-    [Switch] $noFetch
+    [switch] $force
 )
 
 function Select-Branch {
@@ -48,7 +47,7 @@ function Select-Branch {
         Write-Host "Filter: '$filterText'" -ForegroundColor Cyan
         Write-Host ""
         Write-Host "'Use Arrow Keys to navigate. [Enter] to select/deselect the branch. [Esc] to complete"
-		
+
         # If testing locally on Powershell, switch IncludeKeyDown => IncludeKeyUp
         $key = $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
 
@@ -96,12 +95,7 @@ Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.psm1";
 . $PSScriptRoot/config/git/Set-UpstreamBranches.ps1
 
 $config = Get-Configuration
-
-if (-not $noFetch) {
-    Update-Git
-}
-
-$tickets = $tickets | Where-Object { $_ -ne '' -AND $_ -ne $nil }
+Update-Git
 
 Assert-CleanWorkingDirectory
 $allBranches = Select-Branches -config $config
@@ -115,31 +109,7 @@ if ($availableBranches.Count -gt 0) {
     $selectedBranches = $selectedBranches | Where-Object { $_.branch -ne '' }
 }
 
-$upstreamBranches = [string[]](($selectedBranches | Where-Object { $_.branch -ne '' } | Foreach-Object { ConvertTo-BranchName $_ -includeRemote } | Where-Object { $_ -ne '' -and $_ -notmatch '^\s*$' }) | Select-Object -Unique)
 $upstreamBranchesNoRemote = [string[]](($selectedBranches | Where-Object { $_.branch -ne '' } | Foreach-Object { ConvertTo-BranchName $_ } | Where-Object { $_ -ne '' -and $_ -notmatch '^\s*$' }) | Select-Object -Unique)
 
-Write-Host "RC command: git rc" $branchName $upstreamBranchesNoRemote -ForegroundColor Green
-
-Invoke-PreserveBranch {
-    Invoke-CreateBranch $branchName $upstreamBranches[0]
-    Invoke-CheckoutBranch $branchName
-    # TODO: do we need to reassert clean here?
-    # Assert-CleanWorkingDirectory # checkouts can change ignored files; reassert clean
-    $(Invoke-MergeBranches ($upstreamBranches | select -skip 1)).ThrowIfInvalid()
-
-    $commitMessage = Coalesce $commitMessage "Add branch $branchName$($comment -eq $nil ? '' : " for $comment")"
-
-    Set-UpstreamBranches $branchName $upstreamBranchesNoRemote -m $commitMessage -config $config
-
-    if ($config.remote -ne $nil) {
-        $params = $force ? @('--force') : @()
-        git push $config.remote "$($branchName):refs/heads/$($branchName)" @params
-        if ($global:LASTEXITCODE -ne 0) {
-            throw "Unable to push $branchName to $($config.remote)"
-        }
-    }
-} -cleanup {
-    if ($config.remote -ne $nil) {
-        git branch -D $branchName 2> $nil
-    }
-}
+Write-Host "RC command: git rc" -branches $upstreamBranchesNoRemote @PSBoundParameters -ForegroundColor Green
+. $PSScriptRoot/git-rc.ps1 -branches $upstreamBranchesNoRemote @PSBoundParameters

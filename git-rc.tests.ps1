@@ -92,6 +92,26 @@ Describe 'git-rc' {
             & $PSScriptRoot/git-rc.ps1 -branches feature/FOO-123,feature/FOO-124-comment,integrate/FOO-125_XYZ-1 -m 'New RC' -branchName 'rc/2022-07-28'
         }
 
+        It 'allows a null comment' {
+            Initialize-UpstreamBranches @{}
+            Initialize-UpdateGit
+            Initialize-CleanWorkingDirectory
+            Initialize-SelectBranches $defaultBranches
+            Initialize-CreateBranch 'rc/2022-07-28' 'origin/feature/FOO-123'
+            Initialize-CheckoutBranch 'rc/2022-07-28'
+            Initialize-InvokeMergeSuccess 'origin/feature/FOO-124-comment'
+            Initialize-InvokeMergeSuccess 'origin/integrate/FOO-125_XYZ-1'
+            . $PSScriptRoot/config/git/Set-UpstreamBranches.ps1
+            Mock -CommandName Set-UpstreamBranches -ParameterFilter {
+                $branchName -eq 'rc/2022-07-28' `
+                    -AND ($upstreamBranches -join ' ') -eq 'feature/FOO-123 feature/FOO-124-comment integrate/FOO-125_XYZ-1'
+            } {}
+            Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin rc/2022-07-28:refs/heads/rc/2022-07-28' } { $Global:LASTEXITCODE = 0 }
+            Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -D rc/2022-07-28' } { $Global:LASTEXITCODE = 0 }
+
+            & $PSScriptRoot/git-rc.ps1 -branches feature/FOO-123,feature/FOO-124-comment,integrate/FOO-125_XYZ-1 -m $nil -branchName 'rc/2022-07-28'
+        }
+
         It 'simplifies upstream before creating the rc' {
             Initialize-UpstreamBranches @{
                 'integrate/FOO-125_XYZ-1' = @( 'feature/FOO-125', 'feature/XYZ-1' )
@@ -124,25 +144,6 @@ Describe 'git-rc' {
             Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -D rc/2022-07-28' } { $Global:LASTEXITCODE = 0 }
 
             { & $PSScriptRoot/git-rc.ps1 -branches feature/FOO-123,feature/FOO-124-comment,integrate/FOO-125_XYZ-1 -m 'New RC' -branchName 'rc/2022-07-28' } | Should -Throw
-        }
-
-        It 'can skip the initial fetch' {
-            Initialize-UpstreamBranches @{}
-            Initialize-CleanWorkingDirectory
-            Initialize-SelectBranches $defaultBranches
-            Initialize-CreateBranch 'rc/2022-07-28' 'origin/feature/FOO-123'
-            Initialize-CheckoutBranch 'rc/2022-07-28'
-            Initialize-InvokeMergeSuccess 'origin/feature/FOO-124-comment'
-            Initialize-InvokeMergeSuccess 'origin/integrate/FOO-125_XYZ-1'
-            . $PSScriptRoot/config/git/Set-UpstreamBranches.ps1
-            Mock -CommandName Set-UpstreamBranches -ParameterFilter {
-                $branchName -eq 'rc/2022-07-28' `
-                    -AND ($upstreamBranches -join ' ') -eq 'feature/FOO-123 feature/FOO-124-comment integrate/FOO-125_XYZ-1'
-            } {}
-            Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin rc/2022-07-28:refs/heads/rc/2022-07-28' } { $Global:LASTEXITCODE = 0 }
-            Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -D rc/2022-07-28' } { $Global:LASTEXITCODE = 0 }
-
-            & $PSScriptRoot/git-rc.ps1 -branches feature/FOO-123,feature/FOO-124-comment,integrate/FOO-125_XYZ-1 -m 'New RC' -branchName 'rc/2022-07-28' -noFetch
         }
     }
 
