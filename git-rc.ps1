@@ -39,8 +39,14 @@ $selectedBranches = [PSObject[]]($allBranches | Where-Object {
         return $false
     })
 
-$upstreamBranches = [string[]]($selectedBranches | Foreach-Object { ConvertTo-BranchName $_ -includeRemote })
 $upstreamBranchesNoRemote = [string[]]($selectedBranches | Foreach-Object { ConvertTo-BranchName $_ })
+$upstreamBranchesNoRemote = Compress-UpstreamBranches $upstreamBranchesNoRemote
+
+if ($config.remote -ne $nil) {
+    $upstreamBranches = [string[]]$upstreamBranchesNoRemote | Foreach-Object { "$($config.remote)/$_" }
+} else {
+    $upstreamBranches = $upstreamBranchesNoRemote
+}
 
 Invoke-PreserveBranch {
 
