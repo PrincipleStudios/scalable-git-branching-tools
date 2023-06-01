@@ -25,7 +25,6 @@ BeforeAll {
         & $scriptBlock
     }
 
-    # This command is more complex than I want to handle for low-level git commands in these tests
     Lock-InvokeWriteTree
 }
 
@@ -34,6 +33,7 @@ Describe 'git-new' {
         BeforeAll {
             Initialize-ToolConfiguration -noRemote
 
+            Initialize-AnyUpstreamBranches
             Initialize-UpstreamBranches @{
                 'feature/homepage-redesign' = @('infra/upgrade-dependencies')
             }
@@ -91,6 +91,7 @@ Describe 'git-new' {
             Initialize-UpdateGit
             Initialize-CleanWorkingDirectory
 
+            Initialize-AnyUpstreamBranches
             Initialize-UpstreamBranches @{
                 'feature/homepage-redesign' = @('infra/foo')
                 'infra/foo' = @('main')

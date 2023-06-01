@@ -21,7 +21,7 @@ Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CreateBranch.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CheckoutBranch.psm1";
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.psm1";
-. $PSScriptRoot/config/git/Set-UpstreamBranches.ps1
+Import-Module -Scope Local "$PSScriptRoot/config/git/Set-MultipleUpstreamBranches.mocks.psm1"
 
 $config = Get-Configuration
 Update-Git
@@ -52,14 +52,17 @@ Invoke-PreserveBranch {
 
     $commitMessage = Coalesce $commitMessage "Add branch $branchName$($comment -eq $nil ? '' : " for $comment")"
 
-    Set-UpstreamBranches $branchName $upstreamBranchesNoRemote -m $commitMessage -config $config
+    $upstreamCommitish = Set-MultipleUpstreamBranches -upstreamBanchesByBranchName @{ $branchName = $upstreamBranchesNoRemote } -m $commitMessage
 
     if ($config.remote -ne $nil) {
-        $params = $force ? @('--force') : @()
-        git push $config.remote "$($branchName):refs/heads/$($branchName)" @params
+        $forcePart = $force ? @('--force') : @()
+        $atomicPart = $config.atomicPushEnabled ? @("--atomic") : @()
+        git push $config.remote "$($branchName):refs/heads/$($branchName)" "$($upstreamCommitish):refs/heads/$($config.upstreamBranch)" @forcePart @atomicPart
         if ($global:LASTEXITCODE -ne 0) {
             throw "Unable to push $branchName to $($config.remote)"
         }
+    }  else {
+        git branch -f $config.upstreamBranch $upstreamCommitish
     }
 } -cleanup {
     if ($config.remote -ne $nil) {

@@ -32,6 +32,7 @@ Describe 'git-add-upstream' {
 
         Initialize-CleanWorkingDirectory
         Initialize-CurrentBranch 'rc/2022-07-14'
+        Initialize-AnyUpstreamBranches
         Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify rc/2022-07-14 -q' } { 'rc-old-commit' }
@@ -52,6 +53,7 @@ Describe 'git-add-upstream' {
         Initialize-ToolConfiguration -noRemote
         Initialize-CleanWorkingDirectory
         Initialize-CurrentBranch 'rc/2022-07-14'
+        Initialize-AnyUpstreamBranches
         Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify rc/2022-07-14 -q' } { 'rc-old-commit' }
@@ -76,6 +78,7 @@ Describe 'git-add-upstream' {
         Initialize-ToolConfiguration -noRemote
         Initialize-CleanWorkingDirectory
         Initialize-CurrentBranch 'my-branch'
+        Initialize-AnyUpstreamBranches
         Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify rc/2022-07-14 -q' } { 'rc-old-commit' }
@@ -96,6 +99,7 @@ Describe 'git-add-upstream' {
         Initialize-ToolConfiguration -noRemote
         Initialize-CleanWorkingDirectory
         Initialize-CurrentBranch 'my-branch'
+        Initialize-AnyUpstreamBranches
         Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify rc/2022-07-14 -q' } { 'rc-old-commit' }
@@ -121,6 +125,7 @@ Describe 'git-add-upstream' {
         Initialize-UpdateGit
         Initialize-CleanWorkingDirectory
         Initialize-CurrentBranch 'my-branch'
+        Initialize-AnyUpstreamBranches
         Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
         Initialize-BranchPushed 'rc/2022-07-14'
 
@@ -143,6 +148,7 @@ Describe 'git-add-upstream' {
         Initialize-UpdateGit
         Initialize-CleanWorkingDirectory
         Initialize-CurrentBranch 'my-branch'
+        Initialize-AnyUpstreamBranches
         Initialize-UpstreamBranches @{
             'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services")
             'feature/FOO-123' = @('infra/shared')
@@ -158,6 +164,7 @@ Describe 'git-add-upstream' {
         Initialize-UpdateGit
         Initialize-CleanWorkingDirectory
         Initialize-CurrentBranch 'my-branch'
+        Initialize-AnyUpstreamBranches
         Initialize-UpstreamBranches @{
             'rc/2022-07-14' = @("infra/shared","feature/XYZ-1-services")
             'feature/FOO-123' = @('infra/shared')
@@ -183,6 +190,7 @@ Describe 'git-add-upstream' {
         Initialize-UpdateGit
         Initialize-CleanWorkingDirectory
         Initialize-CurrentBranch 'my-branch'
+        Initialize-AnyUpstreamBranches
         Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
         Initialize-BranchDoesNotExist 'rc/2022-07-14'
 
@@ -204,6 +212,7 @@ Describe 'git-add-upstream' {
         Initialize-ToolConfiguration -noRemote
         Initialize-CleanWorkingDirectory
         Initialize-CurrentBranch 'rc/2022-07-14'
+        Initialize-AnyUpstreamBranches
         Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
         Initialize-BranchPushed 'rc/2022-07-14'
 
@@ -225,6 +234,7 @@ Describe 'git-add-upstream' {
         Initialize-UpdateGit
         Initialize-CleanWorkingDirectory
         Initialize-CurrentBranch 'my-branch'
+        Initialize-AnyUpstreamBranches
         Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
         Initialize-BranchNotPushed 'rc/2022-07-14'
 
@@ -237,6 +247,7 @@ Describe 'git-add-upstream' {
         Initialize-UpdateGit
         Initialize-CleanWorkingDirectory
         Initialize-CurrentBranch 'my-branch'
+        Initialize-AnyUpstreamBranches
         Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
         Initialize-BranchNoUpstream 'rc/2022-07-14'
 
