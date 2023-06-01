@@ -11,6 +11,6 @@ function Initialize-UpdateGit($MockWith, [switch] $prune) {
     $config = Get-Configuration
     if ($config.remote -eq $nil) { return }
     $pruneArgs = $prune ? ' --prune' : ''
-    Invoke-MockGit "fetch $($config.remote) -q $pruneArgs" -MockWith $MockWith
+    Invoke-MockGit "fetch $($config.remote) -q$pruneArgs" -MockWith $MockWith
 }
 Export-ModuleMember -Function Initialize-UpdateGit
