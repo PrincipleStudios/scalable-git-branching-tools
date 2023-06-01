@@ -40,7 +40,7 @@ Describe 'git-add-upstream' {
 
         Initialize-SetMultipleUpstreamBranches @{
             'rc/2022-07-14' = @("feature/FOO-76", "feature/FOO-123", "feature/XYZ-1-services")
-        } 'Adding feature/FOO-76 to rc/2022-07-14' 'new-upstream-commit'
+        } 'Adding feature/FOO-76 to rc/2022-07-14' -commitish 'new-upstream-commit'
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f _upstream new-upstream-commit' } { $Global:LASTEXITCODE = 0 }
@@ -63,7 +63,7 @@ Describe 'git-add-upstream' {
 
         Initialize-SetMultipleUpstreamBranches @{
             'rc/2022-07-14' = @("feature/FOO-76", "feature/FOO-84", "feature/FOO-123", "feature/XYZ-1-services")
-        } 'Adding feature/FOO-76, feature/FOO-84 to rc/2022-07-14' 'new-upstream-commit'
+        } 'Adding feature/FOO-76, feature/FOO-84 to rc/2022-07-14' -commitish 'new-upstream-commit'
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f _upstream new-upstream-commit' } { $Global:LASTEXITCODE = 0 }
@@ -88,7 +88,7 @@ Describe 'git-add-upstream' {
 
         Initialize-SetMultipleUpstreamBranches @{
             'rc/2022-07-14' = @("feature/FOO-76", "feature/FOO-123", "feature/XYZ-1-services")
-        } 'Adding feature/FOO-76 to rc/2022-07-14' 'new-upstream-commit'
+        } 'Adding feature/FOO-76 to rc/2022-07-14' -commitish 'new-upstream-commit'
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f _upstream new-upstream-commit' } { $Global:LASTEXITCODE = 0 }
@@ -111,7 +111,7 @@ Describe 'git-add-upstream' {
 
         Initialize-SetMultipleUpstreamBranches @{
             'rc/2022-07-14' = @("feature/FOO-76", "feature/FOO-84", "feature/FOO-123", "feature/XYZ-1-services")
-        } 'Adding feature/FOO-76, feature/FOO-84 to rc/2022-07-14' 'new-upstream-commit'
+        } 'Adding feature/FOO-76, feature/FOO-84 to rc/2022-07-14' -commitish 'new-upstream-commit'
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f _upstream new-upstream-commit' } { $Global:LASTEXITCODE = 0 }
@@ -138,7 +138,7 @@ Describe 'git-add-upstream' {
 
         Initialize-SetMultipleUpstreamBranches @{
             'rc/2022-07-14' = @("feature/FOO-76", "feature/FOO-123", "feature/XYZ-1-services")
-        } 'Adding feature/FOO-76 to rc/2022-07-14' 'new-upstream-commit'
+        } 'Adding feature/FOO-76 to rc/2022-07-14' -commitish 'new-upstream-commit'
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin --atomic HEAD:rc/2022-07-14 new-upstream-commit:refs/heads/_upstream' } { $Global:LASTEXITCODE = 0 }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
@@ -181,7 +181,7 @@ Describe 'git-add-upstream' {
 
         Initialize-SetMultipleUpstreamBranches @{
             'rc/2022-07-14' = @("feature/FOO-123", "feature/XYZ-1-services")
-        } 'Adding feature/FOO-123 to rc/2022-07-14' 'new-upstream-commit'
+        } -commitish 'new-upstream-commit'
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin --atomic HEAD:rc/2022-07-14 new-upstream-commit:refs/heads/_upstream' } { $Global:LASTEXITCODE = 0 }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
@@ -205,7 +205,7 @@ Describe 'git-add-upstream' {
 
         Initialize-SetMultipleUpstreamBranches @{
             'rc/2022-07-14' = @("feature/FOO-76", "feature/FOO-123", "feature/XYZ-1-services")
-        } 'Adding feature/FOO-76 to rc/2022-07-14' 'new-upstream-commit'
+        } -commitish 'new-upstream-commit'
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin --atomic HEAD:rc/2022-07-14 new-upstream-commit:refs/heads/_upstream' } { $Global:LASTEXITCODE = 0 }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }

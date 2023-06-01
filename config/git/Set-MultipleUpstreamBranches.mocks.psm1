@@ -8,21 +8,24 @@ function Lock-SetMultipleUpstreamBranches() {
     }
 }
 
-function Initialize-SetMultipleUpstreamBranches([PSObject] $upstreamBranches, [string] $commitMessage, [string] $resultCommitish) {
+function Initialize-SetMultipleUpstreamBranches([PSObject] $upstreamBranches, [string] $commitMessage, [string] $commitish) {
     Initialize-FetchUpstreamBranch
     Lock-SetMultipleUpstreamBranches
-    $contents = @(
-        "`$files.Keys.Count -eq $($upstreamBranches.Keys.Count)"
-        ($upstreamBranches.Keys | ForEach-Object { "`$files['$_'] -eq '$($upstreamBranches[$_] -join "`n")'" })
-     ) -join ' -AND '
+    $contents = (@(
+        $commitMessage -ne '' ? "`$commitMessage -eq '$($commitMessage.Replace("'", "''"))'" : $nil
+        $upstreamBranches -ne $nil ? @(
+            "`$files.Keys.Count -eq $($upstreamBranches.Keys.Count)"
+            ($upstreamBranches.Keys | ForEach-Object { "`$files['$_'] -eq '$($upstreamBranches[$_] -join "`n")'" })
+        ) : $nil
+     ) | ForEach-Object { $_ } | Where-Object { $_ -ne $nil }) -join ' -AND '
 
     $result = New-VerifiableMock `
         -CommandName Set-GitFiles `
         -ModuleName 'Set-MultipleUpstreamBranches' `
-        -ParameterFilter $([scriptblock]::Create("`$commitMessage -eq '$($commitMessage.Replace("'", "''"))' -AND $contents"))
+        -ParameterFilter $([scriptblock]::Create($contents))
     Invoke-WrapMock $result -MockWith {
             $global:LASTEXITCODE = 0
-            $resultCommitish
+            $commitish
         }.GetNewClosure()
     return $result
 }

@@ -50,7 +50,6 @@ Describe 'git-release' {
             }
             Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services")}
             Initialize-SetMultipleUpstreamBranches @{
-
                 'feature/FOO-123' = $nil;
                 'integrate/FOO-125_XYZ-1' = @("feature/FOO-124_FOO-125", "main");
                 'rc/2022-07-14' = $nil;
@@ -112,7 +111,7 @@ Describe 'git-release' {
                 'integrate/FOO-125_XYZ-1' = @("feature/FOO-124_FOO-125", "main")
                 'rc/2022-07-14' = $nil
                 'feature/XYZ-1-services' = $nil
-            } -commitMessage 'Release rc/2022-07-14 to main' -resultCommitish 'new-commit'
+            } -commitMessage 'Release rc/2022-07-14 to main' -commitish 'new-commit'
 
             $pushParameterFilter = {($args -join ' ') -eq 'push --atomic origin origin/rc/2022-07-14:main :feature/FOO-123 :feature/XYZ-1-services :rc/2022-07-14 new-commit:refs/heads/_upstream'}
             Mock git -ParameterFilter $pushParameterFilter {} -Verifiable
@@ -134,7 +133,7 @@ Describe 'git-release' {
                 'integrate/FOO-125_XYZ-1' = @("feature/FOO-124_FOO-125", "main")
                 'rc/2022-07-14' = $nil
                 'feature/XYZ-1-services' = $nil
-            } -commitMessage 'Release rc/2022-07-14 to main' -resultCommitish 'new-commit'
+            } -commitMessage 'Release rc/2022-07-14 to main' -commitish 'new-commit'
 
             $pushParameterFilter = {($args -join ' ') -eq 'push --atomic origin origin/rc/2022-07-14:main :feature/FOO-123 :feature/XYZ-1-services :rc/2022-07-14 new-commit:refs/heads/_upstream'}
             Mock git -ParameterFilter $pushParameterFilter {} -Verifiable
@@ -158,7 +157,7 @@ Describe 'git-release' {
                 'integrate/FOO-125_XYZ-1' = @("feature/FOO-124_FOO-125", "main")
                 'rc/2022-07-14' = $nil
                 'feature/XYZ-1-services' = $nil
-            } -commitMessage 'Release rc/2022-07-14 to main' -resultCommitish 'new-commit'
+            } -commitMessage 'Release rc/2022-07-14 to main' -commitish 'new-commit'
 
             $pushParameterFilter = {($args -join ' ') -eq 'push --atomic origin origin/rc/2022-07-14:main :feature/FOO-123 :feature/XYZ-1-services :rc/2022-07-14 new-commit:refs/heads/_upstream'}
             Mock git -ParameterFilter $pushParameterFilter {} -Verifiable
@@ -182,7 +181,7 @@ Describe 'git-release' {
                 'feature/XYZ-1-services' = $nil
                 'feature/FOO-124_FOO-125' = $nil
                 'feature/FOO-124-comment' = $nil
-            } -commitMessage 'Release rc/2022-07-14 to main' -resultCommitish 'new-commit'
+            } -commitMessage 'Release rc/2022-07-14 to main' -commitish 'new-commit'
 
             $pushParameterFilter = {($args -join ' ') -eq 'push --atomic origin origin/rc/2022-07-14:main :feature/FOO-123 :integrate/FOO-125_XYZ-1 :feature/FOO-124_FOO-125 :feature/XYZ-1-services :feature/FOO-124-comment :rc/2022-07-14 new-commit:refs/heads/_upstream'}
             Mock git -ParameterFilter $pushParameterFilter {} -Verifiable
@@ -205,7 +204,7 @@ Describe 'git-release' {
 
             Initialize-SetMultipleUpstreamBranches @{
                 'feature/FOO-123' = $nil
-            } -commitMessage 'Release feature/FOO-123 to main' -resultCommitish 'new-commit'
+            } -commitMessage 'Release feature/FOO-123 to main' -commitish 'new-commit'
             $pushParameterFilter = {($args -join ' ') -eq 'push --atomic origin origin/feature/FOO-123:main :feature/FOO-123 new-commit:refs/heads/_upstream'}
             Mock git -ParameterFilter $pushParameterFilter {} -Verifiable
 
@@ -238,7 +237,7 @@ Describe 'git-release' {
                 'integrate/FOO-125_XYZ-1' = @("feature/FOO-124_FOO-125", "main")
                 'rc/2022-07-14' = $nil
                 'feature/XYZ-1-services' = $nil
-            } -commitMessage 'Release rc/2022-07-14 to main' -resultCommitish 'new-commit'
+            } -commitMessage 'Release rc/2022-07-14 to main' -commitish 'new-commit'
 
             $pushParameterFilter = {($args -join ' ') -eq 'push --atomic origin :feature/FOO-123 :feature/XYZ-1-services :rc/2022-07-14 new-commit:refs/heads/_upstream'}
             Mock git -ParameterFilter $pushParameterFilter {} -Verifiable

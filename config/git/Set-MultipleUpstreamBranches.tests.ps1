@@ -42,7 +42,23 @@ Describe 'Set-MultipleUpstreamBranches' {
         }
 
         It 'provides mocks to do the same' {
-            $mock = Initialize-SetMultipleUpstreamBranches @{ 'foobar' = @('baz', 'barbaz') } -commitMessage 'Add barbaz to foobar' -resultCommitish 'new-COMMIT'
+            $mock = Initialize-SetMultipleUpstreamBranches @{ 'foobar' = @('baz', 'barbaz') } -commitMessage 'Add barbaz to foobar' -commitish 'new-COMMIT'
+
+            $result = Set-MultipleUpstreamBranches @{ 'foobar' = @('baz', 'barbaz') } -m 'Add barbaz to foobar'
+            $result | Should -Be 'new-COMMIT'
+            Invoke-VerifyMock $mock -Times 1
+        }
+
+        It 'allows the mock to not provide the commit message' {
+            $mock = Initialize-SetMultipleUpstreamBranches @{ 'foobar' = @('baz', 'barbaz') } -commitish 'new-COMMIT'
+
+            $result = Set-MultipleUpstreamBranches @{ 'foobar' = @('baz', 'barbaz') } -m 'Add barbaz to foobar'
+            $result | Should -Be 'new-COMMIT'
+            Invoke-VerifyMock $mock -Times 1
+        }
+
+        It 'allows the mock to not provide the files' {
+            $mock = Initialize-SetMultipleUpstreamBranches -commitMessage 'Add barbaz to foobar' -commitish 'new-COMMIT'
 
             $result = Set-MultipleUpstreamBranches @{ 'foobar' = @('baz', 'barbaz') } -m 'Add barbaz to foobar'
             $result | Should -Be 'new-COMMIT'
@@ -79,7 +95,7 @@ Describe 'Set-MultipleUpstreamBranches' {
         }
 
         It 'provides mocks to do the same' {
-            $mock = Initialize-SetMultipleUpstreamBranches @{ 'foobar' = @('baz', 'barbaz') } -commitMessage 'Add barbaz to foobar' -resultCommitish 'new-COMMIT'
+            $mock = Initialize-SetMultipleUpstreamBranches @{ 'foobar' = @('baz', 'barbaz') } -commitMessage 'Add barbaz to foobar' -commitish 'new-COMMIT'
 
             $result = Set-MultipleUpstreamBranches @{ 'foobar' = @('baz', 'barbaz') } -m 'Add barbaz to foobar'
             $result | Should -Be 'new-COMMIT'

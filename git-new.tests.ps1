@@ -48,7 +48,7 @@ Describe 'git-new' {
             Mock git -ParameterFilter { ($args -join ' ') -eq 'clean -n' } {}
             Initialize-SetMultipleUpstreamBranches @{
                 'feature/PS-100-some-work' = 'main'
-            } 'Add branch feature/PS-100-some-work for some work' 'new-commit'
+            } 'Add branch feature/PS-100-some-work for some work' -commitish 'new-commit'
             Initialize-CreateBranch 'feature/PS-100-some-work' 'main'
             Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f _upstream new-commit --quiet' } { $Global:LASTEXITCODE = 0 }
             Initialize-CheckoutBranch 'feature/PS-100-some-work'
@@ -59,7 +59,7 @@ Describe 'git-new' {
         It 'creates a local branch when no remotes are configured' {
             Initialize-SetMultipleUpstreamBranches @{
                 'feature/PS-100-some-work' = 'main'
-            } 'Add branch feature/PS-100-some-work for some work' 'new-commit'
+            } -commitish 'new-commit'
             Initialize-CleanWorkingDirectory
             Initialize-CreateBranch -branchName 'feature/PS-100-some-work' -source 'main'
             Initialize-CheckoutBranch 'feature/PS-100-some-work'
@@ -71,7 +71,7 @@ Describe 'git-new' {
         It 'creates a local branch from the specified branch when no remotes are configured' {
             Initialize-SetMultipleUpstreamBranches @{
                 'feature/PS-600-some-work' = 'infra/foo'
-            } 'Add branch feature/PS-600-some-work for some work' 'new-commit'
+            } -commitish 'new-commit'
             Initialize-CleanWorkingDirectory
             Initialize-CreateBranch -branchName 'feature/PS-600-some-work' -source 'infra/foo'
             Initialize-CheckoutBranch 'feature/PS-600-some-work'
@@ -98,7 +98,7 @@ Describe 'git-new' {
         It 'creates a remote branch when a remote is configured' {
             Initialize-SetMultipleUpstreamBranches @{
                 'feature/PS-100-some-work' = 'main'
-            } 'Add branch feature/PS-100-some-work for some work' 'new-commit'
+            } -commitish 'new-commit'
             Initialize-CreateBranch -branchName 'feature/PS-100-some-work' -source 'origin/main'
             Initialize-CheckoutBranch 'feature/PS-100-some-work'
             $verifySetRemoteTracking = Initialize-SetRemoteTracking 'feature/PS-100-some-work'
@@ -111,7 +111,7 @@ Describe 'git-new' {
         It 'creates a remote branch when a remote is configured and an upstream branch is provided' {
             Initialize-SetMultipleUpstreamBranches @{
                 'feature/PS-100-some-work' = 'infra/foo'
-            } 'Add branch feature/PS-100-some-work for some work' 'new-commit'
+            } -commitish 'new-commit'
             Initialize-CreateBranch -branchName 'feature/PS-100-some-work' -source 'origin/infra/foo'
             Initialize-CheckoutBranch 'feature/PS-100-some-work'
             $verifySetRemoteTracking = Initialize-SetRemoteTracking 'feature/PS-100-some-work'
@@ -124,7 +124,7 @@ Describe 'git-new' {
         It 'creates a remote branch with simplified upstream dependencies' {
             Initialize-SetMultipleUpstreamBranches @{
                 'feature/PS-100-some-work' = 'feature/homepage-redesign'
-            } 'Add branch feature/PS-100-some-work for some work' 'new-commit'
+            } -commitish 'new-commit'
             Initialize-CreateBranch -branchName 'feature/PS-100-some-work' -source 'origin/feature/homepage-redesign'
             Initialize-CheckoutBranch 'feature/PS-100-some-work'
             $verifySetRemoteTracking = Initialize-SetRemoteTracking 'feature/PS-100-some-work'
@@ -137,7 +137,7 @@ Describe 'git-new' {
         It 'creates a remote branch with simplified upstream dependencies but still multiple' {
             Initialize-SetMultipleUpstreamBranches @{
                 'feature/PS-100-some-work' = @('feature/homepage-redesign', 'infra/update-dependencies')
-            } 'Add branch feature/PS-100-some-work for some work' 'new-commit'
+            } -commitish 'new-commit'
             Initialize-CreateBranch -branchName 'feature/PS-100-some-work' -source 'origin/feature/homepage-redesign'
             Initialize-InvokeMergeSuccess 'origin/infra/update-dependencies'
             Initialize-CheckoutBranch 'feature/PS-100-some-work'
@@ -151,7 +151,7 @@ Describe 'git-new' {
         It 'reports failed merges and does not push' {
             Initialize-SetMultipleUpstreamBranches @{
                 'feature/PS-100-some-work' = @('feature/homepage-redesign', 'infra/update-dependencies')
-            } 'Add branch feature/PS-100-some-work for some work' 'new-commit'
+            } -commitish 'new-commit'
             Initialize-CreateBranch -branchName 'feature/PS-100-some-work' -source 'origin/feature/homepage-redesign'
             Initialize-CheckoutBranch 'feature/PS-100-some-work'
             Initialize-InvokeMergeFailure 'origin/infra/update-dependencies'
