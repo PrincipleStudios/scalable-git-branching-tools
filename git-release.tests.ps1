@@ -13,11 +13,6 @@ BeforeAll {
 
     Lock-InvokeWriteTree
     Lock-SetMultipleUpstreamBranches
-
-    . $PSScriptRoot/config/git/Set-GitFiles.ps1
-    Mock -CommandName Set-GitFiles {
-        throw "Unexpected parameters for Set-GitFiles: $(@{ files = $files; commitMessage = $commitMessage; branchName = $branchName; remote = $remote; dryRun = $dryRun } | ConvertTo-Json)"
-    }
 }
 
 
