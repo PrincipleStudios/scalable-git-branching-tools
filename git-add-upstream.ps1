@@ -19,7 +19,7 @@ Import-Module -Scope Local "$PSScriptRoot/config/git/Update-Git.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Select-UpstreamBranches.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CheckoutBranch.psm1"
-. $PSScriptRoot/config/git/Set-GitFiles.ps1
+Import-Module -Scope Local "$PSScriptRoot/config/git/Set-MultipleUpstreamBranches.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Get-CurrentBranch.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Compress-UpstreamBranches.psm1"
@@ -47,7 +47,7 @@ if ($addedBranches.length -eq 0) {
     throw 'All branches already upstream of target branch'
 }
 
-$commitMessage = Coalesce $commitMessage "Adding $($branches -join ',') to $branchName"
+$commitMessage = Coalesce $commitMessage "Adding $($branches -join ', ') to $branchName"
 
 $result = Invoke-PreserveBranch {
     $fullBranchName = $config.remote -eq $nil ? $branchName : "$($config.remote)/$($branchName)"
@@ -63,7 +63,7 @@ $result = Invoke-PreserveBranch {
         return New-ResultAfterCleanup $false
     }
 
-    $upstreamCommitish = Set-GitFiles @{ $branchName = ($finalBranches -join "`n") } -m $commitMessage -branchName $config.upstreamBranch -remote $config.remote -dryRun
+    $upstreamCommitish = Set-MultipleUpstreamBranches @{ $branchName = $finalBranches } -m $commitMessage
     if ($upstreamCommitish -eq $nil -OR $commitish -eq '') {
         throw 'Failed to update upstream branch commit'
     }

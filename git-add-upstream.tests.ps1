@@ -1,13 +1,11 @@
 BeforeAll {
     . "$PSScriptRoot/config/testing/Lock-Git.mocks.ps1"
+    Import-Module -Scope Local "$PSScriptRoot/config/git/Set-MultipleUpstreamBranches.mocks.psm1"
 
     # User-interface commands are a bit noisy; TODO: add quiet option and test it by making this throw
     Mock -CommandName Write-Host {}
 
-    . $PSScriptRoot/config/git/Set-GitFiles.ps1
-    Mock -CommandName Set-GitFiles {
-        throw "Unexpected parameters for Set-GitFiles: $(@{ files = $files; commitMessage = $commitMessage; branchName = $branchName; remote = $remote; dryRun = $dryRun } | ConvertTo-Json)"
-    }
+    Lock-SetMultipleUpstreamBranches
 }
 
 Describe 'git-add-upstream' {
@@ -40,8 +38,9 @@ Describe 'git-add-upstream' {
         Initialize-InvokeMergeSuccess 'feature/FOO-76'
         Initialize-PreserveBranchCleanup
 
-        . $PSScriptRoot/config/git/Set-GitFiles.ps1
-        Mock -CommandName Set-GitFiles { 'new-upstream-commit' }
+        Initialize-SetMultipleUpstreamBranches @{
+            'rc/2022-07-14' = @("feature/FOO-76", "feature/FOO-123", "feature/XYZ-1-services")
+        } 'Adding feature/FOO-76 to rc/2022-07-14' 'new-upstream-commit'
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f _upstream new-upstream-commit' } { $Global:LASTEXITCODE = 0 }
@@ -62,8 +61,9 @@ Describe 'git-add-upstream' {
         $merge2Filter = Initialize-InvokeMergeSuccess 'feature/FOO-84'
         Initialize-PreserveBranchCleanup
 
-        . $PSScriptRoot/config/git/Set-GitFiles.ps1
-        Mock -CommandName Set-GitFiles { 'new-upstream-commit' }
+        Initialize-SetMultipleUpstreamBranches @{
+            'rc/2022-07-14' = @("feature/FOO-76", "feature/FOO-84", "feature/FOO-123", "feature/XYZ-1-services")
+        } 'Adding feature/FOO-76, feature/FOO-84 to rc/2022-07-14' 'new-upstream-commit'
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f _upstream new-upstream-commit' } { $Global:LASTEXITCODE = 0 }
@@ -74,7 +74,7 @@ Describe 'git-add-upstream' {
         Invoke-VerifyMock $merge2Filter -Times 1
     }
 
-    It 'works locally' {
+    It 'works locally against a target branch' {
         Initialize-ToolConfiguration -noRemote
         Initialize-CleanWorkingDirectory
         Initialize-CurrentBranch 'my-branch'
@@ -86,8 +86,9 @@ Describe 'git-add-upstream' {
         Initialize-InvokeMergeSuccess 'feature/FOO-76'
         Initialize-PreserveBranchCleanup
 
-        . $PSScriptRoot/config/git/Set-GitFiles.ps1
-        Mock -CommandName Set-GitFiles { 'new-upstream-commit' }
+        Initialize-SetMultipleUpstreamBranches @{
+            'rc/2022-07-14' = @("feature/FOO-76", "feature/FOO-123", "feature/XYZ-1-services")
+        } 'Adding feature/FOO-76 to rc/2022-07-14' 'new-upstream-commit'
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f _upstream new-upstream-commit' } { $Global:LASTEXITCODE = 0 }
@@ -95,7 +96,7 @@ Describe 'git-add-upstream' {
         & ./git-add-upstream.ps1 -upstream 'feature/FOO-76' -branchName 'rc/2022-07-14' -m ""
     }
 
-    It 'works locally with multiple branches' {
+    It 'works locally with multiple branches against a target branch' {
         Initialize-ToolConfiguration -noRemote
         Initialize-CleanWorkingDirectory
         Initialize-CurrentBranch 'my-branch'
@@ -108,8 +109,9 @@ Describe 'git-add-upstream' {
         $merge2Filter = Initialize-InvokeMergeSuccess 'feature/FOO-84'
         Initialize-PreserveBranchCleanup
 
-        . $PSScriptRoot/config/git/Set-GitFiles.ps1
-        Mock -CommandName Set-GitFiles { 'new-upstream-commit' }
+        Initialize-SetMultipleUpstreamBranches @{
+            'rc/2022-07-14' = @("feature/FOO-76", "feature/FOO-84", "feature/FOO-123", "feature/XYZ-1-services")
+        } 'Adding feature/FOO-76, feature/FOO-84 to rc/2022-07-14' 'new-upstream-commit'
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f _upstream new-upstream-commit' } { $Global:LASTEXITCODE = 0 }
@@ -134,8 +136,9 @@ Describe 'git-add-upstream' {
         Initialize-InvokeMergeSuccess 'origin/feature/FOO-76'
         Initialize-PreserveBranchCleanup
 
-        . $PSScriptRoot/config/git/Set-GitFiles.ps1
-        Mock -CommandName Set-GitFiles -ParameterFilter { $files['rc/2022-07-14'] -eq "feature/FOO-76`nfeature/FOO-123`nfeature/XYZ-1-services" } { 'new-upstream-commit' }
+        Initialize-SetMultipleUpstreamBranches @{
+            'rc/2022-07-14' = @("feature/FOO-76", "feature/FOO-123", "feature/XYZ-1-services")
+        } 'Adding feature/FOO-76 to rc/2022-07-14' 'new-upstream-commit'
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin --atomic HEAD:rc/2022-07-14 new-upstream-commit:refs/heads/_upstream' } { $Global:LASTEXITCODE = 0 }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
@@ -176,8 +179,9 @@ Describe 'git-add-upstream' {
         Initialize-InvokeMergeSuccess 'origin/feature/FOO-123'
         Initialize-PreserveBranchCleanup
 
-        . $PSScriptRoot/config/git/Set-GitFiles.ps1
-        Mock -CommandName Set-GitFiles -ParameterFilter { $files['rc/2022-07-14'] -eq "feature/FOO-123`nfeature/XYZ-1-services" } { 'new-upstream-commit' }
+        Initialize-SetMultipleUpstreamBranches @{
+            'rc/2022-07-14' = @("feature/FOO-123", "feature/XYZ-1-services")
+        } 'Adding feature/FOO-123 to rc/2022-07-14' 'new-upstream-commit'
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin --atomic HEAD:rc/2022-07-14 new-upstream-commit:refs/heads/_upstream' } { $Global:LASTEXITCODE = 0 }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
@@ -199,8 +203,9 @@ Describe 'git-add-upstream' {
         Initialize-InvokeMergeSuccess 'origin/feature/FOO-76'
         Initialize-PreserveBranchCleanup
 
-        . $PSScriptRoot/config/git/Set-GitFiles.ps1
-        Mock -CommandName Set-GitFiles -ParameterFilter { $files['rc/2022-07-14'] -eq "feature/FOO-76`nfeature/FOO-123`nfeature/XYZ-1-services" } { 'new-upstream-commit' }
+        Initialize-SetMultipleUpstreamBranches @{
+            'rc/2022-07-14' = @("feature/FOO-76", "feature/FOO-123", "feature/XYZ-1-services")
+        } 'Adding feature/FOO-76 to rc/2022-07-14' 'new-upstream-commit'
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin --atomic HEAD:rc/2022-07-14 new-upstream-commit:refs/heads/_upstream' } { $Global:LASTEXITCODE = 0 }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }

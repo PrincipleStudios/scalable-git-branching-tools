@@ -11,7 +11,10 @@ function Lock-SetMultipleUpstreamBranches() {
 function Initialize-SetMultipleUpstreamBranches([PSObject] $upstreamBranches, [string] $commitMessage, [string] $resultCommitish) {
     Initialize-FetchUpstreamBranch
     Lock-SetMultipleUpstreamBranches
-    $contents = ($upstreamBranches.Keys | ForEach-Object { "`$files['$_'] -eq '$($upstreamBranches[$_] -join "`n")'" }) -join ' -AND '
+    $contents = @(
+        "`$files.Keys.Count -eq $($upstreamBranches.Keys.Count)"
+        ($upstreamBranches.Keys | ForEach-Object { "`$files['$_'] -eq '$($upstreamBranches[$_] -join "`n")'" })
+     ) -join ' -AND '
 
     $result = New-VerifiableMock `
         -CommandName Set-GitFiles `
