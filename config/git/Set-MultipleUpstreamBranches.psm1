@@ -5,8 +5,7 @@ Import-Module -Scope Local "$PSScriptRoot/Update-UpstreamBranch.psm1"
 
 function Set-MultipleUpstreamBranches(
     [Parameter(Mandatory)][PSObject]$upstreamBanchesByBranchName,
-    [Parameter(Mandatory)][Alias('m')][Alias('message')][String]$commitMessage,
-    [Parameter(Mandatory)][PSObject] $config
+    [Parameter(Mandatory)][Alias('m')][Alias('message')][String]$commitMessage
 ) {
     $upstreamBranch = Get-UpstreamBranch -fetch
     $contents = $upstreamBanchesByBranchName.Keys | ArrayToHash -getValue { $upstreamBanchesByBranchName[$_] -join "`n" }
@@ -14,5 +13,6 @@ function Set-MultipleUpstreamBranches(
     if ($commitish -eq $nil -OR $commitish -eq '') {
         throw "Failed to create commit"
     }
-    Update-UpstreamBranch $commitish
+    return $commitish
 }
+Export-ModuleMember -Function Set-MultipleUpstreamBranches

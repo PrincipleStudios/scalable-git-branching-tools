@@ -4,7 +4,7 @@ Interactively create a new branch from multiple upstream branches without changi
 
 Usage:
 
-    git-rci.ps1 [-branchName] <string> [[-commitMessage] <string>] [-force] [-noFetch]
+    git-rci.ps1 [-branchName] <string> [[-commitMessage] <string>] [-force]
 
 ## Parameters
 
@@ -19,7 +19,3 @@ If specified, overrides the commit message on the upstream tracking branch for c
 ### `[-force]` (Optional)
 
 Forces an update of the RC branch. Use this if you are replacing the existing branch.
-
-### `[-noFetch]` (Optional)
-
-If specified, skip fetching updates for the other upstream branches before creating the RC.

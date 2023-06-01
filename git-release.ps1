@@ -16,7 +16,7 @@ Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Update-Git.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Select-UpstreamBranches.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Get-GitFileNames.psm1"
-. $PSScriptRoot/config/git/Set-GitFiles.ps1
+Import-Module -Scope Local "$PSScriptRoot/config/git/Set-MultipleUpstreamBranches.psm1"
 
 $config = Get-Configuration
 
@@ -78,13 +78,12 @@ if ($dryRun) {
     Write-Host "Would perform updates: $(ConvertTo-Json $updates)"
 } else {
     $commitMessage = Coalesce $commitMessage "Release $branchName to $target"
-    $upstreamContents = $updates | ArrayToHash -getKey { $_.branch } -getValue { $_.newUpstream -join "`n" }
+    $upstreamContents = $updates | ArrayToHash -getKey { $_.branch } -getValue { $_.newUpstream }
     $upstreamContents[$branchName] = $nil
     $toRemove | ForEach-Object {
         $upstreamContents[$_] = $nil
     }
-
-    $commitish = Set-GitFiles $upstreamContents -m $commitMessage -branchName $config.upstreamBranch -remote $config.remote -dryRun
+    $commitish = Set-MultipleUpstreamBranches $upstreamContents -m $commitMessage
 
     if ($config.remote -ne $nil) {
         $gitDeletions = [String[]]($toRemove | ForEach-Object { ":$_" })

@@ -4,7 +4,9 @@ Import-Module -Scope Local "$PSScriptRoot/Get-Configuration.psm1"
 
 function Initialize-FetchUpstreamBranch() {
     $config = Get-Configuration
-    Invoke-MockGitModule -ModuleName 'Get-UpstreamBranch' -gitCli "fetch $($config.remote) $($config.upstreamBranch)"
+    if ($config.remote -ne $nil) {
+        Invoke-MockGitModule -ModuleName 'Get-UpstreamBranch' -gitCli "fetch $($config.remote) $($config.upstreamBranch)"
+    }
 }
 
 Export-ModuleMember -Function Initialize-FetchUpstreamBranch
