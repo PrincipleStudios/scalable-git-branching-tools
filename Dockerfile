@@ -12,6 +12,9 @@ RUN  git config --global user.email "test@example.com" \
   && git config --global user.name "Integration Testing" \
   && git config --global init.defaultBranch "main"
 
+WORKDIR /root/.config/powershell/
+RUN echo "\$ErrorActionPreference = 'Stop'" > profile.ps1
+
 ADD . /git-tools
 
 WORKDIR /git-tools
