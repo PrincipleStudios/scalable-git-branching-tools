@@ -6,10 +6,11 @@ function Invoke-MockGit([string] $gitCli, [object] $MockWith) {
     return Invoke-MockGitModule -ModuleName 'Update-Git' @PSBoundParameters
 }
 
-function Initialize-UpdateGit($MockWith) {
+function Initialize-UpdateGit($MockWith, [switch] $prune) {
     Mock -CommandName Write-Host -ModuleName 'Update-Git' {}
     $config = Get-Configuration
     if ($config.remote -eq $nil) { return }
-    Invoke-MockGit "fetch $($config.remote) -q" -MockWith $MockWith
+    $pruneArgs = $prune ? ' --prune' : ''
+    Invoke-MockGit "fetch $($config.remote) -q $pruneArgs" -MockWith $MockWith
 }
 Export-ModuleMember -Function Initialize-UpdateGit
