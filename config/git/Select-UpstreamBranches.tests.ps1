@@ -59,4 +59,14 @@ Describe 'Select-UpstreamBranches' {
         $results = Select-UpstreamBranches rc/1.1.0 -includeRemote -recurse -exclude @('line/1.0')
         $results | Should -Be @( 'origin/feature/FOO-123', 'origin/feature/XYZ-1-services', 'origin/infra/some-service' )
     }
+
+    It 'handles (invalid) recursiveness without failing' {
+        Initialize-ToolConfiguration
+        Initialize-UpstreamBranches @{
+            'bad-recursive-branch-1' = @('bad-recursive-branch-2')
+            'bad-recursive-branch-2' = @('bad-recursive-branch-1')
+        }
+        $results = Select-UpstreamBranches bad-recursive-branch-1 -recurse
+        $results | Should -Be @( 'bad-recursive-branch-2' )
+    }
 }

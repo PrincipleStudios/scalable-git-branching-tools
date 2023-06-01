@@ -4,8 +4,7 @@ Param(
     [Parameter(Mandatory)][string] $branchName,
     [Parameter()][String[]] $branches,
     [Parameter()][Alias('message')][Alias('m')][string] $commitMessage,
-    [switch] $force,
-    [Switch] $noFetch
+    [switch] $force
 )
 
 # git doesn't pass them as separate items in the array
@@ -22,15 +21,10 @@ Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CreateBranch.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CheckoutBranch.psm1";
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.psm1";
-. $PSScriptRoot/config/git/Set-UpstreamBranches.ps1
+Import-Module -Scope Local "$PSScriptRoot/config/git/Set-MultipleUpstreamBranches.psm1"
 
 $config = Get-Configuration
-
-if (-not $noFetch) {
-    Update-Git
-}
-
-$tickets = $tickets | Where-Object { $_ -ne '' -AND $_ -ne $nil }
+Update-Git
 
 Assert-CleanWorkingDirectory
 $allBranches = Select-Branches
@@ -39,8 +33,14 @@ $selectedBranches = [PSObject[]]($allBranches | Where-Object {
         return $false
     })
 
-$upstreamBranches = [string[]]($selectedBranches | Foreach-Object { ConvertTo-BranchName $_ -includeRemote })
 $upstreamBranchesNoRemote = [string[]]($selectedBranches | Foreach-Object { ConvertTo-BranchName $_ })
+$upstreamBranchesNoRemote = Compress-UpstreamBranches $upstreamBranchesNoRemote
+
+if ($config.remote -ne $nil) {
+    $upstreamBranches = [string[]]$upstreamBranchesNoRemote | Foreach-Object { "$($config.remote)/$_" }
+} else {
+    $upstreamBranches = $upstreamBranchesNoRemote
+}
 
 Invoke-PreserveBranch {
 
@@ -52,14 +52,17 @@ Invoke-PreserveBranch {
 
     $commitMessage = Coalesce $commitMessage "Add branch $branchName$($comment -eq $nil ? '' : " for $comment")"
 
-    Set-UpstreamBranches $branchName $upstreamBranchesNoRemote -m $commitMessage -config $config
+    $upstreamCommitish = Set-MultipleUpstreamBranches -upstreamBanchesByBranchName @{ $branchName = $upstreamBranchesNoRemote } -m $commitMessage
 
     if ($config.remote -ne $nil) {
-        $params = $force ? @('--force') : @()
-        git push $config.remote "$($branchName):refs/heads/$($branchName)" @params
+        $forcePart = $force ? @('--force') : @()
+        $atomicPart = $config.atomicPushEnabled ? @("--atomic") : @()
+        git push $config.remote "$($branchName):refs/heads/$($branchName)" "$($upstreamCommitish):refs/heads/$($config.upstreamBranch)" @forcePart @atomicPart
         if ($global:LASTEXITCODE -ne 0) {
             throw "Unable to push $branchName to $($config.remote)"
         }
+    }  else {
+        git branch -f $config.upstreamBranch $upstreamCommitish
     }
 } -cleanup {
     if ($config.remote -ne $nil) {
