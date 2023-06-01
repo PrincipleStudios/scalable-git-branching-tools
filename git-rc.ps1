@@ -21,7 +21,8 @@ Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CreateBranch.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CheckoutBranch.psm1";
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.psm1";
-Import-Module -Scope Local "$PSScriptRoot/config/git/Set-MultipleUpstreamBranches.mocks.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Set-MultipleUpstreamBranches.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Compress-UpstreamBranches.psm1"
 
 $config = Get-Configuration
 Update-Git

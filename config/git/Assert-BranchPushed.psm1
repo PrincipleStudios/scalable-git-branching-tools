@@ -14,7 +14,7 @@ function Assert-BranchPushed([Parameter(Mandatory)][String] $branchName, [Switch
         }
 
         # Get the diff with the remote branch
-        $remoteBranch = git rev-parse --abbrev-ref --symbolic-full-name "refs/heads/$($branchName)@{u}" 2> $nil
+        $remoteBranch = git rev-parse --abbrev-ref --symbolic-full-name "$($branchName)@{u}" 2> $nil
         if ($remoteBranch -ne $nil) {
             $diff = git rev-list --count ^$remoteBranch $branchName # Number of commits in branch excluding those already pushed
             if ($diff -ne 0) {

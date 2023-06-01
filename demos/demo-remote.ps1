@@ -36,6 +36,9 @@ if ((git branch --show-current) -ne 'feature/PS-1') {
     throw 'Branch name should not have changed';
 }
 
+git pull-upstream rc/test
+ThrowOnNativeFalure
+
 git verify-updated rc/test
 ThrowOnNativeFalure
 
