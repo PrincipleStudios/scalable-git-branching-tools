@@ -10,16 +10,11 @@ BeforeAll {
     Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CreateBranch.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Set-RemoteTracking.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Select-UpstreamBranches.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/config/git/Set-MultipleUpstreamBranches.mocks.psm1"
     Initialize-QuietMergeBranches
 
     # User-interface commands are a bit noisy; TODO: add quiet option and test it by making this throw
     Mock -CommandName Write-Host {}
-
-    # This command is more complex than I want to handle for low-level git commands in these tests
-    . $PSScriptRoot/config/git/Set-GitFiles.ps1
-    Mock -CommandName Set-GitFiles {
-        throw "Unexpected parameters for Set-GitFiles: $(@{ files = $files; commitMessage = $commitMessage; branchName = $branchName; remote = $remote; dryRun = $dryRun } | ConvertTo-Json)"
-    }
 
     Mock -CommandName Invoke-PreserveBranch -ParameterFilter { $onlyIfError } {
         & $scriptBlock
@@ -32,6 +27,7 @@ Describe 'git-new' {
     Context 'without remote' {
         BeforeAll {
             Initialize-ToolConfiguration -noRemote
+            Lock-SetMultipleUpstreamBranches
 
             Initialize-AnyUpstreamBranches
             Initialize-UpstreamBranches @{
@@ -50,9 +46,9 @@ Describe 'git-new' {
                 Write-Output 'main'
             }
             Mock git -ParameterFilter { ($args -join ' ') -eq 'clean -n' } {}
-            Mock -CommandName Set-GitFiles -ParameterFilter {
-                $files['feature/PS-100-some-work'] -eq 'main'
-            } { 'new-commit' }
+            Initialize-SetMultipleUpstreamBranches @{
+                'feature/PS-100-some-work' = 'main'
+            } 'Add branch feature/PS-100-some-work for some work' 'new-commit'
             Initialize-CreateBranch 'feature/PS-100-some-work' 'main'
             Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f _upstream new-commit --quiet' } { $Global:LASTEXITCODE = 0 }
             Initialize-CheckoutBranch 'feature/PS-100-some-work'
@@ -61,9 +57,9 @@ Describe 'git-new' {
         }
 
         It 'creates a local branch when no remotes are configured' {
-            Mock -CommandName Set-GitFiles -ParameterFilter {
-                $files['feature/PS-100-some-work'] -eq 'main'
-            } { 'new-commit' }
+            Initialize-SetMultipleUpstreamBranches @{
+                'feature/PS-100-some-work' = 'main'
+            } 'Add branch feature/PS-100-some-work for some work' 'new-commit'
             Initialize-CleanWorkingDirectory
             Initialize-CreateBranch -branchName 'feature/PS-100-some-work' -source 'main'
             Initialize-CheckoutBranch 'feature/PS-100-some-work'
@@ -73,9 +69,9 @@ Describe 'git-new' {
         }
 
         It 'creates a local branch from the specified branch when no remotes are configured' {
-            Mock -CommandName Set-GitFiles -ParameterFilter {
-                $files['feature/PS-600-some-work'] -eq 'infra/foo'
-            } { 'new-commit' }
+            Initialize-SetMultipleUpstreamBranches @{
+                'feature/PS-600-some-work' = 'infra/foo'
+            } 'Add branch feature/PS-600-some-work for some work' 'new-commit'
             Initialize-CleanWorkingDirectory
             Initialize-CreateBranch -branchName 'feature/PS-600-some-work' -source 'infra/foo'
             Initialize-CheckoutBranch 'feature/PS-600-some-work'
@@ -96,12 +92,13 @@ Describe 'git-new' {
                 'feature/homepage-redesign' = @('infra/foo')
                 'infra/foo' = @('main')
             }
+            Lock-SetMultipleUpstreamBranches
         }
 
         It 'creates a remote branch when a remote is configured' {
-            Mock -CommandName Set-GitFiles -ParameterFilter {
-                $files['feature/PS-100-some-work'] -eq 'main'
-            } { 'new-commit' }
+            Initialize-SetMultipleUpstreamBranches @{
+                'feature/PS-100-some-work' = 'main'
+            } 'Add branch feature/PS-100-some-work for some work' 'new-commit'
             Initialize-CreateBranch -branchName 'feature/PS-100-some-work' -source 'origin/main'
             Initialize-CheckoutBranch 'feature/PS-100-some-work'
             $verifySetRemoteTracking = Initialize-SetRemoteTracking 'feature/PS-100-some-work'
@@ -112,9 +109,9 @@ Describe 'git-new' {
         }
 
         It 'creates a remote branch when a remote is configured and an upstream branch is provided' {
-            Mock -CommandName Set-GitFiles -ParameterFilter {
-                $files['feature/PS-100-some-work'] -eq 'infra/foo'
-            } { 'new-commit' }
+            Initialize-SetMultipleUpstreamBranches @{
+                'feature/PS-100-some-work' = 'infra/foo'
+            } 'Add branch feature/PS-100-some-work for some work' 'new-commit'
             Initialize-CreateBranch -branchName 'feature/PS-100-some-work' -source 'origin/infra/foo'
             Initialize-CheckoutBranch 'feature/PS-100-some-work'
             $verifySetRemoteTracking = Initialize-SetRemoteTracking 'feature/PS-100-some-work'
@@ -125,9 +122,9 @@ Describe 'git-new' {
         }
 
         It 'creates a remote branch with simplified upstream dependencies' {
-            Mock -CommandName Set-GitFiles -ParameterFilter {
-                $files['feature/PS-100-some-work'] -eq 'feature/homepage-redesign'
-            } { 'new-commit' }
+            Initialize-SetMultipleUpstreamBranches @{
+                'feature/PS-100-some-work' = 'feature/homepage-redesign'
+            } 'Add branch feature/PS-100-some-work for some work' 'new-commit'
             Initialize-CreateBranch -branchName 'feature/PS-100-some-work' -source 'origin/feature/homepage-redesign'
             Initialize-CheckoutBranch 'feature/PS-100-some-work'
             $verifySetRemoteTracking = Initialize-SetRemoteTracking 'feature/PS-100-some-work'
@@ -138,9 +135,9 @@ Describe 'git-new' {
         }
 
         It 'creates a remote branch with simplified upstream dependencies but still multiple' {
-            Mock -CommandName Set-GitFiles -ParameterFilter {
-                $files['feature/PS-100-some-work'] -eq "feature/homepage-redesign`ninfra/update-dependencies"
-            } { 'new-commit' }
+            Initialize-SetMultipleUpstreamBranches @{
+                'feature/PS-100-some-work' = @('feature/homepage-redesign', 'infra/update-dependencies')
+            } 'Add branch feature/PS-100-some-work for some work' 'new-commit'
             Initialize-CreateBranch -branchName 'feature/PS-100-some-work' -source 'origin/feature/homepage-redesign'
             Initialize-InvokeMergeSuccess 'origin/infra/update-dependencies'
             Initialize-CheckoutBranch 'feature/PS-100-some-work'
@@ -152,9 +149,9 @@ Describe 'git-new' {
         }
 
         It 'reports failed merges and does not push' {
-            Mock -CommandName Set-GitFiles -ParameterFilter {
-                $files['feature/PS-100-some-work'] -eq "feature/homepage-redesign`ninfra/update-dependencies"
-            } { 'new-commit' }
+            Initialize-SetMultipleUpstreamBranches @{
+                'feature/PS-100-some-work' = @('feature/homepage-redesign', 'infra/update-dependencies')
+            } 'Add branch feature/PS-100-some-work for some work' 'new-commit'
             Initialize-CreateBranch -branchName 'feature/PS-100-some-work' -source 'origin/feature/homepage-redesign'
             Initialize-CheckoutBranch 'feature/PS-100-some-work'
             Initialize-InvokeMergeFailure 'origin/infra/update-dependencies'

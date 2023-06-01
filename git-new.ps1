@@ -21,7 +21,7 @@ Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Set-RemoteTracking.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Compress-UpstreamBranches.psm1"
-. $PSScriptRoot/config/git/Set-GitFiles.ps1
+Import-Module -Scope Local "$PSScriptRoot/config/git/Set-MultipleUpstreamBranches.psm1"
 
 $config = Get-Configuration
 if (-not $noFetch) {
@@ -47,7 +47,7 @@ if ($config.remote -ne $nil) {
 
 Assert-CleanWorkingDirectory
 
-$upstreamCommitish = Set-GitFiles @{ $branchName = ($parentBranchesNoRemote -join "`n") } -m "Add branch $branchName$($comment -eq $nil -OR $comment -eq '' ? '' : " for $comment")" -branchName $config.upstreamBranch -remote $config.remote -dryRun
+$upstreamCommitish = Set-MultipleUpstreamBranches @{ $branchName = $parentBranchesNoRemote } -m "Add branch $branchName$($comment -eq $nil -OR $comment -eq '' ? '' : " for $comment")"
 
 Invoke-PreserveBranch {
     Invoke-CreateBranch $branchName $parentBranches[0]
