@@ -11,7 +11,7 @@ function Initialize-BranchPushed([String] $branchName) {
     $remoteBranch = "$remote/$branchName"
 
     Invoke-MockGit "show-ref --verify --quiet refs/heads/$($branchName)"
-    Invoke-MockGit "rev-parse --abbrev-ref --symbolic-full-name refs/heads/$($branchName)@{u}" -MockWith $remoteBranch
+    Invoke-MockGit "rev-parse --abbrev-ref --symbolic-full-name $($branchName)@{u}" -MockWith $remoteBranch
     Invoke-MockGit "rev-list --count ^$remoteBranch $branchName" -MockWith 0
 }
 
@@ -20,18 +20,18 @@ function Initialize-BranchNotPushed([String] $branchName) {
     $remoteBranch = "$remote/$branchName"
 
     Invoke-MockGit "show-ref --verify --quiet refs/heads/$($branchName)"
-    Invoke-MockGit "rev-parse --abbrev-ref --symbolic-full-name refs/heads/$($branchName)@{u}" -MockWith $remoteBranch
+    Invoke-MockGit "rev-parse --abbrev-ref --symbolic-full-name $($branchName)@{u}" -MockWith $remoteBranch
     Invoke-MockGit "rev-list --count ^$remoteBranch $branchName" -MockWith 1
 }
 
 function Initialize-BranchNoUpstream([String] $branchName) {
     Invoke-MockGit "show-ref --verify --quiet refs/heads/$($branchName)"
-    Invoke-MockGit "rev-parse --abbrev-ref --symbolic-full-name refs/heads/$($branchName)@{u}" -MockWith $nil
+    Invoke-MockGit "rev-parse --abbrev-ref --symbolic-full-name $($branchName)@{u}" -MockWith $nil
 }
 
 function Initialize-BranchDoesNotExist([String] $branchName) {
     Invoke-MockGit "show-ref --verify --quiet refs/heads/$($branchName)" -MockWith { $Global:LASTEXITCODE = 1 }
-    Invoke-MockGit "rev-parse --abbrev-ref --symbolic-full-name refs/heads/$($branchName)@{u}" -MockWith $nil
+    Invoke-MockGit "rev-parse --abbrev-ref --symbolic-full-name $($branchName)@{u}" -MockWith $nil
 }
 
 Export-ModuleMember -Function Initialize-BranchPushed, Initialize-BranchNotPushed, Initialize-BranchNoUpstream, Initialize-BranchDoesNotExist
