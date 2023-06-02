@@ -1,4 +1,5 @@
 . $PSScriptRoot/../core/ArrayToHash.ps1
+Import-Module -Scope Local "$PSScriptRoot/Invoke-WriteBlob.psm1"
 Import-Module -Scope Local "$PSScriptRoot/Invoke-WriteTree.psm1"
 
 function Set-GitFiles(
@@ -66,7 +67,7 @@ function Update-Tree($alterations, $treeHash) {
     $alterations.Keys | ForEach-Object {
         if ($alterations[$_] -is [String]) {
             # just write the file
-            $fileSha = ($alterations[$_] | git hash-object -w --stdin)
+            $fileSha = Invoke-WriteBlob ([Text.Encoding]::UTF8.GetBytes($alterations[$_]))
             $treeEntriesByName[$_] = "100644 blob $fileSha`t$_"
         } else {
             if ($treeEntriesByName[$_] -ne $nil) {
