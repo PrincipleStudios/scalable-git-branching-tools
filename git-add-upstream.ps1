@@ -23,6 +23,7 @@ Import-Module -Scope Local "$PSScriptRoot/config/git/Set-MultipleUpstreamBranche
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Get-CurrentBranch.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Compress-UpstreamBranches.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Set-RemoteTracking.psm1"
 
 $config = Get-Configuration
 
@@ -76,6 +77,9 @@ $result = Invoke-PreserveBranch {
             git branch -f $config.upstreamBranch $upstreamCommitish
         }
         git branch -f $branchName HEAD
+        if ($config.remote) {
+            Set-RemoteTracking $branchName
+        }
     }
 }
 if ($result -eq $false) {
