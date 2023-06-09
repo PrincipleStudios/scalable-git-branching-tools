@@ -1,16 +1,16 @@
 # `git tool-audit`
 
-Audits git-tool's configuration. Without any flags, makes no changes.
+Audits git-tool's configuration. Without any flags, runs all audits but does not apply any changes.
 
 Usage:
 
-    git tool-audit [-all] [-prune] [-simplify]
+    git tool-audit [-apply] [-prune] [-simplify]
 
 ## Parameters:
 
-### `[-all]` (Optional)
+### `[-apply]` (Optional)
 
-Apply all audit fixes
+Must be specified to apply changes. Without this flag, runs the specified audits (or all audits if none are specified) but does not make any changes.
 
 ### `[-prune]` (Optional)
 
