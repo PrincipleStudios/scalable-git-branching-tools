@@ -15,7 +15,13 @@ function Initialize-SetMultipleUpstreamBranches([PSObject] $upstreamBranches, [s
         $commitMessage -ne '' ? "`$commitMessage -eq '$($commitMessage.Replace("'", "''"))'" : $nil
         $upstreamBranches -ne $nil ? @(
             "`$files.Keys.Count -eq $($upstreamBranches.Keys.Count)"
-            ($upstreamBranches.Keys | ForEach-Object { "`(`$files['$_'] -join `"``n`") -eq '$($upstreamBranches[$_] -join "`n")'" })
+            ($upstreamBranches.Keys | ForEach-Object {
+                if ($upstreamBranches[$_] -eq $nil) {
+                    "`$files['$_'] -eq `$nil"
+                } else {
+                    "`$files['$_'] -eq ('$($upstreamBranches[$_] -join "`n")' + `"``n`")"
+                }
+            })
         ) : $nil
      ) | ForEach-Object { $_ } | Where-Object { $_ -ne $nil }) -join ' -AND '
 

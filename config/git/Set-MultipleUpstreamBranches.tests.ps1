@@ -28,7 +28,7 @@ Describe 'Set-MultipleUpstreamBranches' {
             Mock git -ModuleName 'Set-MultipleUpstreamBranches' -ParameterFilter { ($args -join ' ') -eq 'ls-tree upstream-TREE' } {
                 "100644 blob 2adfafd75a2c423627081bb19f06dca28d09cd8e`t.dockerignore"
             }
-            Initialize-WriteBlob ([Text.Encoding]::UTF8.GetBytes("baz`nbarbaz")) 'new-FILE'
+            Initialize-WriteBlob ([Text.Encoding]::UTF8.GetBytes("baz`nbarbaz`n")) 'new-FILE'
             Mock -CommandName Invoke-WriteTree -ModuleName 'Set-MultipleUpstreamBranches' -ParameterFilter {
                 $treeEntries -contains "100644 blob 2adfafd75a2c423627081bb19f06dca28d09cd8e`t.dockerignore" `
                     -AND $treeEntries -contains "100644 blob new-FILE`tfoobar"
@@ -79,7 +79,7 @@ Describe 'Set-MultipleUpstreamBranches' {
             Mock git -ModuleName 'Set-MultipleUpstreamBranches' -ParameterFilter { ($args -join ' ') -eq 'ls-tree upstream-TREE' } {
                 "100644 blob 2adfafd75a2c423627081bb19f06dca28d09cd8e`t.dockerignore"
             }
-            Initialize-WriteBlob ([Text.Encoding]::UTF8.GetBytes("baz`nbarbaz")) 'new-FILE'
+            Initialize-WriteBlob ([Text.Encoding]::UTF8.GetBytes("baz`nbarbaz`n")) 'new-FILE'
             Initialize-WriteTree @(
                 "100644 blob 2adfafd75a2c423627081bb19f06dca28d09cd8e`t.dockerignore",
                 "100644 blob new-FILE`tfoobar"
