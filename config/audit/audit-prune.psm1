@@ -42,7 +42,7 @@ function Invoke-PruneAudit([switch] $apply) {
         $removed = $updatedConfigurations.Keys | Where-Object { $updatedConfigurations[$_] -eq $nil }
         $updated = $updatedConfigurations.Keys | Where-Object { $updatedConfigurations[$_] -ne $nil }
         if ($removed.Count -ne 0) {
-            Write-Host -ForegroundColor green "  Configured branches that no longer exist:"
+            Write-Host -ForegroundColor green "  Configured branches that no longer exist (or have no remaining upstream branches):"
             foreach ($branch in $removed) {
                 Write-Host -ForegroundColor green "  - $branch"
             }
