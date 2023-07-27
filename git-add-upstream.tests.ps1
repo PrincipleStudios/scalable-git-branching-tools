@@ -20,6 +20,7 @@ Describe 'git-add-upstream' {
         Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/config/git/Update-Git.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-BranchPushed.mocks.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/config/git/Set-RemoteTracking.mocks.psm1"
         Initialize-QuietMergeBranches
     }
 
@@ -139,6 +140,7 @@ Describe 'git-add-upstream' {
         Initialize-SetMultipleUpstreamBranches @{
             'rc/2022-07-14' = @("feature/FOO-76", "feature/FOO-123", "feature/XYZ-1-services")
         } 'Adding feature/FOO-76 to rc/2022-07-14' -commitish 'new-upstream-commit'
+        Initialize-SetRemoteTracking 'rc/2022-07-14'
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin --atomic HEAD:rc/2022-07-14 new-upstream-commit:refs/heads/_upstream' } { $Global:LASTEXITCODE = 0 }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
@@ -182,6 +184,7 @@ Describe 'git-add-upstream' {
         Initialize-SetMultipleUpstreamBranches @{
             'rc/2022-07-14' = @("feature/FOO-123", "feature/XYZ-1-services")
         } -commitish 'new-upstream-commit'
+        Initialize-SetRemoteTracking 'rc/2022-07-14'
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin --atomic HEAD:rc/2022-07-14 new-upstream-commit:refs/heads/_upstream' } { $Global:LASTEXITCODE = 0 }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
@@ -206,6 +209,7 @@ Describe 'git-add-upstream' {
         Initialize-SetMultipleUpstreamBranches @{
             'rc/2022-07-14' = @("feature/FOO-76", "feature/FOO-123", "feature/XYZ-1-services")
         } -commitish 'new-upstream-commit'
+        Initialize-SetRemoteTracking 'rc/2022-07-14'
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin --atomic HEAD:rc/2022-07-14 new-upstream-commit:refs/heads/_upstream' } { $Global:LASTEXITCODE = 0 }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }

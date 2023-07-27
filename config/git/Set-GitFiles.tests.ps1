@@ -2,8 +2,10 @@ BeforeAll {
     . $PSScriptRoot/Set-GitFiles.ps1
     . $PSScriptRoot/../TestUtils.ps1
     Import-Module -Scope Local "$PSScriptRoot/Invoke-WriteTree.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/Invoke-WriteBlob.mocks.psm1"
 
     Lock-InvokeWriteTree
+    Lock-InvokeWriteBlob
 }
 
 Describe 'Set-GitFiles' {
@@ -30,7 +32,7 @@ Describe 'Set-GitFiles' {
         }
 
         It 'adds a single file at the root' {
-            Mock git -ParameterFilter { ($args -join ' ') -eq 'hash-object -w --stdin' } { 'some-hash' }
+            Initialize-WriteBlob ([Text.Encoding]::UTF8.GetBytes('something')) 'some-hash'
             Mock -CommandName Invoke-WriteTree -ParameterFilter {
                 $treeEntries -contains "100644 blob some-hash`tfoo"
             } { return 'root-TREE' }
@@ -42,7 +44,7 @@ Describe 'Set-GitFiles' {
             Should -Invoke git -ParameterFilter { ($args -join ' ') -eq 'push origin new-commit-hash:target' } -Times 1
         }
         It 'adds a single file' {
-            Mock git -ParameterFilter { ($args -join ' ') -eq 'hash-object -w --stdin' } { 'some-hash' }
+            Initialize-WriteBlob ([Text.Encoding]::UTF8.GetBytes('something')) 'some-hash'
             Mock -CommandName Invoke-WriteTree -ParameterFilter {
                 $treeEntries -contains "100644 blob some-hash`tbar"
             } { return 'foo-TREE' }
@@ -69,7 +71,7 @@ Describe 'Set-GitFiles' {
         }
 
         It 'adds a single file' {
-            Mock git -ParameterFilter { ($args -join ' ') -eq 'hash-object -w --stdin' } { 'some-hash' }
+            Initialize-WriteBlob ([Text.Encoding]::UTF8.GetBytes('something')) 'some-hash'
             Mock -CommandName Invoke-WriteTree -ParameterFilter {
                 $treeEntries -contains "100644 blob some-hash`tbar"
             } { return 'foo-TREE' }
@@ -91,7 +93,7 @@ Describe 'Set-GitFiles' {
         It 'replaces a file' {
             Mock git -ParameterFilter { ($args -join ' ') -eq 'ls-tree prev-tree' } { "100644 blob existing-foo-hash`tfoo" }
             Mock git -ParameterFilter { ($args -join ' ') -eq 'ls-tree existing-foo-hash' } { "100644 blob old-baz-hash`tbaz" }
-            Mock git -ParameterFilter { ($args -join ' ') -eq 'hash-object -w --stdin' } { 'some-hash' }
+            Initialize-WriteBlob ([Text.Encoding]::UTF8.GetBytes('something new')) 'some-hash'
             Mock -CommandName Invoke-WriteTree -ParameterFilter {
                 $treeEntries -contains "100644 blob some-hash`tbaz" `
                     -AND $treeEntries.length -eq 1
@@ -114,7 +116,7 @@ Describe 'Set-GitFiles' {
         It 'removes a file' {
             Mock git -ParameterFilter { ($args -join ' ') -eq 'ls-tree prev-tree' } { "100644 blob existing-foo-hash`tfoo" }
             Mock git -ParameterFilter { ($args -join ' ') -eq 'ls-tree existing-foo-hash' } { "100644 blob old-baz-hash`tbaz" }
-            Mock git -ParameterFilter { ($args -join ' ') -eq 'hash-object -w --stdin' } { 'some-hash' }
+            Initialize-WriteBlob ([Text.Encoding]::UTF8.GetBytes('something')) 'some-hash'
             Mock -CommandName Invoke-WriteTree -ParameterFilter {
                 $treeEntries.length -eq 0
             } { return 'root-TREE' }
