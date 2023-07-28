@@ -20,6 +20,8 @@ The existing branch to update. If not specified, use the current branch.
 
 ### `-comment <string>` (Optional)
 
+_Aliases: -m, -message_
+
 If specified, include this comment in the commit message for the upstream tracking branch when pushing changes.
 
 ### `-dryRun` (Optional)
