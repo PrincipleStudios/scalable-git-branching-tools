@@ -3,12 +3,11 @@
 Param(
     [Parameter(Mandatory)][String] $branchName,
     [Parameter()][Alias('m')][Alias('message')][ValidateLength(1,25)][String] $comment,
-    [Parameter()][Alias('from')][String[]] $parentBranches,
-    [Switch] $noFetch
+    [Parameter()][Alias('u')][Alias('upstream')][Alias('upstreams')][String[]] $upstreamBranches
 )
 
 . $PSScriptRoot/config/core/split-string.ps1
-$parentBranches = [String[]]($parentBranches -eq $nil ? @() : (Split-String $parentBranches))
+$upstreamBranches = [String[]]($upstreamBranches -eq $nil ? @() : (Split-String $upstreamBranches))
 
 # TODO: allow explicit branch name specification for an "other" branch type
 
@@ -24,12 +23,10 @@ Import-Module -Scope Local "$PSScriptRoot/config/git/Compress-UpstreamBranches.p
 Import-Module -Scope Local "$PSScriptRoot/config/git/Set-MultipleUpstreamBranches.psm1"
 
 $config = Get-Configuration
-if (-not $noFetch) {
-    Update-Git
-}
+Update-Git
 
-if ($parentBranches -ne $nil -AND $parentBranches.length -gt 0) {
-    $parentBranchesNoRemote = $parentBranches
+if ($upstreamBranches -ne $nil -AND $upstreamBranches.length -gt 0) {
+    $parentBranchesNoRemote = $upstreamBranches
 } elseif ($config.defaultServiceLine -ne $nil) {
     $parentBranchesNoRemote = [string[]] @( $config.defaultServiceLine )
 }
@@ -40,9 +37,9 @@ if ($parentBranchesNoRemote.Length -eq 0) {
 }
 
 if ($config.remote -ne $nil) {
-    $parentBranches = [string[]]$parentBranchesNoRemote | Foreach-Object { "$($config.remote)/$_" }
+    $upstreamBranches = [string[]]$parentBranchesNoRemote | Foreach-Object { "$($config.remote)/$_" }
 } else {
-    $parentBranches = $parentBranchesNoRemote
+    $upstreamBranches = $parentBranchesNoRemote
 }
 
 Assert-CleanWorkingDirectory
@@ -50,10 +47,10 @@ Assert-CleanWorkingDirectory
 $upstreamCommitish = Set-MultipleUpstreamBranches @{ $branchName = $parentBranchesNoRemote } -m "Add branch $branchName$($comment -eq $nil -OR $comment -eq '' ? '' : " for $comment")"
 
 Invoke-PreserveBranch {
-    Invoke-CreateBranch $branchName $parentBranches[0]
+    Invoke-CreateBranch $branchName $upstreamBranches[0]
     Invoke-CheckoutBranch $branchName
     Assert-CleanWorkingDirectory # checkouts can change ignored files; reassert clean
-    $(Invoke-MergeBranches ($parentBranches | Select-Object -skip 1)).ThrowIfInvalid()
+    $(Invoke-MergeBranches ($upstreamBranches | Select-Object -skip 1)).ThrowIfInvalid()
 
     if ($config.remote -ne $nil) {
         $atomicPart = $config.atomicPushEnabled ? @("--atomic") : @()
