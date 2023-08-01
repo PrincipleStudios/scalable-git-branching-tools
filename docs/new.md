@@ -13,7 +13,7 @@ Usage:
 
 Specifies the name of the branch.
 
-### `[-comment] <string>` (Optional)
+### `-comment <string>` (Optional)
 
 _Aliases: -m, -message_
 

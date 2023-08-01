@@ -14,13 +14,13 @@ The name of the branch to "release".
 
 The name of the branch that will be updated with the released branch.
 
-### `[-comment] <string>` (Optional)
+### `-comment <string>` (Optional)
 
 _Aliases: -m, -message_
 
 If specified, overrides the commit message added to the upstream tracking branch.
 
-### `[-preserve] <string[]>` (Optional)
+### `-preserve <string[]>` (Optional)
 
 A comma delimited list of branches to preserve in addition to those upstream
 

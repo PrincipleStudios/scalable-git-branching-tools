@@ -12,7 +12,7 @@ Usage:
 
 The name of the new branch.
 
-### `[-comment] <string>` (Optional)
+### `-comment <string>` (Optional)
 
 _Aliases: -m, -message_
 

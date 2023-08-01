@@ -12,7 +12,7 @@ Usage:
 
 The name of the new branch.
 
-### `[-upstreamBranches] <string[]>`
+### `-upstreamBranches <string[]>`
 
 _Aliases: -u, -upstream, -upstreams_
 
