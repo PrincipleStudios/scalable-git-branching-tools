@@ -1,7 +1,7 @@
 #!/usr/bin/env pwsh
 
 Param(
-    [Parameter()][String] $branchName
+    [Parameter()][String] $sourceBranch
 )
 
 Import-Module -Scope Local "$PSScriptRoot/config/git/Get-CurrentBranch.psm1"
@@ -18,21 +18,21 @@ try {
         Invoke-PreserveBranch {
             $oldCommit = git rev-parse --verify HEAD
 
-            if ($branchName -ne '') {
+            if ($sourceBranch -ne '') {
                 # Change branch
-                git checkout $branchName
+                git checkout $sourceBranch
                 if ($Global:LASTEXITCODE -ne 0) {
-                    throw "Could not switch to $branchName"
+                    throw "Could not switch to $sourceBranch"
                 }
             } elseif ($currentBranch -eq $nil) {
-                throw "Tools are not currently on a branch - you must specify one via -branchName."
+                throw "Tools are not currently on a branch - you must specify one via -sourceBranch."
             } else {
-                $branchName = $currentBranch
+                $sourceBranch = $currentBranch
             }
-            Write-Host "Updating git-tools to latest on $($branchName)"
+            Write-Host "Updating git-tools to latest on $($sourceBranch)"
             git pull --ff-only
             if ($Global:LASTEXITCODE -ne 0) {
-                throw "Could not pull latest for $($branchName)"
+                throw "Could not pull latest for $($sourceBranch)"
             }
 
             # Ideally, we'd force reloading of this, but it breaks mocks, and
