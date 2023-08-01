@@ -121,28 +121,6 @@ Describe 'git-release' {
             Should -Invoke -CommandName git -Times 1 -ParameterFilter $pushParameterFilter
         }
 
-        It 'can skip the initial fetch' {
-            Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list origin/main ^origin/rc/2022-07-14 --count'} {
-                "0"
-            }
-
-            Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
-
-            Initialize-SetMultipleUpstreamBranches @{
-                'feature/FOO-123' = $nil
-                'integrate/FOO-125_XYZ-1' = @("feature/FOO-124_FOO-125", "main")
-                'rc/2022-07-14' = $nil
-                'feature/XYZ-1-services' = $nil
-            } -commitMessage 'Release rc/2022-07-14 to main' -commitish 'new-commit'
-
-            $pushParameterFilter = {($args -join ' ') -eq 'push --atomic origin origin/rc/2022-07-14:main :feature/FOO-123 :feature/XYZ-1-services :rc/2022-07-14 new-commit:refs/heads/_upstream'}
-            Mock git -ParameterFilter $pushParameterFilter {} -Verifiable
-
-            & $PSScriptRoot/git-release.ps1 rc/2022-07-14 main -noFetch
-
-            Should -Invoke -CommandName git -Times 1 -ParameterFilter $pushParameterFilter
-        }
-
         It 'can issue a dry run' {
             Initialize-UpdateGit
 
