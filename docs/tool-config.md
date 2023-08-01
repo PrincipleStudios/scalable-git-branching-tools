@@ -4,8 +4,8 @@ Sets configuration values used by git-tools.
 
 Usage:
 
-    git tool-config [[-remote] <string>] [[-upstreamBranch] <string>] `
-        [[-defaultServiceLine] <string>]
+    git tool-config [-remote <string>] [-upstreamBranch <string>] `
+        [-defaultServiceLine <string>]
 
 ## Parameters:
 

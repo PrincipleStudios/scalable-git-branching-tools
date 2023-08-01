@@ -4,7 +4,7 @@ Merges all the "upstream" branches into the current branch, or the specified one
 
 Usage:
 
-    git-pull-upstream.ps1 [[-target] <string>]
+    git-pull-upstream.ps1 [-target <string>]
 
 ## Parameters
 

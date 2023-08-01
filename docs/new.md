@@ -4,8 +4,8 @@ Creates a new branch and checks it out from the specified branches
 
 Usage:
 
-    git-new.ps1 [-branchName] <string> [[-comment] <string>] `
-        [[-upstreamBranches] <string[]>]
+    git-new.ps1 [-branchName] <string> [-comment <string>] `
+        [-upstreamBranches <string[]>]
 
 ## Parameters:
 

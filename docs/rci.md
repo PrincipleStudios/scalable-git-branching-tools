@@ -4,7 +4,7 @@ Interactively create a new branch from multiple upstream branches without changi
 
 Usage:
 
-    git-rci.ps1 [-branchName] <string> [[-commitMessage] <string>] [-force]
+    git-rci.ps1 [-branchName] <string> [-commitMessage <string>] [-force]
 
 ## Parameters
 

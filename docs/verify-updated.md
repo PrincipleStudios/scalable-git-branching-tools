@@ -4,7 +4,7 @@ Verifies that a branch is up-to-date with its upstream branches.
 
 Usage:
 
-    git-verify-updated.ps1 [[-branchName] <string>] [-noFetch] [-recurse]
+    git-verify-updated.ps1 [-branchName <string>] [-noFetch] [-recurse]
 
 ## Parameters
 

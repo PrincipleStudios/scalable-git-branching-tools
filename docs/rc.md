@@ -4,7 +4,7 @@ Create a new branch from multiple upstream branches without changing the local b
 
 Usage:
 
-    git-rc.ps1 [-target] <string> [[-upstreamBranches] <string[]>] [-comment <string>] [-force]
+    git-rc.ps1 [-target] <string> [-upstreamBranches <string[]>] [-comment <string>] [-force]
 
 ## Parameters
 

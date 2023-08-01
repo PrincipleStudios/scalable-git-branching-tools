@@ -4,7 +4,7 @@ Shows what the upstream branches are of the current (or specified) branch.
 
 Usage:
 
-    git-show-upstream.ps1 [[-branchName] <string>] [-recurse] 
+    git-show-upstream.ps1 [-branchName <string>] [-recurse]
 
 ## Parameters
 
