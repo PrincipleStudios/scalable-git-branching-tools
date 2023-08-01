@@ -13,10 +13,10 @@ git clone ./origin local
 cd local
 /git-tools/init.ps1
 
-git new feature/PS-1 -from feature/add-item-1
+git new feature/PS-1 -u feature/add-item-1
 ThrowOnNativeFalure
 
-git rc rc/test -branches feature/subfeature,feature/add-item-2
+git rc rc/test -u feature/subfeature,feature/add-item-2
 ThrowOnNativeFalure
 
 git verify-updated rc/test

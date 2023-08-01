@@ -29,7 +29,7 @@ if ($upstreamOfNewFeature -notcontains 'origin/main') {
     throw "Expected main to be upstream of the current branch; found: $(ConvertTo-Json $upstreamOfNewFeature)"
 }
 
-git rc rc/test -branches feature/add-item-1,feature/add-item-2
+git rc rc/test -u feature/add-item-1,feature/add-item-2
 ThrowOnNativeFalure
 
 if ((git branch --show-current) -ne 'feature/PS-1') {
