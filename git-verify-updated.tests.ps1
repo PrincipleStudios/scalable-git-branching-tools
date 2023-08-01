@@ -51,7 +51,7 @@ Describe 'git-verify-updated' {
         Mock git -ParameterFilter { ($args -join ' ') -eq "rev-parse --verify infra/build-improvements" } { "infra-branch-hash" }
         Mock git -ParameterFilter { ($args -join ' ') -eq "merge-base infra-branch-hash target-branch-hash" } { "infra-branch-hash" }
 
-        & $PSScriptRoot/git-verify-updated.ps1 -branchName feature/PS-2
+        & $PSScriptRoot/git-verify-updated.ps1 -target feature/PS-2
     }
 
     It 'throws when one branch is out of date' {
@@ -68,7 +68,7 @@ Describe 'git-verify-updated' {
         Mock git -ParameterFilter { ($args -join ' ') -eq "rev-parse --verify infra/build-improvements" } { "infra-branch-hash" }
         Mock git -ParameterFilter { ($args -join ' ') -eq "merge-base infra-branch-hash target-branch-hash" } { "other-hash" }
 
-        { & $PSScriptRoot/git-verify-updated.ps1 -branchName feature/PS-2 } | Should -Throw
+        { & $PSScriptRoot/git-verify-updated.ps1 -target feature/PS-2 } | Should -Throw
     }
 
     It 'uses the current branch if none specified, with a remote' {
@@ -129,7 +129,7 @@ Describe 'git-verify-updated' {
         Mock git -ParameterFilter { ($args -join ' ') -eq "rev-parse --verify origin/infra/build-improvements" } { "infra-branch-hash" }
         Mock git -ParameterFilter { ($args -join ' ') -eq "merge-base infra-branch-hash target-branch-hash" } { "infra-branch-hash" }
 
-        & $PSScriptRoot/git-verify-updated.ps1 -branchName feature/PS-2
+        & $PSScriptRoot/git-verify-updated.ps1 -target feature/PS-2
     }
 
     It 'uses the branch specified, recursively, with a remote' {
@@ -149,7 +149,7 @@ Describe 'git-verify-updated' {
         Mock git -ParameterFilter { ($args -join ' ') -eq "rev-parse --verify origin/infra/build-improvements" } { "infra-branch-hash" }
         Mock git -ParameterFilter { ($args -join ' ') -eq "merge-base infra-branch-hash target-branch-hash" } { "infra-branch-hash" }
 
-        & $PSScriptRoot/git-verify-updated.ps1 -branchName feature/PS-2 -recurse
+        & $PSScriptRoot/git-verify-updated.ps1 -target feature/PS-2 -recurse
     }
 
 }
