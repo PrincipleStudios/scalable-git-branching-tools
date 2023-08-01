@@ -1,7 +1,7 @@
 #!/usr/bin/env pwsh
 Param(
-    [Parameter(Mandatory)][string] $branchName,
-    [Parameter()][Alias('message')][Alias('m')][string] $commitMessage,
+    [Parameter(Mandatory)][string] $target,
+    [Parameter()][Alias('message')][Alias('m')][string] $comment,
     [switch] $force
 )
 
