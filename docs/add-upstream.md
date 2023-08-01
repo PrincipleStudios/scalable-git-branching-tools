@@ -4,7 +4,7 @@ Adds one or more upstream branches to an existing branch.
 
 Usage:
 
-    git-add-upstream.ps1 [-branches] <string[]> [-target <string>] [-commitMessage <string>] [-dryRun]
+    git-add-upstream.ps1 [-upstreamBranches] <string[]> [-target <string>] [-comment <string>] [-dryRun]
 
 ## Parameters
 
