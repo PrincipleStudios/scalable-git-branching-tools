@@ -20,6 +20,8 @@ Comma-delimited list of branches to merge into the new branch.
 
 ### `-comment <string>` (Optional)
 
+_Aliases: -m, -message_
+
 If specified, adds to the commit message on the upstream tracking branch for creating the RC branch.
 
 ### `[-force]` (Optional)

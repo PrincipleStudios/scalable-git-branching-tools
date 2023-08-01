@@ -15,6 +15,8 @@ Specifies the name of the branch.
 
 ### `[-comment] <string>` (Optional)
 
+_Aliases: -m, -message_
+
 Specifies a comment as part of the commit message for the upstream branch.
 
 ### `-upstreamBranches <string>` (Optional)
