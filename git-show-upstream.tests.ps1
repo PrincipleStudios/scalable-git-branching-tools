@@ -13,7 +13,7 @@ Describe 'git-show-upstream' {
         Initialize-ToolConfiguration
         Initialize-UpstreamBranches @{ 'feature/FOO-123' = @("main", "infra/add-services") }
 
-        $result = & ./git-show-upstream.ps1 -branchName 'feature/FOO-123'
+        $result = & ./git-show-upstream.ps1 -target 'feature/FOO-123'
         $result | Should -Be @('origin/main', 'origin/infra/add-services')
     }
 
