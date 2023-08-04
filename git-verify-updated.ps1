@@ -1,8 +1,7 @@
 #!/usr/bin/env pwsh
 
 Param(
-    [Parameter()][String] $branchName,
-    [Switch] $noFetch,
+    [Parameter()][String] $target,
     [switch] $recurse
 )
 
@@ -14,16 +13,14 @@ Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-BranchPushed.psm1"
 
 $config = Get-Configuration
 
-if (-not $noFetch) {
-    Update-Git
-}
+Update-Git
 
-$noneSpecified = ($branchName -eq $nil -OR $branchName -eq '')
-$branchName = $noneSpecified ? (Get-CurrentBranch) : $branchName
-Assert-BranchPushed $branchName -m 'Please ensure changes are pushed (or reset) and try again.' -failIfNoUpstream
+$noneSpecified = ($target -eq $nil -OR $target -eq '')
+$target = $noneSpecified ? (Get-CurrentBranch) : $target
+Assert-BranchPushed $target -m 'Please ensure changes are pushed (or reset) and try again.' -failIfNoUpstream
 
-$fullBranchName = $noneSpecified -OR $config.remote -eq $nil ? $branchName
-    : "$($config.remote)/$($branchName)"
+$fullBranchName = $noneSpecified -OR $config.remote -eq $nil ? $target
+    : "$($config.remote)/$($target)"
 if ($fullBranchName -eq $nil) {
     throw "No branch specified"
 }
@@ -33,8 +30,8 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 $parentBranches = [String[]]($recurse `
-    ? (Select-UpstreamBranches $branchName -includeRemote -config $config -recurse) `
-    : (Select-UpstreamBranches $branchName -includeRemote -config $config))
+    ? (Select-UpstreamBranches $target -includeRemote -config $config -recurse) `
+    : (Select-UpstreamBranches $target -includeRemote -config $config))
 
 if ($parentBranches -eq $nil -OR $parentBranches.Length -eq 0) {
     throw "$fullBranchName has no parent branches"

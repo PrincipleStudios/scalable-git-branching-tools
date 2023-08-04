@@ -1,7 +1,7 @@
 #!/usr/bin/env pwsh
 
 Param(
-    [Parameter()][String] $branchName
+    [Parameter()][String] $target
 )
 
 Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.psm1"
@@ -17,27 +17,27 @@ Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-BranchPushed.psm1"
 $config = Get-Configuration
 
 Update-Git
-if ($branchName -eq '') {
-    $branchName = Get-CurrentBranch
+if ($target -eq '') {
+    $target = Get-CurrentBranch
 }
-if ($branchName -eq $nil) {
+if ($target -eq $nil) {
     throw 'Must have a branch checked out or specify one.'
 }
 # TODO - check to see if current branch is pulled, too?
-Assert-BranchPushed $branchName -m 'Please ensure changes are pushed (or reset) and try again.' -failIfNoUpstream
-$parentBranches = [String[]](Select-UpstreamBranches $branchName -includeRemote -config $config)
+Assert-BranchPushed $target -m 'Please ensure changes are pushed (or reset) and try again.' -failIfNoUpstream
+$parentBranches = [String[]](Select-UpstreamBranches $target -includeRemote -config $config)
 
 $originalHead = Get-GitHead
 
 Assert-CleanWorkingDirectory
-Invoke-CheckoutBranch $branchName
+Invoke-CheckoutBranch $target
 
 $mergeResult = Invoke-MergeBranches ($parentBranches) -noAbort
 if (-not $mergeResult.isValid) {
-    Write-Warning "Encountered merge conflicts while pulling upstream for $branchName. Resolve conflicts and resume with 'git pull-upstream'. If this was a release branch, abort the merge and create an integration branch instead."
+    Write-Warning "Encountered merge conflicts while pulling upstream for $target. Resolve conflicts and resume with 'git pull-upstream'. If this was a release branch, abort the merge and create an integration branch instead."
 } else {
     if ($config.remote -ne $nil) {
-        git push $config.remote "$($branchName):refs/heads/$($branchName)"
+        git push $config.remote "$($target):refs/heads/$($target)"
     }
     Restore-GitHead $originalHead
 }

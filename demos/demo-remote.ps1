@@ -13,7 +13,7 @@ git clone ./origin local
 cd local
 /git-tools/init.ps1
 
-git new feature/PS-1 -from feature/add-item-1
+git new feature/PS-1 -u feature/add-item-1
 ThrowOnNativeFalure
 
 if ((git rev-parse origin/feature/add-item-1) -ne (git rev-parse HEAD)) {
@@ -29,7 +29,7 @@ if ($upstreamOfNewFeature -notcontains 'origin/main') {
     throw "Expected main to be upstream of the current branch; found: $(ConvertTo-Json $upstreamOfNewFeature)"
 }
 
-git rc rc/test -branches feature/add-item-1,feature/add-item-2
+git rc rc/test -u feature/add-item-1,feature/add-item-2
 ThrowOnNativeFalure
 
 if ((git branch --show-current) -ne 'feature/PS-1') {

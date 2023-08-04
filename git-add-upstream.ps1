@@ -1,15 +1,15 @@
 #!/usr/bin/env pwsh
 
 Param(
-    [Parameter(Mandatory, Position=0)][Alias('upstream')][String[]] $branches,
-    [Parameter()][String] $branchName,
-    [Parameter()][Alias('message')][Alias('m')][string] $commitMessage,
+    [Parameter(Mandatory, Position=0)][Alias('u')][Alias('upstream')][Alias('upstreams')][String[]] $upstreamBranches,
+    [Parameter()][String] $target,
+    [Parameter()][Alias('message')][Alias('m')][string] $comment,
     [switch] $dryRun
 )
 
 # git doesn't pass them as separate items in the array
 . $PSScriptRoot/config/core/split-string.ps1
-$branches = [String[]]($branches -eq $nil ? @() : (Split-String $branches))
+$upstreamBranches = [String[]]($upstreamBranches -eq $nil ? @() : (Split-String $upstreamBranches))
 
 . $PSScriptRoot/config/core/coalesce.ps1
 Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.psm1"
@@ -27,20 +27,20 @@ Import-Module -Scope Local "$PSScriptRoot/config/git/Set-RemoteTracking.psm1"
 
 $config = Get-Configuration
 
-$isCurrentBranch = ($branchName -eq $nil -OR $branchName -eq '')
-$branchName = $isCurrentBranch ? (Get-CurrentBranch) : $branchName
-if ($branchName -eq $nil) {
+$isCurrentBranch = ($target -eq $nil -OR $target -eq '')
+$target = $isCurrentBranch ? (Get-CurrentBranch) : $target
+if ($target -eq $nil) {
     throw 'Must specify a branch'
 }
 
 Assert-CleanWorkingDirectory
 Update-Git
 
-Assert-BranchPushed $branchName -m 'Please ensure changes are pushed (or reset) and try again.' -failIfNoUpstream
+Assert-BranchPushed $target -m 'Please ensure changes are pushed (or reset) and try again.' -failIfNoUpstream
 
-$parentBranches = [String[]](Select-UpstreamBranches $branchName)
+$parentBranches = [String[]](Select-UpstreamBranches $target)
 
-$finalBranches = [String[]](Compress-UpstreamBranches (@($branches, $parentBranches) | ForEach-Object { $_ } | Select-Object -uniq))
+$finalBranches = [String[]](Compress-UpstreamBranches (@($upstreamBranches, $parentBranches) | ForEach-Object { $_ } | Select-Object -uniq))
 
 $addedBranches = [String[]]($finalBranches | Where-Object { $parentBranches -notcontains $_ })
 
@@ -48,10 +48,13 @@ if ($addedBranches.length -eq 0) {
     throw 'All branches already upstream of target branch'
 }
 
-$commitMessage = Coalesce $commitMessage "Adding $($branches -join ', ') to $branchName"
+$commitMessage = "Add $($upstreamBranches -join ', ') to $target"
+if ($comment -ne '') {
+    $commitMessage = $commitMessage + "for $comment"
+}
 
 $result = Invoke-PreserveBranch {
-    $fullBranchName = $config.remote -eq $nil ? $branchName : "$($config.remote)/$($branchName)"
+    $fullBranchName = $config.remote -eq $nil ? $target : "$($config.remote)/$($target)"
     $sha = git rev-parse --verify $fullBranchName -q 2> $nil
     Invoke-CheckoutBranch $sha -quiet
     Assert-CleanWorkingDirectory
@@ -64,7 +67,7 @@ $result = Invoke-PreserveBranch {
         return New-ResultAfterCleanup $false
     }
 
-    $upstreamCommitish = Set-MultipleUpstreamBranches @{ $branchName = $finalBranches } -m $commitMessage
+    $upstreamCommitish = Set-MultipleUpstreamBranches @{ $target = $finalBranches } -m $commitMessage
     if ($upstreamCommitish -eq $nil -OR $commitish -eq '') {
         throw 'Failed to update upstream branch commit'
     }
@@ -72,13 +75,13 @@ $result = Invoke-PreserveBranch {
     if (-not $dryRun) {
         if ($config.remote) {
             $atomicPart = $config.atomicPushEnabled ? @("--atomic") : @()
-            git push $config.remote @atomicPart "HEAD:$($branchName)" "$($upstreamCommitish):refs/heads/$($config.upstreamBranch)"
+            git push $config.remote @atomicPart "HEAD:$($target)" "$($upstreamCommitish):refs/heads/$($config.upstreamBranch)"
         } else {
             git branch -f $config.upstreamBranch $upstreamCommitish
         }
-        git branch -f $branchName HEAD
+        git branch -f $target HEAD
         if ($config.remote) {
-            Set-RemoteTracking $branchName
+            Set-RemoteTracking $target
         }
     }
 }

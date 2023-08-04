@@ -41,12 +41,12 @@ Describe 'git-add-upstream' {
 
         Initialize-SetMultipleUpstreamBranches @{
             'rc/2022-07-14' = @("feature/FOO-76", "feature/FOO-123", "feature/XYZ-1-services")
-        } 'Adding feature/FOO-76 to rc/2022-07-14' -commitish 'new-upstream-commit'
+        } 'Add feature/FOO-76 to rc/2022-07-14' -commitish 'new-upstream-commit'
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f _upstream new-upstream-commit' } { $Global:LASTEXITCODE = 0 }
 
-        & ./git-add-upstream.ps1 'feature/FOO-76' -m ""
+        & ./git-add-upstream.ps1 'feature/FOO-76'
     }
 
     It 'works locally with multiple branches' {
@@ -64,7 +64,7 @@ Describe 'git-add-upstream' {
 
         Initialize-SetMultipleUpstreamBranches @{
             'rc/2022-07-14' = @("feature/FOO-76", "feature/FOO-84", "feature/FOO-123", "feature/XYZ-1-services")
-        } 'Adding feature/FOO-76, feature/FOO-84 to rc/2022-07-14' -commitish 'new-upstream-commit'
+        } 'Add feature/FOO-76, feature/FOO-84 to rc/2022-07-14' -commitish 'new-upstream-commit'
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f _upstream new-upstream-commit' } { $Global:LASTEXITCODE = 0 }
@@ -89,12 +89,12 @@ Describe 'git-add-upstream' {
 
         Initialize-SetMultipleUpstreamBranches @{
             'rc/2022-07-14' = @("feature/FOO-76", "feature/FOO-123", "feature/XYZ-1-services")
-        } 'Adding feature/FOO-76 to rc/2022-07-14' -commitish 'new-upstream-commit'
+        } 'Add feature/FOO-76 to rc/2022-07-14' -commitish 'new-upstream-commit'
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f _upstream new-upstream-commit' } { $Global:LASTEXITCODE = 0 }
 
-        & ./git-add-upstream.ps1 -upstream 'feature/FOO-76' -branchName 'rc/2022-07-14' -m ""
+        & ./git-add-upstream.ps1 -upstream 'feature/FOO-76' -target 'rc/2022-07-14' -m ""
     }
 
     It 'works locally with multiple branches against a target branch' {
@@ -112,12 +112,12 @@ Describe 'git-add-upstream' {
 
         Initialize-SetMultipleUpstreamBranches @{
             'rc/2022-07-14' = @("feature/FOO-76", "feature/FOO-84", "feature/FOO-123", "feature/XYZ-1-services")
-        } 'Adding feature/FOO-76, feature/FOO-84 to rc/2022-07-14' -commitish 'new-upstream-commit'
+        } 'Add feature/FOO-76, feature/FOO-84 to rc/2022-07-14' -commitish 'new-upstream-commit'
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f _upstream new-upstream-commit' } { $Global:LASTEXITCODE = 0 }
 
-        & ./git-add-upstream.ps1 'feature/FOO-76','feature/FOO-84' -branchName 'rc/2022-07-14' -m ""
+        & ./git-add-upstream.ps1 'feature/FOO-76','feature/FOO-84' -target 'rc/2022-07-14' -m ""
 
         Invoke-VerifyMock $merge1Filter -Times 1
         Invoke-VerifyMock $merge2Filter -Times 1
@@ -139,13 +139,13 @@ Describe 'git-add-upstream' {
 
         Initialize-SetMultipleUpstreamBranches @{
             'rc/2022-07-14' = @("feature/FOO-76", "feature/FOO-123", "feature/XYZ-1-services")
-        } 'Adding feature/FOO-76 to rc/2022-07-14' -commitish 'new-upstream-commit'
+        } 'Add feature/FOO-76 to rc/2022-07-14' -commitish 'new-upstream-commit'
         Initialize-SetRemoteTracking 'rc/2022-07-14'
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin --atomic HEAD:rc/2022-07-14 new-upstream-commit:refs/heads/_upstream' } { $Global:LASTEXITCODE = 0 }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
 
-        & ./git-add-upstream.ps1 @('feature/FOO-76') -branchName 'rc/2022-07-14' -m ""
+        & ./git-add-upstream.ps1 @('feature/FOO-76') -target 'rc/2022-07-14' -m ""
     }
 
     It 'does nothing if the added branch is already included' {
@@ -161,7 +161,7 @@ Describe 'git-add-upstream' {
         }
         Initialize-BranchPushed 'rc/2022-07-14'
 
-        { & ./git-add-upstream.ps1 @('infra/shared') -branchName 'rc/2022-07-14' } | Should -Throw 'All branches already upstream of target branch'
+        { & ./git-add-upstream.ps1 @('infra/shared') -target 'rc/2022-07-14' } | Should -Throw 'All branches already upstream of target branch'
     }
 
     It 'simplifies if the added branch makes another redundant' {
@@ -189,7 +189,7 @@ Describe 'git-add-upstream' {
         Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin --atomic HEAD:rc/2022-07-14 new-upstream-commit:refs/heads/_upstream' } { $Global:LASTEXITCODE = 0 }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
 
-        & ./git-add-upstream.ps1 @('feature/FOO-123') -branchName 'rc/2022-07-14' -m ""
+        & ./git-add-upstream.ps1 @('feature/FOO-123') -target 'rc/2022-07-14' -m ""
     }
 
     It 'works with a remote when the target branch doesn''t exist locally' {
@@ -214,7 +214,7 @@ Describe 'git-add-upstream' {
         Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin --atomic HEAD:rc/2022-07-14 new-upstream-commit:refs/heads/_upstream' } { $Global:LASTEXITCODE = 0 }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
 
-        & ./git-add-upstream.ps1 @('feature/FOO-76') -branchName 'rc/2022-07-14' -m ""
+        & ./git-add-upstream.ps1 @('feature/FOO-76') -target 'rc/2022-07-14' -m ""
     }
 
     It 'outputs a helpful message if it fails' {
@@ -247,7 +247,7 @@ Describe 'git-add-upstream' {
         Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
         Initialize-BranchNotPushed 'rc/2022-07-14'
 
-        { & ./git-add-upstream.ps1 @('feature/FOO-76') -branchName 'rc/2022-07-14' -m "" }
+        { & ./git-add-upstream.ps1 @('feature/FOO-76') -target 'rc/2022-07-14' -m "" }
             | Should -Throw "Branch rc/2022-07-14 has changes not pushed to origin/rc/2022-07-14. Please ensure changes are pushed (or reset) and try again."
     }
 
@@ -260,7 +260,7 @@ Describe 'git-add-upstream' {
         Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
         Initialize-BranchNoUpstream 'rc/2022-07-14'
 
-        { & ./git-add-upstream.ps1 @('feature/FOO-76') -branchName 'rc/2022-07-14' -m "" }
+        { & ./git-add-upstream.ps1 @('feature/FOO-76') -target 'rc/2022-07-14' -m "" }
             | Should -Throw "Branch rc/2022-07-14 does not have a remote tracking branch. Please ensure changes are pushed (or reset) and try again."
     }
 

@@ -4,15 +4,17 @@ Interactively create a new branch from multiple upstream branches without changi
 
 Usage:
 
-    git-rci.ps1 [-branchName] <string> [[-commitMessage] <string>] [-force]
+    git-rci.ps1 [-target] <string> [-comment <string>] [-force]
 
 ## Parameters
 
-### `[-branchName] <string>`
+### `[-target] <string>`
 
 The name of the new branch.
 
-### `[-commitMessage] <string>` (Optional)
+### `-comment <string>` (Optional)
+
+_Aliases: -m, -message_
 
 If specified, overrides the commit message on the upstream tracking branch for creating the RC branch.
 

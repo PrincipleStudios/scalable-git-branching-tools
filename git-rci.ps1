@@ -1,7 +1,7 @@
 #!/usr/bin/env pwsh
 Param(
-    [Parameter(Mandatory)][string] $branchName,
-    [Parameter()][Alias('message')][Alias('m')][string] $commitMessage,
+    [Parameter(Mandatory)][string] $target,
+    [Parameter()][Alias('message')][Alias('m')][string] $comment,
     [switch] $force
 )
 
@@ -106,5 +106,5 @@ if ($availableBranches.Count -gt 0) {
 
 $upstreamBranchesNoRemote = [string[]](($selectedBranches | Where-Object { $_.branch -ne '' } | Foreach-Object { ConvertTo-BranchName $_ } | Where-Object { $_ -ne '' -and $_ -notmatch '^\s*$' }) | Select-Object -Unique)
 
-Write-Host "RC command: git rc" -branches $upstreamBranchesNoRemote @PSBoundParameters -ForegroundColor Green
-. $PSScriptRoot/git-rc.ps1 -branches $upstreamBranchesNoRemote @PSBoundParameters
+Write-Host "RC command: git rc" -upstreamBranches $upstreamBranchesNoRemote @PSBoundParameters -ForegroundColor Green
+. $PSScriptRoot/git-rc.ps1 -upstreamBranches $upstreamBranchesNoRemote @PSBoundParameters

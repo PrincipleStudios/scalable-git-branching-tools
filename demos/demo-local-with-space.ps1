@@ -25,7 +25,7 @@ if ((git branch --show-current) -ne 'feature/PS-1') {
     throw 'Branch name did not match expected';
 }
 
-git rc rc/test -branches feature/add-item-1,feature/add-item-2
+git rc rc/test -u feature/add-item-1,feature/add-item-2
 ThrowOnNativeFalure
 
 if ((git branch --show-current) -ne 'feature/PS-1') {

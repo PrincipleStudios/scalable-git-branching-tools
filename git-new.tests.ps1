@@ -77,7 +77,7 @@ Describe 'git-new' {
             Initialize-CheckoutBranch 'feature/PS-600-some-work'
             Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f _upstream new-commit --quiet' } { $Global:LASTEXITCODE = 0 }
 
-            & $PSScriptRoot/git-new.ps1 feature/PS-600-some-work -from 'infra/foo' -m 'some work'
+            & $PSScriptRoot/git-new.ps1 feature/PS-600-some-work -u 'infra/foo' -m 'some work'
         }
     }
 
@@ -117,7 +117,7 @@ Describe 'git-new' {
             $verifySetRemoteTracking = Initialize-SetRemoteTracking 'feature/PS-100-some-work'
             Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin --atomic feature/PS-100-some-work:refs/heads/feature/PS-100-some-work new-commit:refs/heads/_upstream' } { $Global:LASTEXITCODE = 0 }
 
-            & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -from 'infra/foo' -m 'some work'
+            & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -u 'infra/foo' -m 'some work'
             Invoke-VerifyMock $verifySetRemoteTracking -Times 1
         }
 
@@ -130,7 +130,7 @@ Describe 'git-new' {
             $verifySetRemoteTracking = Initialize-SetRemoteTracking 'feature/PS-100-some-work'
             Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin --atomic feature/PS-100-some-work:refs/heads/feature/PS-100-some-work new-commit:refs/heads/_upstream' } { $Global:LASTEXITCODE = 0 }
 
-            & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -from 'infra/foo,main,feature/homepage-redesign' -m 'some work'
+            & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -u 'infra/foo,main,feature/homepage-redesign' -m 'some work'
             Invoke-VerifyMock $verifySetRemoteTracking -Times 1
         }
 
@@ -144,7 +144,7 @@ Describe 'git-new' {
             $verifySetRemoteTracking = Initialize-SetRemoteTracking 'feature/PS-100-some-work'
             Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin --atomic feature/PS-100-some-work:refs/heads/feature/PS-100-some-work new-commit:refs/heads/_upstream' } { $Global:LASTEXITCODE = 0 }
 
-            & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -from 'infra/foo,main,feature/homepage-redesign,infra/update-dependencies' -m 'some work'
+            & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -u 'infra/foo,main,feature/homepage-redesign,infra/update-dependencies' -m 'some work'
             Invoke-VerifyMock $verifySetRemoteTracking -Times 1
         }
 
@@ -156,7 +156,7 @@ Describe 'git-new' {
             Initialize-CheckoutBranch 'feature/PS-100-some-work'
             Initialize-InvokeMergeFailure 'origin/infra/update-dependencies'
 
-            { & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -from 'feature/homepage-redesign,infra/update-dependencies' -m 'some work' } | Should -Throw 'Could not complete the merge.'
+            { & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -u 'feature/homepage-redesign,infra/update-dependencies' -m 'some work' } | Should -Throw 'Could not complete the merge.'
         }
     }
 

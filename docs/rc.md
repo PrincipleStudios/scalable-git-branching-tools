@@ -4,21 +4,25 @@ Create a new branch from multiple upstream branches without changing the local b
 
 Usage:
 
-    git-rc.ps1 [-branchName] <string> [[-branches] <string[]>] [-commitMessage <string>] [-force]
+    git-rc.ps1 [-target] <string> [-upstreamBranches <string[]>] [-comment <string>] [-force]
 
 ## Parameters
 
-### `[-branchName] <string>`
+### `[-target] <string>`
 
 The name of the new branch.
 
-### `[-branches] <string[]>`
+### `-upstreamBranches <string[]>`
+
+_Aliases: -u, -upstream, -upstreams_
 
 Comma-delimited list of branches to merge into the new branch.
 
-### `-commitMessage <string>` (Optional)
+### `-comment <string>` (Optional)
 
-If specified, overrides the commit message on the upstream tracking branch for creating the RC branch.
+_Aliases: -m, -message_
+
+If specified, adds to the commit message on the upstream tracking branch for creating the RC branch.
 
 ### `[-force]` (Optional)
 

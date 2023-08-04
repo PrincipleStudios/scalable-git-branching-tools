@@ -56,10 +56,10 @@ Describe 'git-rc' {
             Initialize-InvokeMergeSuccess 'feature/FOO-124-comment'
             Initialize-InvokeMergeSuccess 'integrate/FOO-125_XYZ-1'
 
-            Initialize-SetMultipleUpstreamBranches @{ 'rc/2022-07-28' = @( 'feature/FOO-123', 'feature/FOO-124-comment', 'integrate/FOO-125_XYZ-1' ) } 'New RC' 'upstream-commit'
+            Initialize-SetMultipleUpstreamBranches @{ 'rc/2022-07-28' = @( 'feature/FOO-123', 'feature/FOO-124-comment', 'integrate/FOO-125_XYZ-1' ) } "Create branch rc/2022-07-28`n`nNew RC" 'upstream-commit'
             Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f _upstream upstream-commit' } { $Global:LASTEXITCODE = 0 }
 
-            & $PSScriptRoot/git-rc.ps1 -branches feature/FOO-123,feature/FOO-124-comment,integrate/FOO-125_XYZ-1 -m 'New RC' -branchName 'rc/2022-07-28'
+            & $PSScriptRoot/git-rc.ps1 -upstreamBranches feature/FOO-123,feature/FOO-124-comment,integrate/FOO-125_XYZ-1 -m 'New RC' -target 'rc/2022-07-28'
         }
     }
 
@@ -78,11 +78,11 @@ Describe 'git-rc' {
             Initialize-CheckoutBranch 'rc/2022-07-28'
             Initialize-InvokeMergeSuccess 'origin/feature/FOO-124-comment'
             Initialize-InvokeMergeSuccess 'origin/integrate/FOO-125_XYZ-1'
-            Initialize-SetMultipleUpstreamBranches @{ 'rc/2022-07-28' = @( 'feature/FOO-123', 'feature/FOO-124-comment', 'integrate/FOO-125_XYZ-1' ) } 'New RC' 'upstream-commit'
+            Initialize-SetMultipleUpstreamBranches @{ 'rc/2022-07-28' = @( 'feature/FOO-123', 'feature/FOO-124-comment', 'integrate/FOO-125_XYZ-1' ) } "Create branch rc/2022-07-28`n`nNew RC" 'upstream-commit'
             Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin rc/2022-07-28:refs/heads/rc/2022-07-28 upstream-commit:refs/heads/_upstream --atomic' } { $Global:LASTEXITCODE = 0 }
             Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -D rc/2022-07-28' } { $Global:LASTEXITCODE = 0 }
 
-            & $PSScriptRoot/git-rc.ps1 -branches feature/FOO-123,feature/FOO-124-comment,integrate/FOO-125_XYZ-1 -m 'New RC' -branchName 'rc/2022-07-28'
+            & $PSScriptRoot/git-rc.ps1 -upstreamBranches feature/FOO-123,feature/FOO-124-comment,integrate/FOO-125_XYZ-1 -m 'New RC' -target 'rc/2022-07-28'
         }
 
         It 'allows a null comment' {
@@ -93,11 +93,11 @@ Describe 'git-rc' {
             Initialize-CheckoutBranch 'rc/2022-07-28'
             Initialize-InvokeMergeSuccess 'origin/feature/FOO-124-comment'
             Initialize-InvokeMergeSuccess 'origin/integrate/FOO-125_XYZ-1'
-            Initialize-SetMultipleUpstreamBranches @{ 'rc/2022-07-28' = @( 'feature/FOO-123', 'feature/FOO-124-comment', 'integrate/FOO-125_XYZ-1' ) } 'Add branch rc/2022-07-28' 'upstream-commit'
+            Initialize-SetMultipleUpstreamBranches @{ 'rc/2022-07-28' = @( 'feature/FOO-123', 'feature/FOO-124-comment', 'integrate/FOO-125_XYZ-1' ) } 'Create branch rc/2022-07-28' 'upstream-commit'
             Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin rc/2022-07-28:refs/heads/rc/2022-07-28 upstream-commit:refs/heads/_upstream --atomic' } { $Global:LASTEXITCODE = 0 }
             Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -D rc/2022-07-28' } { $Global:LASTEXITCODE = 0 }
 
-            & $PSScriptRoot/git-rc.ps1 -branches feature/FOO-123,feature/FOO-124-comment,integrate/FOO-125_XYZ-1 -m $nil -branchName 'rc/2022-07-28'
+            & $PSScriptRoot/git-rc.ps1 -upstreamBranches feature/FOO-123,feature/FOO-124-comment,integrate/FOO-125_XYZ-1 -m $nil -target 'rc/2022-07-28'
         }
 
         It 'simplifies upstream before creating the rc' {
@@ -110,11 +110,11 @@ Describe 'git-rc' {
             Initialize-CreateBranch 'rc/2022-07-28' 'origin/feature/FOO-123'
             Initialize-CheckoutBranch 'rc/2022-07-28'
             Initialize-InvokeMergeSuccess 'origin/integrate/FOO-125_XYZ-1'
-            Initialize-SetMultipleUpstreamBranches @{ 'rc/2022-07-28' = @( 'feature/FOO-123', 'integrate/FOO-125_XYZ-1' ) } 'New RC' 'upstream-commit'
+            Initialize-SetMultipleUpstreamBranches @{ 'rc/2022-07-28' = @( 'feature/FOO-123', 'integrate/FOO-125_XYZ-1' ) } "Create branch rc/2022-07-28`n`nNew RC" 'upstream-commit'
             Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin rc/2022-07-28:refs/heads/rc/2022-07-28 upstream-commit:refs/heads/_upstream --atomic' } { $Global:LASTEXITCODE = 0 }
             Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -D rc/2022-07-28' } { $Global:LASTEXITCODE = 0 }
 
-            & $PSScriptRoot/git-rc.ps1 -branches feature/FOO-123,feature/FOO-125,feature/XYZ-1,integrate/FOO-125_XYZ-1 -m 'New RC' -branchName 'rc/2022-07-28'
+            & $PSScriptRoot/git-rc.ps1 -upstreamBranches feature/FOO-123,feature/FOO-125,feature/XYZ-1,integrate/FOO-125_XYZ-1 -m 'New RC' -target 'rc/2022-07-28'
         }
 
         It 'does not push if there is a failure while merging' {
@@ -126,7 +126,7 @@ Describe 'git-rc' {
             Initialize-InvokeMergeFailure 'origin/feature/FOO-124-comment'
             Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -D rc/2022-07-28' } { $Global:LASTEXITCODE = 0 }
 
-            { & $PSScriptRoot/git-rc.ps1 -branches feature/FOO-123,feature/FOO-124-comment,integrate/FOO-125_XYZ-1 -m 'New RC' -branchName 'rc/2022-07-28' } | Should -Throw
+            { & $PSScriptRoot/git-rc.ps1 -upstreamBranches feature/FOO-123,feature/FOO-124-comment,integrate/FOO-125_XYZ-1 -m 'New RC' -target 'rc/2022-07-28' } | Should -Throw
         }
     }
 

@@ -28,7 +28,7 @@ Describe 'git-tool-update' {
         Initialize-NoCurrentBranch
         Initialize-PreserveBranchCleanup -detachedHead 'old-commit'
 
-        { & $PSScriptRoot/git-tool-update.ps1 } | Should -Throw 'Tools are not currently on a branch - you must specify one via -branchName.'
+        { & $PSScriptRoot/git-tool-update.ps1 } | Should -Throw 'Tools are not currently on a branch - you must specify one via -sourceBranch.'
     }
 
     It 'fails if it cannot fast-forward' {
@@ -60,7 +60,7 @@ Describe 'git-tool-update' {
         Initialize-PreserveBranchCleanup
         Invoke-MockGit 'checkout feature/test' -fail
 
-        { & $PSScriptRoot/git-tool-update.ps1 -branchName feature/test } | Should -Throw 'Could not switch to feature/test'
+        { & $PSScriptRoot/git-tool-update.ps1 -sourceBranch feature/test } | Should -Throw 'Could not switch to feature/test'
     }
 
     It 'allows specifying the branch' {
@@ -72,7 +72,7 @@ Describe 'git-tool-update' {
         Initialize-PreserveBranchNoCleanup
         Mock -CommandName git -ParameterFilter { ($args -join ' ') -like 'config alias.*' } -MockWith { $Global:LASTEXITCODE = 0 }
 
-        & $PSScriptRoot/git-tool-update.ps1 -branchName feature/test
+        & $PSScriptRoot/git-tool-update.ps1 -sourceBranch feature/test
 
         Invoke-VerifyMock $verifyMigrations -Times 1
         Invoke-VerifyMock $mockCheckout -Times 1
