@@ -15,9 +15,12 @@ Alternatively, if you already have the .NET Core SDK installed, you can install 
 	dotnet tool install --global PowerShell --tool-path ~/bin
 
 ### Install Git Shortcuts
-In your terminal, navigate to the git directory in which you want to use the commands. Then run the `init.ps1`. For example:
 
-    PS C:\Users\Matt\Source\MyProject> ..\git-tools\init.ps1
+1. See the above prerequisites.
+2. Clone this repository. If you are working on multiple projects and need specific versions of the tools, clone it once for each project (or use git workspaces).
+3. In your terminal, navigate to the git directory in which you want to use the commands. Then run the `init.ps1` from this repository. For example, if this was cloned in `C:\Users\Matt\Source\git-tools` and you want to use them in "MyProject", run:
+
+        PS C:\Users\Matt\Source\MyProject> ..\git-tools\init.ps1
 
 ## Commands
 
