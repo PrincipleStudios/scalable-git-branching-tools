@@ -46,6 +46,24 @@ Several of these tasks are direct actions within a workflow (such as creating
 new branches.) Others may be more generalized cleanup, or verification
 tasks to be used with branch protections and PR checks, like GitHub actions.
 
+## Authoring Tools
+
+Tools should be written with the following in mind:
+
+- Tools may be called from git command line as aliases or directly from
+  PowerShell. As a result, some `[string[]]` parameters may get passed as a
+  single string with commas (because git bash won't translate the array.)
+- Tools should be primarily non-interactive scripts that can be called from
+  other scriptable systems, such as Azure DevOps pipelines or GitHub actions.
+  Interactive versions may be provided, but should call the original
+  non-interactive script.
+- Unit tests should be written both with mocks and as full end-to-end tests
+  within Docker.
+- Most configuration should be local to a repository. (Remote aliases can change
+  per clone, aliases should not be installed globally, etc.) The current
+  exception is the "upstream" branch configuration, which is stored within the
+  repository itself.
+
 [scalable-git]: https://dekrey.net/articles/scaled-git-flow/
 [principle-scalable-git]: https://www.principlestudios.com/article/a-scalable-git-branching-model/
 [principle-tools-branching]: https://principle.tools/branching/
