@@ -123,7 +123,7 @@ Under this methodology, the `git new` command would have the basic outline:
 4. Resolve local actions
     - `Invoke-LocalActions`
         - Merge each branch into the previous hash, tracking the resulting hash
-    - Final actions woud be:
+    - Final actions would be:
         - Push the new branch
         - Checkout the new branch
         - Set upstream branches
