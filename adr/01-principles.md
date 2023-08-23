@@ -7,7 +7,7 @@ principles:
 
 1. Isolation until finalized
 2. Multiple bases
-3. Immediate downstream dropagation
+3. Immediate downstream propagation
 
 These tools are designed to assist with the principles of this model, as opposed
 to some of the more specific workflows around it. This is because the model is
