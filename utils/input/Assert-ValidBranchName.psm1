@@ -4,7 +4,7 @@ function Assert-ValidBranchName {
     [OutputType([string])]
     Param (
         [Parameter(Mandatory, ValueFromPipeline = $true)][string[]]$branchName,
-        [Parameter()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
+        [Parameter(Mandatory)][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
     )
 
 	
@@ -14,7 +14,7 @@ function Assert-ValidBranchName {
         foreach ($branch in $branchName) {
             git check-ref-format --branch "$branch" > $nil
             if ($global:LASTEXITCODE -ne 0) {
-                Add-Diagnostic $diagnostics (New-ErrorDiagnostic "Invalid branch name specified: '$branch'")
+                Add-ErrorDiagnostic $diagnostics "Invalid branch name specified: '$branch'"
             }
         }
     }

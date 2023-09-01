@@ -19,14 +19,28 @@ function New-WarningDiagnostic(
 }
 
 function Add-Diagnostic(
-    [Parameter()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics,
-    [Parameter()][psobject] $diagnostic
+    [Parameter(Mandatory)][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics,
+    [Parameter(Mandatory)][psobject] $diagnostic
 ) {
     if ($nil -ne $diagnostics) {
         $diagnostics.Add($diagnostic)
     } else {
         throw $diagnostic.message
     }
+}
+
+function Add-ErrorDiagnostic(
+    [Parameter(Mandatory)][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics,
+    [Parameter(Mandatory)][string] $message
+) {
+    Add-Diagnostic $diagnostics (New-ErrorDiagnostic $message)
+}
+
+function Add-WarningDiagnostic(
+    [Parameter(Mandatory)][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics,
+    [Parameter(Mandatory)][string] $message
+) {
+    Add-Diagnostic $diagnostics (New-WarningDiagnostic $message)
 }
 
 function Assert-Diagnostics(
@@ -47,9 +61,13 @@ function Assert-Diagnostics(
             Write-Host $diagnostic.message
         }
         if ($shouldExit) {
-            exit 1
+            Exit-DueToAssert
         }
     }
 }
 
-Export-ModuleMember -Function New-Diagnostics, New-ErrorDiagnostic, New-WarningDiagnostic, Add-Diagnostic, Assert-Diagnostics
+function Exit-DueToAssert {
+    exit 1
+}
+
+Export-ModuleMember -Function New-Diagnostics, Add-ErrorDiagnostic, Add-WarningDiagnostic, Assert-Diagnostics
