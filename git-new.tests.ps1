@@ -1,5 +1,7 @@
 BeforeAll {
     . "$PSScriptRoot/config/testing/Lock-Git.mocks.ps1"
+    Import-Module -Scope Local "$PSScriptRoot/utils/diagnostics/diagnostic-framework.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/utils/input/Assert-ValidBranchName.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Update-Git.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.mocks.psm1"
@@ -38,10 +40,7 @@ Describe 'git-new' {
         It 'handles standard functionality' {
             Initialize-CleanWorkingDirectory
 
-            # Mock git -ParameterFilter { ($args -join ' ') -eq 'config scaled-git.remote' } {}
-            # Mock git -ParameterFilter { ($args -join ' ') -eq 'remote' } {}
-            # Mock git -ParameterFilter { ($args -join ' ') -eq 'config scaled-git.upstreamBranch' } {}
-            # Mock git -ParameterFilter { ($args -join ' ') -eq 'config scaled-git.defaultServiceLine' } { 'main' }
+            Initialize-AssertValidBranchName 'feature/PS-100-some-work'
             Mock git -ParameterFilter { ($args -join ' ') -eq 'branch' } {
                 Write-Output 'main'
             }
@@ -57,6 +56,7 @@ Describe 'git-new' {
         }
 
         It 'creates a local branch when no remotes are configured' {
+            Initialize-AssertValidBranchName 'feature/PS-100-some-work'
             Initialize-SetMultipleUpstreamBranches @{
                 'feature/PS-100-some-work' = 'main'
             } -commitish 'new-commit'
@@ -69,6 +69,8 @@ Describe 'git-new' {
         }
 
         It 'creates a local branch from the specified branch when no remotes are configured' {
+            Initialize-AssertValidBranchName 'feature/PS-600-some-work'
+            Initialize-AssertValidBranchName 'infra/foo'
             Initialize-SetMultipleUpstreamBranches @{
                 'feature/PS-600-some-work' = 'infra/foo'
             } -commitish 'new-commit'
@@ -95,7 +97,20 @@ Describe 'git-new' {
             Lock-SetMultipleUpstreamBranches
         }
 
+        It 'detects an invalid branch name and prevents moving forward' {
+            Initialize-AssertInvalidBranchName 'feature/PS-100-some-work'
+            $diagnostics = Register-Diagnostics
+            
+            & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -m 'some work'
+
+            $diagnostics | Should -Be @(
+                "ERR:  Invalid branch name specified: 'feature/PS-100-some-work'"
+            )
+        }
+
         It 'creates a remote branch when a remote is configured' {
+            $diagnostics = Register-Diagnostics
+            Initialize-AssertValidBranchName 'feature/PS-100-some-work'
             Initialize-SetMultipleUpstreamBranches @{
                 'feature/PS-100-some-work' = 'main'
             } -commitish 'new-commit'
@@ -106,9 +121,12 @@ Describe 'git-new' {
 
             & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -m 'some work'
             Invoke-VerifyMock $verifySetRemoteTracking -Times 1
+            $diagnostics | Should -Be $nil
         }
 
         It 'creates a remote branch when a remote is configured and an upstream branch is provided' {
+            Initialize-AssertValidBranchName 'feature/PS-100-some-work'
+            Initialize-AssertValidBranchName 'infra/foo'
             Initialize-SetMultipleUpstreamBranches @{
                 'feature/PS-100-some-work' = 'infra/foo'
             } -commitish 'new-commit'
@@ -122,6 +140,10 @@ Describe 'git-new' {
         }
 
         It 'creates a remote branch with simplified upstream dependencies' {
+            Initialize-AssertValidBranchName 'feature/PS-100-some-work'
+            Initialize-AssertValidBranchName 'infra/foo'
+            Initialize-AssertValidBranchName 'main'
+            Initialize-AssertValidBranchName 'feature/homepage-redesign'
             Initialize-SetMultipleUpstreamBranches @{
                 'feature/PS-100-some-work' = 'feature/homepage-redesign'
             } -commitish 'new-commit'
@@ -135,6 +157,11 @@ Describe 'git-new' {
         }
 
         It 'creates a remote branch with simplified upstream dependencies but still multiple' {
+            Initialize-AssertValidBranchName 'feature/PS-100-some-work'
+            Initialize-AssertValidBranchName 'infra/foo'
+            Initialize-AssertValidBranchName 'main'
+            Initialize-AssertValidBranchName 'feature/homepage-redesign'
+            Initialize-AssertValidBranchName 'infra/update-dependencies'
             Initialize-SetMultipleUpstreamBranches @{
                 'feature/PS-100-some-work' = @('feature/homepage-redesign', 'infra/update-dependencies')
             } -commitish 'new-commit'
@@ -149,6 +176,9 @@ Describe 'git-new' {
         }
 
         It 'reports failed merges and does not push' {
+            Initialize-AssertValidBranchName 'feature/PS-100-some-work'
+            Initialize-AssertValidBranchName 'feature/homepage-redesign'
+            Initialize-AssertValidBranchName 'infra/update-dependencies'
             Initialize-SetMultipleUpstreamBranches @{
                 'feature/PS-100-some-work' = @('feature/homepage-redesign', 'infra/update-dependencies')
             } -commitish 'new-commit'

@@ -6,10 +6,13 @@ Param(
     [Parameter()][Alias('u')][Alias('upstream')][Alias('upstreams')][String[]] $upstreamBranches
 )
 
-. $PSScriptRoot/config/core/split-string.ps1
-$upstreamBranches = [String[]]($upstreamBranches -eq $nil ? @() : (Split-String $upstreamBranches))
+Import-Module -Scope Local "$PSScriptRoot/utils/input.psm1"
+$upstreamBranches = Expand-StringArray $upstreamBranches
 
-# TODO: allow explicit branch name specification for an "other" branch type
+$diagnostics = New-Diagnostics
+Assert-ValidBranchName $branchName -diagnostics $diagnostics
+$upstreamBranches | Assert-ValidBranchName -diagnostics $diagnostics
+Assert-Diagnostics $diagnostics
 
 Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Update-Git.psm1"
