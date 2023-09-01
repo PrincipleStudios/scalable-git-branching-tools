@@ -16,7 +16,7 @@ BeforeAll {
     Initialize-QuietMergeBranches
 
     # User-interface commands are a bit noisy; TODO: add quiet option and test it by making this throw
-    # Mock -CommandName Write-Host {}
+    Mock -CommandName Write-Host {}
 
     Mock -CommandName Invoke-PreserveBranch -ParameterFilter { $onlyIfError } {
         & $scriptBlock
