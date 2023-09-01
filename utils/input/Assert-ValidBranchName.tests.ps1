@@ -37,12 +37,12 @@ Describe 'Assert-ValidBranchName' {
     Context 'when diagnostics are not passed passed' {
         It 'allows a valid branch' {
             Initialize-AssertValidBranchName 'good-branch'
-            Assert-ValidBranchName -branchName 'good-branch'
+            Assert-ValidBranchName -diagnostics $nil -branchName 'good-branch'
             Should -ActualValue $diag.Count -BeExactly 0
         }
         It 'disallows an invalid branch name' {
             Initialize-AssertInvalidBranchName 'bad-branch'
-            { Assert-ValidBranchName -branchName 'bad-branch' } | Should -Throw "Invalid branch name specified: 'bad-branch'"
+            { Assert-ValidBranchName -diagnostics $nil -branchName 'bad-branch' } | Should -Throw "Invalid branch name specified: 'bad-branch'"
         }
     }
 
