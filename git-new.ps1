@@ -9,6 +9,11 @@ Param(
 Import-Module -Scope Local "$PSScriptRoot/utils/input.psm1"
 $upstreamBranches = Expand-StringArray $upstreamBranches
 
+$diagnostics = New-Diagnostics
+Assert-ValidBranchName $branchName -diagnostics $diagnostics
+$upstreamBranches | Assert-ValidBranchName -diagnostics $diagnostics
+Assert-Diagnostics $diagnostics
+
 Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Update-Git.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-CleanWorkingDirectory.psm1"

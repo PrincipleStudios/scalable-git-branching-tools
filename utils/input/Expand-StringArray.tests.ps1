@@ -10,7 +10,7 @@ Describe 'Expand-StringArray' {
 
     It 'handles a single value as an array' {
         $result = Expand-StringArray @('one')
-        $result | Should -BeExactly @('one')
+        Should -BeExactly @('one') -ActualValue $result
     }
 
     It 'handles correctly-formatted array input' {

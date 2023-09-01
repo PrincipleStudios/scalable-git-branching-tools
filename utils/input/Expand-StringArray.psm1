@@ -6,6 +6,7 @@ function Expand-StringArray {
     )
 
     if ($strings -eq $nil) {
+        # Powershell unwraps the empty list to $nil unless we do this
         return ,@();
     }
     return ,($strings | ForEach-Object { $_.split(',') } | ForEach-Object { $_ })
