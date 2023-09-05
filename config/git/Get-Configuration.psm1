@@ -1,5 +1,3 @@
-. $PSScriptRoot/../core/coalesce.ps1
-
 function Get-Configuration() {
     $remote = Get-ConfiguredRemote
     return @{
