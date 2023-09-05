@@ -1,3 +1,4 @@
+
 function Get-Configuration() {
     $remote = Get-ConfiguredRemote
     return @{
