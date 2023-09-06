@@ -1,9 +1,9 @@
 BeforeAll {
     . "$PSScriptRoot/config/testing/Lock-Git.mocks.ps1"
-    Import-Module -Scope Local "$PSScriptRoot/utils/diagnostics/diagnostic-framework.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/utils/framework.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/utils/input/Assert-ValidBranchName.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/config/git/Update-Git.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/utils/query-state/Configuration.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/utils/query-state/Update-GitRemote.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-WriteTree.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.mocks.psm1"
@@ -26,6 +26,10 @@ BeforeAll {
 }
 
 Describe 'git-new' {
+    BeforeEach {
+        Register-Framework
+    }
+    
     Context 'without remote' {
         BeforeAll {
             Initialize-ToolConfiguration -noRemote
@@ -86,7 +90,7 @@ Describe 'git-new' {
     Context 'with remote' {
         BeforeAll {
             Initialize-ToolConfiguration
-            Initialize-UpdateGit
+            Initialize-UpdateGitRemote
             Initialize-CleanWorkingDirectory
 
             Initialize-AnyUpstreamBranches
@@ -99,17 +103,17 @@ Describe 'git-new' {
 
         It 'detects an invalid branch name and prevents moving forward' {
             Initialize-AssertInvalidBranchName 'feature/PS-100-some-work'
-            $diagnostics = Register-Diagnostics
+            $fw = Register-Framework
             
             & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -m 'some work'
 
-            $diagnostics | Should -Be @(
+            $fw.diagnostics | Should -Be @(
                 "ERR:  Invalid branch name specified: 'feature/PS-100-some-work'"
             )
         }
 
         It 'creates a remote branch when a remote is configured' {
-            $diagnostics = Register-Diagnostics
+            $fw = Register-Framework
             Initialize-AssertValidBranchName 'feature/PS-100-some-work'
             Initialize-SetMultipleUpstreamBranches @{
                 'feature/PS-100-some-work' = 'main'
@@ -121,7 +125,7 @@ Describe 'git-new' {
 
             & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -m 'some work'
             Invoke-VerifyMock $verifySetRemoteTracking -Times 1
-            $diagnostics | Should -Be $nil
+            $fw.diagnostics | Should -Be $nil
         }
 
         It 'creates a remote branch when a remote is configured and an upstream branch is provided' {
