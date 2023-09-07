@@ -1,4 +1,4 @@
-Import-Module -Scope Local "$PSScriptRoot/Get-Configuration.psm1"
+Import-Module -Scope Local "$PSScriptRoot/../../utils/query-state.psm1"
 
 function Assert-BranchPushed([Parameter(Mandatory)][String] $branchName, [Switch] $failIfNoBranch, [Switch] $failIfNoUpstream, [Parameter()][String][Alias('m')] $message) {
     $config = Get-Configuration

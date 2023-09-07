@@ -1,5 +1,5 @@
 . $PSScriptRoot/../core/ArrayToHash.ps1
-Import-Module -Scope Local "$PSScriptRoot/../git/Get-Configuration.psm1"
+Import-Module -Scope Local "$PSScriptRoot/../../utils/query-state.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../git/Get-GitFileNames.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../git/Select-UpstreamBranches.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../git/Compress-UpstreamBranches.psm1"

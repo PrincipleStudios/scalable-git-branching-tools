@@ -27,6 +27,21 @@ Import-Module -Scope Local "$PSScriptRoot/config/git/Set-MultipleUpstreamBranche
 
 $config = Get-Configuration
 Update-GitRemote
+# default to service line if none provided and config has a service line
+$upstreamBranches = $upstreamBranches.Count -eq 0 ? @( $config.defaultServiceLine ) : $upstreamBranches
+if ($upstreamBranches.length -eq 0) {
+    Add-ErrorDiagnostic $diagnostics 'At least one upstream branch must be specified or the default service line must be set'
+}
+$upstreamBranches = Compress-UpstreamBranches $upstreamBranches
+
+# Assert-CleanWorkingDirectory
+# create upstream commit
+# push upstream commit (delayed)
+# create branch
+# merge branches together
+# push new branch to remote (delayed)
+# check out branch if successful, otherwise clean up
+
 Assert-Diagnostics $diagnostics
 
 if ($upstreamBranches -ne $nil -AND $upstreamBranches.length -gt 0) {

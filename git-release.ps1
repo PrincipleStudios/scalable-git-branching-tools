@@ -11,7 +11,7 @@ Param(
 
 . $PSScriptRoot/config/core/coalesce.ps1
 . $PSScriptRoot/config/core/ArrayToHash.ps1
-Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.psm1"
+Import-Module -Scope Local "$PSScriptRoot/utils/query-state.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Update-Git.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Select-UpstreamBranches.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Get-GitFileNames.psm1"

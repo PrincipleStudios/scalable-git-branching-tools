@@ -1,6 +1,6 @@
 Import-Module -Scope Local "$PSScriptRoot/Get-UpstreamBranch.psm1"
 Import-Module -Scope Local "$PSScriptRoot/Get-GitFile.psm1"
-Import-Module -Scope Local "$PSScriptRoot/Get-Configuration.psm1"
+Import-Module -Scope Local "$PSScriptRoot/../../utils/query-state.psm1"
 
 function Select-UpstreamBranches([String]$branchName, [switch] $includeRemote, [switch] $recurse, [string[]] $exclude) {
     $config = Get-Configuration

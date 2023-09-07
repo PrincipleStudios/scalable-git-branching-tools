@@ -2,7 +2,7 @@ Describe 'Invoke-PruneAudit' {
     BeforeAll {
         . "$PSScriptRoot/../testing/Lock-Git.mocks.ps1"
         Import-Module -Scope Local "$PSScriptRoot/audit-prune.psm1"
-        Import-Module -Scope Local "$PSScriptRoot/../git/Get-Configuration.mocks.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/../../utils/query-state.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/../git/Set-MultipleUpstreamBranches.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/../git/Select-UpstreamBranches.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/../git/Select-Branches.mocks.psm1"

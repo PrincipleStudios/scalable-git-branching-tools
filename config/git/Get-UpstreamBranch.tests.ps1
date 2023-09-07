@@ -1,7 +1,7 @@
 BeforeAll {
     . "$PSScriptRoot/../testing/Lock-Git.mocks.ps1"
-    Import-Module -Scope Local "$PSScriptRoot/Get-Configuration.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/Get-Configuration.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/../../utils/query-state.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/../../utils/query-state.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/Get-UpstreamBranch.psm1"
     Import-Module -Scope Local "$PSScriptRoot/Get-UpstreamBranch.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/../testing/Invoke-VerifyMock.psm1"

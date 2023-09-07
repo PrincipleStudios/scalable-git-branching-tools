@@ -12,7 +12,7 @@ Param(
 $upstreamBranches = [String[]]($upstreamBranches -eq $nil ? @() : (Split-String $upstreamBranches))
 
 . $PSScriptRoot/config/core/coalesce.ps1
-Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.psm1"
+Import-Module -Scope Local "$PSScriptRoot/utils/query-state.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-BranchPushed.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-CleanWorkingDirectory.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Update-Git.psm1"

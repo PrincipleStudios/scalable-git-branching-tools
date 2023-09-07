@@ -1,4 +1,4 @@
-Import-Module -Scope Local "$PSScriptRoot/Get-Configuration.psm1"
+Import-Module -Scope Local "$PSScriptRoot/../../utils/query-state.psm1"
 
 function Set-RemoteTracking([String]$branchName) {
     $config = Get-Configuration

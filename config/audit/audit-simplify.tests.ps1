@@ -2,7 +2,7 @@ Describe 'Invoke-SimplifyAudit' {
     BeforeAll {
         . "$PSScriptRoot/../testing/Lock-Git.mocks.ps1"
         Import-Module -Scope Local "$PSScriptRoot/audit-simplify.psm1"
-        Import-Module -Scope Local "$PSScriptRoot/../git/Get-Configuration.mocks.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/../../utils/query-state.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/../git/Set-MultipleUpstreamBranches.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/../git/Select-UpstreamBranches.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/../git/Select-Branches.mocks.psm1"
