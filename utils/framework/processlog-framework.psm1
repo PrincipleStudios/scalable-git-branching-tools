@@ -11,6 +11,12 @@ function Write-ProcessLogs {
     )
 
     BEGIN {
+        $next = @{
+            name = $processDescription
+            logs = New-Object -TypeName 'System.Collections.ArrayList'
+        }
+        $processLogs.Add($next) *> $nil
+    
         if (-not $quiet) {
             Write-Host "Begin '$processDescription'..."
         }
@@ -21,7 +27,7 @@ function Write-ProcessLogs {
         if ($inputLog -is [string] -AND $allowSuccessOutput) {
             return $inputLog
         }
-        $processLogs.Add($inputLog) *>$nil
+        $next.logs.Add($inputLog) *>$nil
     }
     END {
         if (-not $quiet) {
