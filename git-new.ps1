@@ -6,6 +6,7 @@ Param(
     [Parameter()][Alias('u')][Alias('upstream')][Alias('upstreams')][String[]] $upstreamBranches
 )
 
+Import-Module -Scope Local "$PSScriptRoot/utils/framework.psm1"
 Import-Module -Scope Local "$PSScriptRoot/utils/input.psm1"
 $upstreamBranches = Expand-StringArray $upstreamBranches
 
@@ -14,8 +15,7 @@ Assert-ValidBranchName $branchName -diagnostics $diagnostics
 $upstreamBranches | Assert-ValidBranchName -diagnostics $diagnostics
 Assert-Diagnostics $diagnostics
 
-Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.psm1"
-Import-Module -Scope Local "$PSScriptRoot/config/git/Update-Git.psm1"
+Import-Module -Scope Local "$PSScriptRoot/utils/query-state.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-CleanWorkingDirectory.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CreateBranch.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CheckoutBranch.psm1"
@@ -26,7 +26,23 @@ Import-Module -Scope Local "$PSScriptRoot/config/git/Compress-UpstreamBranches.p
 Import-Module -Scope Local "$PSScriptRoot/config/git/Set-MultipleUpstreamBranches.psm1"
 
 $config = Get-Configuration
-Update-Git
+Update-GitRemote
+# default to service line if none provided and config has a service line
+$upstreamBranches = $upstreamBranches.Count -eq 0 ? @( $config.defaultServiceLine ) : $upstreamBranches
+if ($upstreamBranches.length -eq 0) {
+    Add-ErrorDiagnostic $diagnostics 'At least one upstream branch must be specified or the default service line must be set'
+}
+$upstreamBranches = Compress-UpstreamBranches $upstreamBranches
+
+# Assert-CleanWorkingDirectory
+# create upstream commit
+# push upstream commit (delayed)
+# create branch
+# merge branches together
+# push new branch to remote (delayed)
+# check out branch if successful, otherwise clean up
+
+Assert-Diagnostics $diagnostics
 
 if ($upstreamBranches -ne $nil -AND $upstreamBranches.length -gt 0) {
     $parentBranchesNoRemote = $upstreamBranches

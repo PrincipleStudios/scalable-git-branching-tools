@@ -1,9 +1,13 @@
 Describe 'Assert-ValidBranchName' {
     BeforeAll {
         . "$PSScriptRoot/../../config/testing/Lock-Git.mocks.ps1"
-        Import-Module -Scope Local "$PSScriptRoot/../diagnostics/diagnostic-framework.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/../framework.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/Assert-ValidBranchName.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/Assert-ValidBranchName.psm1"
+    }
+    
+    BeforeEach {
+        Register-Framework
     }
 
     Context 'when diagnostics are passed' {

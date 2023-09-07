@@ -4,8 +4,7 @@ Param(
     [Parameter()][String] $target
 )
 
-Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.psm1"
-Import-Module -Scope Local "$PSScriptRoot/config/git/Update-Git.psm1"
+Import-Module -Scope Local "$PSScriptRoot/utils/query-state.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Get-CurrentBranch.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Select-UpstreamBranches.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-CleanWorkingDirectory.psm1"
@@ -16,7 +15,7 @@ Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-BranchPushed.psm1"
 
 $config = Get-Configuration
 
-Update-Git
+Update-GitRemote
 if ($target -eq '') {
     $target = Get-CurrentBranch
 }

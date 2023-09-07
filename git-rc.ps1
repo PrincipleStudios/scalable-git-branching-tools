@@ -13,8 +13,7 @@ $upstreamBranches = [String[]]($upstreamBranches -eq $nil ? @() : (Split-String 
 
 . $PSScriptRoot/config/core/coalesce.ps1
 . $PSScriptRoot/config/branch-utils/ConvertTo-BranchName.ps1
-Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.psm1"
-Import-Module -Scope Local "$PSScriptRoot/config/git/Update-Git.psm1"
+Import-Module -Scope Local "$PSScriptRoot/utils/query-state.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-CleanWorkingDirectory.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Select-Branches.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.psm1"
@@ -25,7 +24,7 @@ Import-Module -Scope Local "$PSScriptRoot/config/git/Set-MultipleUpstreamBranche
 Import-Module -Scope Local "$PSScriptRoot/config/git/Compress-UpstreamBranches.psm1"
 
 $config = Get-Configuration
-Update-Git
+Update-GitRemote
 
 Assert-CleanWorkingDirectory
 $allBranches = Select-Branches

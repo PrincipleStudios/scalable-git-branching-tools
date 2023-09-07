@@ -1,8 +1,8 @@
 BeforeAll {
     . "$PSScriptRoot/config/testing/Lock-Git.mocks.ps1"
-    Import-Module -Scope Local "$PSScriptRoot/config/git/Get-Configuration.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/utils/framework.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/utils/query-state.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Get-CurrentBranch.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/config/git/Update-Git.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Select-UpstreamBranches.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-BranchPushed.mocks.psm1"
 
@@ -12,6 +12,10 @@ BeforeAll {
 
 
 Describe 'git-verify-updated' {
+    BeforeEach {
+        Register-Framework
+    }
+
     It 'fails if no current branch and none provided' {
         Initialize-ToolConfiguration -noRemote
         Initialize-NoCurrentBranch
@@ -75,7 +79,7 @@ Describe 'git-verify-updated' {
         Initialize-ToolConfiguration
         Initialize-CurrentBranch 'feature/PS-2'
         Initialize-BranchPushed 'feature/PS-2'
-        Initialize-UpdateGit
+        Initialize-UpdateGitRemote
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'fetch origin -q' } { }
         Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify feature/PS-2' } { 'target-branch-hash' }
@@ -96,7 +100,7 @@ Describe 'git-verify-updated' {
         Initialize-ToolConfiguration
         Initialize-CurrentBranch 'feature/PS-2'
         Initialize-BranchNotPushed 'feature/PS-2'
-        Initialize-UpdateGit
+        Initialize-UpdateGitRemote
 
         { & $PSScriptRoot/git-verify-updated.ps1 }
             | Should -Throw "Branch feature/PS-2 has changes not pushed to origin/feature/PS-2. Please ensure changes are pushed (or reset) and try again."
@@ -106,7 +110,7 @@ Describe 'git-verify-updated' {
         Initialize-ToolConfiguration
         Initialize-CurrentBranch 'feature/PS-2'
         Initialize-BranchNoUpstream 'feature/PS-2'
-        Initialize-UpdateGit
+        Initialize-UpdateGitRemote
 
         { & $PSScriptRoot/git-verify-updated.ps1 }
             | Should -Throw "Branch feature/PS-2 does not have a remote tracking branch. Please ensure changes are pushed (or reset) and try again."
@@ -114,7 +118,7 @@ Describe 'git-verify-updated' {
 
     It 'uses the branch specified, with a remote' {
         Initialize-ToolConfiguration
-        Initialize-UpdateGit
+        Initialize-UpdateGitRemote
         Initialize-BranchPushed 'feature/PS-2'
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'fetch origin -q' } { }
@@ -134,7 +138,7 @@ Describe 'git-verify-updated' {
 
     It 'uses the branch specified, recursively, with a remote' {
         Initialize-ToolConfiguration
-        Initialize-UpdateGit
+        Initialize-UpdateGitRemote
         Initialize-BranchPushed 'feature/PS-2'
 
         Mock git -ParameterFilter { ($args -join ' ') -eq 'fetch origin -q' } { }
