@@ -1,7 +1,7 @@
 BeforeAll {
     . "$PSScriptRoot/config/testing/Lock-Git.mocks.ps1"
+    Import-Module -Scope Local "$PSScriptRoot/utils/framework.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/utils/query-state.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/config/git/Update-Git.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Get-CurrentBranch.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Select-UpstreamBranches.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-CleanWorkingDirectory.mocks.psm1"
@@ -14,10 +14,14 @@ BeforeAll {
 }
 
 Describe 'git-pull-upstream' {
+    BeforeEach {
+        Register-Framework
+    }
+    
     Context 'with a remote' {
         BeforeEach {
             Initialize-ToolConfiguration
-            Initialize-UpdateGit
+            Initialize-UpdateGitRemote
             Initialize-UpstreamBranches @{ 'feature/FOO-123' = @("main", "infra/add-services") }
             Initialize-UpstreamBranches @{ 'infra/add-services' = @("main") }
         }
@@ -60,7 +64,7 @@ Describe 'git-pull-upstream' {
 
         It 'ensures the remote is tracked' {
             Initialize-ToolConfiguration
-            Initialize-UpdateGit
+            Initialize-UpdateGitRemote
             Initialize-CleanWorkingDirectory
             Initialize-CurrentBranch 'feature/FOO-76'
             Initialize-BranchNoUpstream 'feature/FOO-76'
@@ -103,7 +107,7 @@ Describe 'git-pull-upstream' {
     Context 'without a remote' {
         BeforeEach {
             Initialize-ToolConfiguration -noRemote
-            Initialize-UpdateGit
+            Initialize-UpdateGitRemote
             Initialize-UpstreamBranches @{ 'feature/FOO-123' = @("main", "infra/add-services") }
         }
 

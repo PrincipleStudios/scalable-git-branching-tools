@@ -11,11 +11,11 @@ if (-not $prune -AND -not $simplify) {
     $simplify = $true
 }
 
-Import-Module -Scope Local "$PSScriptRoot/config/git/Update-Git.psm1"
+Import-Module -Scope Local "$PSScriptRoot/utils/query-state.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/audit/audit-simplify.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/audit/audit-prune.psm1"
 
-Update-Git -prune
+Update-GitRemote -prune
 Write-Host 'Finished ''git fetch origin'''
 
 $applySplat = $apply ? @('-apply') : @()

@@ -1,14 +1,17 @@
 Describe "git-tool-audit" {
     BeforeAll {
         . "$PSScriptRoot/config/testing/Lock-Git.mocks.ps1"
+        Import-Module -Scope Local "$PSScriptRoot/utils/framework.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/utils/query-state.mocks.psm1"
-        Import-Module -Scope Local "$PSScriptRoot/config/git/Update-Git.mocks.psm1"
 
         # User-interface commands are a bit noisy; TODO: add quiet option and test it by making this throw
         Mock -CommandName Write-Host { }
 
         Import-Module -Scope Local "$PSScriptRoot/config/audit/audit-prune.psm1"
         Import-Module -Scope Local "$PSScriptRoot/config/audit/audit-simplify.psm1"
+    }
+    BeforeEach {
+        Register-Framework
     }
 
     function CreateStandardAuditTests() {
@@ -72,7 +75,7 @@ Describe "git-tool-audit" {
     Context 'with remote' {
         BeforeAll {
             Initialize-ToolConfiguration
-            Initialize-UpdateGit -prune
+            Initialize-UpdateGitRemote -prune
         }
         CreateAllStandardAuditTests
     }
@@ -80,7 +83,7 @@ Describe "git-tool-audit" {
     Context 'without remote' {
         BeforeAll {
             Initialize-ToolConfiguration -noRemote
-            Initialize-UpdateGit -prune
+            Initialize-UpdateGitRemote -prune
         }
         CreateAllStandardAuditTests
     }

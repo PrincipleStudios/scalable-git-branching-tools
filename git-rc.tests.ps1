@@ -2,13 +2,13 @@ BeforeAll {
     . "$PSScriptRoot/config/testing/Lock-Git.mocks.ps1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-WriteTree.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/utils/framework.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/utils/query-state.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-CleanWorkingDirectory.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CheckoutBranch.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CreateBranch.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Select-Branches.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/config/git/Update-Git.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Select-UpstreamBranches.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Set-MultipleUpstreamBranches.mocks.psm1"
 
@@ -41,6 +41,10 @@ BeforeAll {
 
 
 Describe 'git-rc' {
+    BeforeEach {
+        Register-Framework
+    }
+    
     Context 'without remote' {
         BeforeAll {
             Initialize-ToolConfiguration -noRemote
@@ -66,12 +70,12 @@ Describe 'git-rc' {
     Context 'with remote' {
         BeforeAll {
             Initialize-ToolConfiguration
-            Initialize-UpdateGit
+            Initialize-UpdateGitRemote
             Initialize-AnyUpstreamBranches
         }
 
         It 'handles standard functionality' {
-            Initialize-UpdateGit
+            Initialize-UpdateGitRemote
             Initialize-CleanWorkingDirectory
             Initialize-SelectBranches $defaultBranches
             Initialize-CreateBranch 'rc/2022-07-28' 'origin/feature/FOO-123'
@@ -86,7 +90,7 @@ Describe 'git-rc' {
         }
 
         It 'allows a null comment' {
-            Initialize-UpdateGit
+            Initialize-UpdateGitRemote
             Initialize-CleanWorkingDirectory
             Initialize-SelectBranches $defaultBranches
             Initialize-CreateBranch 'rc/2022-07-28' 'origin/feature/FOO-123'
@@ -104,7 +108,7 @@ Describe 'git-rc' {
             Initialize-UpstreamBranches @{
                 'integrate/FOO-125_XYZ-1' = @( 'feature/FOO-125', 'feature/XYZ-1' )
             }
-            Initialize-UpdateGit
+            Initialize-UpdateGitRemote
             Initialize-CleanWorkingDirectory
             Initialize-SelectBranches $defaultBranches
             Initialize-CreateBranch 'rc/2022-07-28' 'origin/feature/FOO-123'
@@ -118,7 +122,7 @@ Describe 'git-rc' {
         }
 
         It 'does not push if there is a failure while merging' {
-            Initialize-UpdateGit
+            Initialize-UpdateGitRemote
             Initialize-CleanWorkingDirectory
             Initialize-SelectBranches $defaultBranches
             Initialize-CreateBranch 'rc/2022-07-28' 'origin/feature/FOO-123'

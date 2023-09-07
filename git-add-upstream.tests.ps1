@@ -11,6 +11,7 @@ BeforeAll {
 Describe 'git-add-upstream' {
     BeforeAll {
         Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-CleanWorkingDirectory.mocks.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/utils/framework.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/utils/query-state.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/config/git/Get-CurrentBranch.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.mocks.psm1"
@@ -18,10 +19,13 @@ Describe 'git-add-upstream' {
         Import-Module -Scope Local "$PSScriptRoot/config/git/Select-UpstreamBranches.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CheckoutBranch.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.mocks.psm1"
-        Import-Module -Scope Local "$PSScriptRoot/config/git/Update-Git.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-BranchPushed.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/config/git/Set-RemoteTracking.mocks.psm1"
         Initialize-QuietMergeBranches
+    }
+
+    BeforeEach {
+        Register-Framework
     }
 
     It 'works on the current branch' {
@@ -125,7 +129,7 @@ Describe 'git-add-upstream' {
 
     It 'works with a remote' {
         Initialize-ToolConfiguration
-        Initialize-UpdateGit
+        Initialize-UpdateGitRemote
         Initialize-CleanWorkingDirectory
         Initialize-CurrentBranch 'my-branch'
         Initialize-AnyUpstreamBranches
@@ -150,7 +154,7 @@ Describe 'git-add-upstream' {
 
     It 'does nothing if the added branch is already included' {
         Initialize-ToolConfiguration
-        Initialize-UpdateGit
+        Initialize-UpdateGitRemote
         Initialize-CleanWorkingDirectory
         Initialize-CurrentBranch 'my-branch'
         Initialize-AnyUpstreamBranches
@@ -166,7 +170,7 @@ Describe 'git-add-upstream' {
 
     It 'simplifies if the added branch makes another redundant' {
         Initialize-ToolConfiguration
-        Initialize-UpdateGit
+        Initialize-UpdateGitRemote
         Initialize-CleanWorkingDirectory
         Initialize-CurrentBranch 'my-branch'
         Initialize-AnyUpstreamBranches
@@ -194,7 +198,7 @@ Describe 'git-add-upstream' {
 
     It 'works with a remote when the target branch doesn''t exist locally' {
         Initialize-ToolConfiguration
-        Initialize-UpdateGit
+        Initialize-UpdateGitRemote
         Initialize-CleanWorkingDirectory
         Initialize-CurrentBranch 'my-branch'
         Initialize-AnyUpstreamBranches
@@ -240,7 +244,7 @@ Describe 'git-add-upstream' {
 
     It 'ensures the remote is up-to-date' {
         Initialize-ToolConfiguration
-        Initialize-UpdateGit
+        Initialize-UpdateGitRemote
         Initialize-CleanWorkingDirectory
         Initialize-CurrentBranch 'my-branch'
         Initialize-AnyUpstreamBranches
@@ -253,7 +257,7 @@ Describe 'git-add-upstream' {
 
     It 'ensures the remote is tracked' {
         Initialize-ToolConfiguration
-        Initialize-UpdateGit
+        Initialize-UpdateGitRemote
         Initialize-CleanWorkingDirectory
         Initialize-CurrentBranch 'my-branch'
         Initialize-AnyUpstreamBranches

@@ -12,14 +12,13 @@ Param(
 . $PSScriptRoot/config/core/coalesce.ps1
 . $PSScriptRoot/config/core/ArrayToHash.ps1
 Import-Module -Scope Local "$PSScriptRoot/utils/query-state.psm1"
-Import-Module -Scope Local "$PSScriptRoot/config/git/Update-Git.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Select-UpstreamBranches.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Get-GitFileNames.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Set-MultipleUpstreamBranches.psm1"
 
 $config = Get-Configuration
 
-Update-Git
+Update-GitRemote
 
 if ($cleanupOnly) {
     # Verify that $target already has all of $sourceBranch
