@@ -15,7 +15,7 @@ function Assert-ValidBranchName {
         foreach ($branch in $branchName) {
             Invoke-ProcessLogs "git check-ref-format --branch $branch" {
                 git check-ref-format --branch "$branch"
-            }
+            } -quiet
             if ($global:LASTEXITCODE -ne 0) {
                 Add-ErrorDiagnostic $diagnostics "Invalid branch name specified: '$branch'"
             }

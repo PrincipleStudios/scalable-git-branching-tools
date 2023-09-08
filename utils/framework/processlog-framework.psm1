@@ -6,11 +6,20 @@ function Write-ProcessLogs {
     Param (
         [Parameter(Mandatory)][string]$processDescription,
         [Parameter(Mandatory, ValueFromPipeline = $true)][object]$inputLog,
-        [Switch] $allowSuccessOutput
+        [Switch] $allowSuccessOutput,
+        [Switch] $quiet
     )
 
     BEGIN {
-        Write-Host "Begin '$processDescription'..."
+        $next = @{
+            name = $processDescription
+            logs = New-Object -TypeName 'System.Collections.ArrayList'
+        }
+        $processLogs.Add($next) *> $nil
+    
+        if (-not $quiet) {
+            Write-Host "Begin '$processDescription'..."
+        }
     }
     PROCESS
     {
@@ -18,10 +27,12 @@ function Write-ProcessLogs {
         if ($inputLog -is [string] -AND $allowSuccessOutput) {
             return $inputLog
         }
-        $processLogs.Add($inputLog)
+        $next.logs.Add($inputLog) *>$nil
     }
     END {
-        Write-Host "End '$processDescription'."
+        if (-not $quiet) {
+            Write-Host "End '$processDescription'."
+        }
     }
 }
 
@@ -29,9 +40,10 @@ function Invoke-ProcessLogs {
     Param (
         [Parameter(Mandatory)][string]$processDescription,
         [Parameter(Mandatory)][scriptblock]$process,
-        [Switch] $allowSuccessOutput
+        [Switch] $allowSuccessOutput,
+        [Switch] $quiet
     )
-    & $process *>&1 | Write-ProcessLogs $processDescription -allowSuccessOutput:$allowSuccessOutput
+    & $process *>&1 | Write-ProcessLogs $processDescription -allowSuccessOutput:$allowSuccessOutput -quiet:$quiet
 }
 
 function Clear-ProcessLogs {

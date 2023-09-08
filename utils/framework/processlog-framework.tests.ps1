@@ -14,8 +14,9 @@ Describe 'processlog-framework' {
             git check-ref-format --branch "test.lock"
         }
         $logs = Get-ProcessLogs
-        $logs[0] | Should -BeOfType System.Management.Automation.ErrorRecord
-        $logs[0].Exception.Message | Should -Be "fatal: 'test.lock' is not a valid branch name"
+        $logs[0].name | Should -Be 'check-ref-format with invalid branch'
+        $logs[0].logs[0] | Should -BeOfType System.Management.Automation.ErrorRecord
+        $logs[0].logs[0].Exception.Message | Should -Be "fatal: 'test.lock' is not a valid branch name"
     }
 
     It 'can handle logs' {
@@ -24,8 +25,9 @@ Describe 'processlog-framework' {
             git name-rev HEAD
         }
         $logs = Get-ProcessLogs
-        $logs[0] | Should -BeOfType String
-        $logs[0] | Should -Not -BeNullOrEmpty
+        $logs[0].name | Should -Be 'name-rev HEAD'
+        $logs[0].logs[0] | Should -BeOfType String
+        $logs[0].logs[0] | Should -Not -BeNullOrEmpty
     }
 
     It 'can capture variables' {
@@ -34,7 +36,8 @@ Describe 'processlog-framework' {
             git name-rev HEAD
         } -allowSuccessOutput
         $logs = Get-ProcessLogs
-        $logs | Should -BeNullOrEmpty
+        $logs[0].name | Should -Be 'name-rev HEAD'
+        $logs[0].logs | Should -BeNullOrEmpty
         $nameRev | Should -Not -BeNullOrEmpty
     }
 
