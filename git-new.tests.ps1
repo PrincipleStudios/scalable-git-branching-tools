@@ -4,7 +4,6 @@ BeforeAll {
     Import-Module -Scope Local "$PSScriptRoot/utils/input/Assert-ValidBranchName.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/utils/query-state.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-WriteTree.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CheckoutBranch.mocks.psm1";
     Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CreateBranch.mocks.psm1"
@@ -19,8 +18,6 @@ BeforeAll {
     Mock -CommandName Invoke-PreserveBranch -ParameterFilter { $onlyIfError } {
         & $scriptBlock
     }
-
-    Lock-InvokeWriteTree
 }
 
 Describe 'git-new' {

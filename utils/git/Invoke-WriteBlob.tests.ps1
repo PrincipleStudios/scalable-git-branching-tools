@@ -1,9 +1,13 @@
 Describe 'Invoke-WriteBlob' {
     BeforeAll {
-        . "$PSScriptRoot/../testing/Lock-Git.mocks.ps1"
+        Import-Module -Scope Local "$PSScriptRoot/../framework.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/../core/Invoke-PipeToProcess.psm1"
         Import-Module -Scope Local "$PSScriptRoot/Invoke-WriteBlob.psm1"
         Import-Module -Scope Local "$PSScriptRoot/Invoke-WriteBlob.mocks.psm1"
+    }
+
+    BeforeEach {
+        Register-Framework
     }
 
     It 'passes data as-is' {

@@ -1,17 +1,13 @@
 BeforeAll {
     . $PSScriptRoot/Set-GitFiles.ps1
-    . $PSScriptRoot/../TestUtils.ps1
-    Import-Module -Scope Local "$PSScriptRoot/Invoke-WriteTree.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/Invoke-WriteBlob.mocks.psm1"
-
-    Lock-InvokeWriteTree
-    Lock-InvokeWriteBlob
+    Import-Module -Scope Local "$PSScriptRoot/../framework.mocks.psm1"
 }
 
 Describe 'Set-GitFiles' {
     BeforeEach {
-        . "$PSScriptRoot/../testing/Lock-Git.mocks.ps1"
+        Register-Framework
     }
+
     Context 'Validates in advance' {
         It 'verifies that a file and folder are not set at the same time' {
             Mock git {

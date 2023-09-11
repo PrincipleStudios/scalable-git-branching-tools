@@ -1,4 +1,4 @@
-. $PSScriptRoot/../core/ArrayToHash.ps1
+Import-Module -Scope Local "$PSScriptRoot/../core/ConvertTo-HashMap.psm1"
 Import-Module -Scope Local "$PSScriptRoot/Invoke-WriteBlob.psm1"
 Import-Module -Scope Local "$PSScriptRoot/Invoke-WriteTree.psm1"
 
@@ -17,7 +17,7 @@ function Set-GitFiles(
         }
         if ($_ -match '/') {
             (1..($parts.Length - 1)) | ForEach-Object {
-                $folder = ($parts | Select -First $_) -join '/'
+                $folder = ($parts | Select-Object -First $_) -join '/'
                 if ($files.Keys -contains $folder) {
                     throw "Files cannot be nested inside $folder since it is also a file"
                 }
@@ -48,9 +48,9 @@ function Set-GitFiles(
 
 function ConvertTo-Alterations([Parameter(Position=1, Mandatory)][PSObject]$files) {
     $grouped = $files.Keys | Group-Object -Property { $_ -match '/' ? $_.Split('/')[0] : $_ } -AsHashTable
-    $result = $grouped.Keys | ArrayToHash -getValue {
+    $result = $grouped.Keys | ConvertTo-HashMap -getValue {
         if ($files[$_] -ne $nil) { return $files[$_] }
-        $grouped[$_] | ArrayToHash `
+        $grouped[$_] | ConvertTo-HashMap `
             -getKey { ($_.Split('/') | Select-Object -Skip 1) -join '/' } `
             -getValue { $files[$_] }
     }
@@ -60,7 +60,7 @@ function ConvertTo-Alterations([Parameter(Position=1, Mandatory)][PSObject]$file
 function Update-Tree($alterations, $treeHash) {
     $treeEntries = $treeHash -eq $nil ? @() : (git ls-tree $treeHash 2> $nil)
 
-    $treeEntriesByName = $treeEntries | ArrayToHash { $_.Split("`t")[1] }
+    $treeEntriesByName = $treeEntries | ConvertTo-HashMap { $_.Split("`t")[1] }
 
     if ($alterations -eq $nil) { return $treeHash }
 

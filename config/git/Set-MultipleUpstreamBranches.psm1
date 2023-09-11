@@ -1,5 +1,5 @@
 Import-Module -Scope Local "$PSScriptRoot/Get-UpstreamBranch.psm1"
-. $PSScriptRoot/Set-GitFiles.ps1
+. $PSScriptRoot/../../utils/git/Set-GitFiles.ps1
 . $PSScriptRoot/../core/ArrayToHash.ps1
 
 function Set-MultipleUpstreamBranches(
