@@ -1,9 +1,10 @@
 BeforeAll {
     . "$PSScriptRoot/config/testing/Lock-Git.mocks.ps1"
+    Import-Module -Scope Local "$PSScriptRoot/utils/framework.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/utils/query-state.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/testing/Invoke-VerifyMock.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/testing/Invoke-MockGit.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Get-CurrentBranch.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-CleanWorkingDirectory.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/migration/Invoke-Migration.mocks.psm1"
 
@@ -17,6 +18,10 @@ BeforeAll {
 }
 
 Describe 'git-tool-update' {
+    BeforeEach {
+        Register-Framework
+    }
+
     It 'prevents working on a branch with changes' {
         Initialize-DirtyWorkingDirectory
 

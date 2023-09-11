@@ -1,4 +1,4 @@
-Import-Module -Scope Local "$PSScriptRoot/Assert-CleanWorkingDirectory.psm1"
+Import-Module -Scope Local "$PSScriptRoot/../../utils/query-state.psm1"
 Import-Module -Scope Local "$PSScriptRoot/Get-CurrentBranch.psm1"
 
 class ResultWithCleanup {

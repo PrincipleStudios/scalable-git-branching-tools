@@ -8,12 +8,16 @@ Describe 'Invoke-PreserveBranch' {
     BeforeAll {
         . "$PSScriptRoot/../testing/Lock-Git.mocks.ps1"
 
-        Import-Module -Scope Local "$PSScriptRoot/Assert-CleanWorkingDirectory.mocks.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/../../utils/framework.mocks.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/../../utils/query-state.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/Get-CurrentBranch.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/Invoke-PreserveBranch.mocks.psm1"
 
         Initialize-CleanWorkingDirectory
         Initialize-CurrentBranch 'my-custom-branch'
+    }
+    BeforeEach {
+        Register-Framework
     }
 
     It 'by default checks out the previous branch' {

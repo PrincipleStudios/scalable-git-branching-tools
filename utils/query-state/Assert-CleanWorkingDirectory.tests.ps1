@@ -1,10 +1,15 @@
 BeforeAll {
-    . "$PSScriptRoot/../testing/Lock-Git.mocks.ps1"
+    . "$PSScriptRoot/../../config/testing/Lock-Git.mocks.ps1"
+    Import-Module -Scope Local "$PSScriptRoot/../framework.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/Assert-CleanWorkingDirectory.psm1"
     Import-Module -Scope Local "$PSScriptRoot/Assert-CleanWorkingDirectory.mocks.psm1"
 }
 
 Describe 'Assert-CleanWorkingDirectory' {
+    BeforeEach {
+        Register-Framework
+    }
+
     It 'throws if exit code is non-zero' {
         Initialize-DirtyWorkingDirectory
         { Assert-CleanWorkingDirectory } | Should -Throw
