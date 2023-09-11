@@ -1,9 +1,13 @@
 Describe 'Invoke-WriteTree' {
     BeforeAll {
-        . "$PSScriptRoot/../testing/Lock-Git.mocks.ps1"
+        Import-Module -Scope Local "$PSScriptRoot/../framework.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/../core/Invoke-PipeToProcess.psm1"
         Import-Module -Scope Local "$PSScriptRoot/Invoke-WriteTree.psm1"
         Import-Module -Scope Local "$PSScriptRoot/Invoke-WriteTree.mocks.psm1"
+    }
+
+    BeforeEach {
+        Register-Framework
     }
 
     It 'passes the tree entries as-is in UTF8 format' {

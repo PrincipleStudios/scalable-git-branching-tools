@@ -1,7 +1,6 @@
 BeforeAll {
     . "$PSScriptRoot/config/testing/Lock-Git.mocks.ps1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-WriteTree.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/utils/framework.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/utils/query-state.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.mocks.psm1"
@@ -16,7 +15,6 @@ BeforeAll {
     # User-interface commands are a bit noisy; TODO: add quiet option and test it by making this throw
     Mock -CommandName Write-Host {}
 
-    Lock-InvokeWriteTree
     Lock-SetMultipleUpstreamBranches
 
     Mock -CommandName Invoke-PreserveBranch {
