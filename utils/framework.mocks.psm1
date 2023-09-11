@@ -15,4 +15,4 @@ function Register-Framework {
     }
 }
 
-Export-ModuleMember -Function Register-Framework, Clear-ProcessLogs, Get-ProcessLogs
+Export-ModuleMember -Function Register-Diagnostics, Register-Framework, Clear-ProcessLogs, Get-ProcessLogs

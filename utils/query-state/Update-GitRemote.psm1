@@ -1,7 +1,10 @@
 Import-Module -Scope Local "$PSScriptRoot/Configuration.psm1"
-Import-Module -Scope Local "$PSScriptRoot/../framework/processlog-framework.psm1"
+Import-Module -Scope Local "$PSScriptRoot/../framework.psm1"
 
-function Update-GitRemote([switch] $prune) {
+function Update-GitRemote(
+    [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics,
+    [switch] $prune
+) {
     $config = Get-Configuration
     if ($config.remote -eq $nil) { return }
     $pruneArgs = $prune ? @('--prune') : @()

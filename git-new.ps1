@@ -16,7 +16,6 @@ $upstreamBranches | Assert-ValidBranchName -diagnostics $diagnostics
 Assert-Diagnostics $diagnostics
 
 Import-Module -Scope Local "$PSScriptRoot/utils/query-state.psm1"
-Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-CleanWorkingDirectory.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CreateBranch.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CheckoutBranch.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.psm1"
@@ -34,7 +33,7 @@ if ($upstreamBranches.length -eq 0) {
 }
 $upstreamBranches = Compress-UpstreamBranches $upstreamBranches
 
-# Assert-CleanWorkingDirectory
+Assert-CleanWorkingDirectory $diagnostics
 # create upstream commit
 # push upstream commit (delayed)
 # create branch
@@ -61,7 +60,6 @@ if ($config.remote -ne $nil) {
     $upstreamBranches = $parentBranchesNoRemote
 }
 
-Assert-CleanWorkingDirectory
 
 $upstreamCommitish = Set-MultipleUpstreamBranches @{ $branchName = $parentBranchesNoRemote } -m "Add branch $branchName$($comment -eq $nil -OR $comment -eq '' ? '' : " for $comment")"
 

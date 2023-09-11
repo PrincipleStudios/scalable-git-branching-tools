@@ -4,8 +4,8 @@ Param(
     [Parameter()][String] $sourceBranch
 )
 
+Import-Module -Scope Local "$PSScriptRoot/utils/query-state.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Get-CurrentBranch.psm1"
-Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-CleanWorkingDirectory.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.psm1"
 
 try {

@@ -6,7 +6,6 @@ BeforeAll {
     Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-WriteTree.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-CleanWorkingDirectory.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CheckoutBranch.mocks.psm1";
     Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CreateBranch.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Set-RemoteTracking.mocks.psm1"
@@ -38,6 +37,16 @@ Describe 'git-new' {
             Initialize-UpstreamBranches @{
                 'feature/homepage-redesign' = @('infra/upgrade-dependencies')
             }
+        }
+
+        It 'halts if the working directory is not clean' {
+            Initialize-DirtyWorkingDirectory
+
+            Initialize-AssertValidBranchName 'feature/PS-100-some-work'
+            $output = Register-Diagnostics -throwInsteadOfExit
+            
+            { & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -m 'some work' } | Should -Throw
+            $output | Should -Contain 'ERR:  Git working directory is not clean.'
         }
 
         It 'handles standard functionality' {
