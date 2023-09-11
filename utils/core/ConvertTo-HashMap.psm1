@@ -26,9 +26,8 @@ function ConvertTo-HashMap(
         $hash = @{}
     }
     process {
-        $current = $_
-        $key = ($getKey -ne $nil) ? (Invoke-WithUnderscore $getKey $current) : $current
-        $value = ($getValue -ne $nil) ? (Invoke-WithUnderscore $getValue $current) : $current
+        $key = ($getKey -ne $nil) ? (Invoke-WithUnderscore $getKey $_) : $_
+        $value = ($getValue -ne $nil) ? (Invoke-WithUnderscore $getValue $_) : $_
         $hash[[String]$key] = $value
     }
     end { return $hash }
