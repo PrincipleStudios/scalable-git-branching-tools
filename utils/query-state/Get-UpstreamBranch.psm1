@@ -1,4 +1,4 @@
-Import-Module -Scope Local "$PSScriptRoot/../../utils/query-state.psm1"
+Import-Module -Scope Local "$PSScriptRoot/Configuration.psm1"
 
 function Get-UpstreamBranch(
     [switch] $fetch

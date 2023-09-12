@@ -1,12 +1,16 @@
 BeforeAll {
-    . "$PSScriptRoot/../testing/Lock-Git.mocks.ps1"
+    Import-Module -Scope Local "$PSScriptRoot/../framework.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/Select-UpstreamBranches.psm1"
     Import-Module -Scope Local "$PSScriptRoot/Select-UpstreamBranches.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/../../utils/query-state.mocks.psm1"
-    . $PSScriptRoot/../TestUtils.ps1
+    . $PSScriptRoot/../../config/TestUtils.ps1
 }
 
 Describe 'Select-UpstreamBranches' {
+    BeforeEach {
+        Register-Framework
+    }
+
     It 'finds upstream branches from git and does not include remote by default' {
         Initialize-ToolConfiguration -upstreamBranchName 'my-upstream'
         Initialize-UpstreamBranches @{

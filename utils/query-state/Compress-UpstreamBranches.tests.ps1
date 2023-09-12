@@ -1,9 +1,9 @@
 BeforeAll {
-    . "$PSScriptRoot/../testing/Lock-Git.mocks.ps1"
     Import-Module -Scope Local "$PSScriptRoot/Compress-UpstreamBranches.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/../../utils/query-state.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/../query-state.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/../framework.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/Select-UpstreamBranches.mocks.psm1"
-    . $PSScriptRoot/../TestUtils.ps1
+    . $PSScriptRoot/../../config/TestUtils.ps1
 }
 
 Describe 'Compress-UpstreamBranches' {
@@ -19,7 +19,10 @@ Describe 'Compress-UpstreamBranches' {
             'bad-recursive-branch-1' = @('bad-recursive-branch-2')
             'bad-recursive-branch-2' = @('bad-recursive-branch-1')
         }
+    }
 
+    BeforeEach {
+        Register-Framework
     }
 
     It 'does not reduce any if none can be reduced' {

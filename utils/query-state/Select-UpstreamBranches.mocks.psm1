@@ -1,5 +1,5 @@
 Import-Module -Scope Local "$PSScriptRoot/Get-UpstreamBranch.psm1"
-Import-Module -Scope Local "$PSScriptRoot/Get-GitFile.mocks.psm1"
+Import-Module -Scope Local "$PSScriptRoot/../git/Get-GitFile.mocks.psm1"
 
 function Initialize-AnyUpstreamBranches() {
     $upstream = Get-UpstreamBranch

@@ -1,4 +1,4 @@
-Import-Module -Scope Local "$PSScriptRoot/Get-UpstreamBranch.psm1"
+Import-Module -Scope Local "$PSScriptRoot/../../utils/query-state/Get-UpstreamBranch.psm1"
 . $PSScriptRoot/../../utils/git/Set-GitFiles.ps1
 . $PSScriptRoot/../core/ArrayToHash.ps1
 

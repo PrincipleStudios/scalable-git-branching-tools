@@ -2,7 +2,6 @@ BeforeAll {
     . "$PSScriptRoot/config/testing/Lock-Git.mocks.ps1"
     Import-Module -Scope Local "$PSScriptRoot/utils/query-state.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Get-CurrentBranch.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/config/git/Select-UpstreamBranches.mocks.psm1"
 
     # User-interface commands are a bit noisy; TODO: add quiet option and test it by making this throw
     # Mock -CommandName Write-Host {}
