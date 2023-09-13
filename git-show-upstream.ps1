@@ -8,7 +8,6 @@ Param(
 Import-Module -Scope Local "$PSScriptRoot/utils/query-state.psm1"
 . $PSScriptRoot/config/core/coalesce.ps1
 Import-Module -Scope Local "$PSScriptRoot/config/git/Get-CurrentBranch.psm1"
-Import-Module -Scope Local "$PSScriptRoot/config/git/Select-UpstreamBranches.psm1"
 
 $target = ($target -eq $nil -OR $target -eq '') ? (Get-CurrentBranch) : $target
 if ($target -eq $nil) {

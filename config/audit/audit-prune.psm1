@@ -3,7 +3,6 @@
 Import-Module -Scope Local "$PSScriptRoot/../../utils/query-state.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../git/Select-Branches.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../git/Get-GitFileNames.psm1"
-Import-Module -Scope Local "$PSScriptRoot/../git/Select-UpstreamBranches.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../git/Set-MultipleUpstreamBranches.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../git/Update-UpstreamBranch.psm1"
 

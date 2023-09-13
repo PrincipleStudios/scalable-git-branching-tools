@@ -1,13 +1,16 @@
 BeforeAll {
-    . "$PSScriptRoot/../testing/Lock-Git.mocks.ps1"
-    Import-Module -Scope Local "$PSScriptRoot/../../utils/query-state.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/../../utils/query-state.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/../framework.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/Configuration.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/Get-UpstreamBranch.psm1"
     Import-Module -Scope Local "$PSScriptRoot/Get-UpstreamBranch.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/../testing/Invoke-VerifyMock.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/../../config/testing/Invoke-VerifyMock.psm1"
 }
 
 Describe 'Get-UpstreamBranch' {
+    BeforeEach {
+        Register-Framework
+    }
+
     It 'computes the upstream tracking branch name' {
         Initialize-ToolConfiguration -upstreamBranchName 'my-upstream' -remote 'github'
         Get-UpstreamBranch | Should -Be 'github/my-upstream'
