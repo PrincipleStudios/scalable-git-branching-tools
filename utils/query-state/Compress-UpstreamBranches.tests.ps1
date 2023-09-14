@@ -25,8 +25,11 @@ Describe 'Compress-UpstreamBranches' {
         Register-Framework
     }
 
-    It 'does not reduce any if none can be reduced' {
+    It 'can handle a flat string' {
         Compress-UpstreamBranches my-branch | Should -Be @( 'my-branch' )
+    }
+
+    It 'does not reduce any if none can be reduced' {
         Compress-UpstreamBranches @("feature/FOO-123", "feature/XYZ-1-services") | Should -Be @("feature/FOO-123", "feature/XYZ-1-services")
     }
 
@@ -42,4 +45,36 @@ Describe 'Compress-UpstreamBranches' {
         Compress-UpstreamBranches @('bad-recursive-branch-1', 'bad-recursive-branch-2') | Should -Be @('bad-recursive-branch-2')
     }
 
+    Context 'with diagnostics' {
+        BeforeEach {
+            [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
+            $diag = New-Diagnostics
+        }
+        
+        It 'can handle a flat string' {
+            Compress-UpstreamBranches my-branch $diag | Should -Be @( 'my-branch' )
+            Should -ActualValue (Get-DiagnosticStrings $diag) -Be @()
+        }
+
+        It 'does not reduce any if none can be reduced' {
+            Compress-UpstreamBranches @("feature/FOO-123", "feature/XYZ-1-services") $diag | Should -Be @("feature/FOO-123", "feature/XYZ-1-services")
+            Should -ActualValue (Get-DiagnosticStrings $diag) -Be @()
+        }
+
+        It 'reduces redundant branches' {
+            Compress-UpstreamBranches @("my-branch", "feature/XYZ-1-services") $diag | Should -Be @("my-branch")
+            Should -ActualValue (Get-DiagnosticStrings $diag) -Be @("WARN: Removing 'feature/XYZ-1-services' from branches; it is redundant via the following: my-branch")
+        }
+
+        It 'allows an empty list' {
+            Compress-UpstreamBranches @() $diag | Should -Be @()
+            Should -ActualValue (Get-DiagnosticStrings $diag) -Be @()
+        }
+
+        It 'does not eliminate all recursive branches' {
+            Compress-UpstreamBranches @('bad-recursive-branch-1', 'bad-recursive-branch-2') $diag | Should -Be @('bad-recursive-branch-2')
+            Should -ActualValue (Get-DiagnosticStrings $diag) -Be @("WARN: Removing 'bad-recursive-branch-1' from branches; it is redundant via the following: bad-recursive-branch-2")
+        }
+
+    }
 }

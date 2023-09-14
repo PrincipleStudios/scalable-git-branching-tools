@@ -22,4 +22,8 @@ function Register-Framework {
     Lock-InvokeWriteTree
 }
 
-Export-ModuleMember -Function Register-Diagnostics, Register-Framework, Clear-ProcessLogs, Get-ProcessLogs, Initialize-WriteBlob, Initialize-WriteTree
+Export-ModuleMember -Function Register-Framework `
+    , New-Diagnostics, Register-Diagnostics, Get-DiagnosticStrings `
+    , Clear-ProcessLogs, Get-ProcessLogs `
+    , Initialize-WriteBlob `
+    , Initialize-WriteTree

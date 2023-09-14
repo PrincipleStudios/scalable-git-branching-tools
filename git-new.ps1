@@ -30,7 +30,7 @@ $upstreamBranches = $upstreamBranches.Count -eq 0 ? @( $config.defaultServiceLin
 if ($upstreamBranches.length -eq 0) {
     Add-ErrorDiagnostic $diagnostics 'At least one upstream branch must be specified or the default service line must be set'
 }
-$upstreamBranches = Compress-UpstreamBranches $upstreamBranches
+$upstreamBranches = Compress-UpstreamBranches $upstreamBranches -diagnostics $diagnostics
 
 Assert-CleanWorkingDirectory $diagnostics
 # create upstream commit
