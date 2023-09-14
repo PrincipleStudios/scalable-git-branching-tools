@@ -64,6 +64,8 @@ function Assert-Diagnostics(
         }
         if ($shouldExit) {
             Exit-DueToAssert
+        } else {
+            $diagnostics.Clear()
         }
     }
 }
