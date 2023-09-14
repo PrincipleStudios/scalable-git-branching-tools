@@ -1,3 +1,4 @@
+Import-Module -Scope Local "$PSScriptRoot/diagnostic-framework.psm1"
 
 function Register-Diagnostics {
     [OutputType([System.Collections.ArrayList])]
@@ -16,7 +17,7 @@ function Register-Diagnostics {
     }
     Mock -ModuleName 'diagnostic-framework' Write-Host {
         if ($mockPrevNewLine) {
-            $mockDiagnosticResult.Add([string]$Object)
+            $mockDiagnosticResult.Add([string]$Object) *> $nil
         } else {
             $mockDiagnosticResult[$mockDiagnosticResult.count - 1] += [string]$Object
         }
@@ -26,4 +27,15 @@ function Register-Diagnostics {
     return @(,$result)
 }
 
-Export-ModuleMember -Function Register-Diagnostics
+function Get-DiagnosticStrings(
+    [Parameter(Mandatory)][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
+) {
+    $output = Register-Diagnostics -throwInsteadOfExit
+    try
+    {
+        Assert-Diagnostics $diagnostics
+    } catch { }
+    return $output
+}
+
+Export-ModuleMember -Function New-Diagnostics, Register-Diagnostics, Get-DiagnosticStrings

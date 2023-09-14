@@ -1,5 +1,4 @@
-Import-Module -Scope Local "$PSScriptRoot/../framework/diagnostic-framework.psm1"
-Import-Module -Scope Local "$PSScriptRoot/../framework/processlog-framework.psm1"
+Import-Module -Scope Local "$PSScriptRoot/../framework.psm1"
 
 function Assert-ValidBranchName {
     [OutputType([string])]

@@ -23,9 +23,11 @@ function Add-Diagnostic(
     [Parameter(Mandatory)][psobject] $diagnostic
 ) {
     if ($nil -ne $diagnostics) {
-        $diagnostics.Add($diagnostic)
+        $diagnostics.Add($diagnostic) *> $nil
     } else {
-        throw $diagnostic.message
+        if ($diagnostic.level -eq 'error') {
+            throw $diagnostic.message
+        }
     }
 }
 

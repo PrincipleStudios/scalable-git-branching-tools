@@ -36,11 +36,21 @@ Describe 'diagnostic-framework' {
 
             $output | Should -BeNullOrEmpty
         }
+        
+        It 'provides an easy way to access diagnostic strings for testing' {
+            $diag = New-Diagnostics
+            Add-WarningDiagnostic $diag 'Warning 1'
+            Add-WarningDiagnostic $diag 'Warning 2'
+            $output = Get-DiagnosticStrings $diag
+
+            $output | Should -Be @('WARN: Warning 1', 'WARN: Warning 2')
+        }
+
     }
 
     Context 'when diagnostics are not passed' {
-        It 'throws on warnings' {
-            { Add-WarningDiagnostic $nil 'Warning 1' } | Should -Throw
+        It 'does not throw on warnings' {
+            { Add-WarningDiagnostic $nil 'Warning 1' } | Should -Not -Throw
         }
 
         It 'throws on errors' {
