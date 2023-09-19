@@ -34,3 +34,6 @@ git config alias.verify-updated "!$dir/git-verify-updated.ps1"
 
 # Release an RC branch to a service line
 git config alias.release "!$dir/git-release.ps1"
+
+# Show a graph of the upstreams
+git config alias.graph-upstreams "!$dir/git-graph-upstreams.ps1"
