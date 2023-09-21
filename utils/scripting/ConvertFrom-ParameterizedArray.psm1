@@ -7,13 +7,12 @@ function ConvertFrom-ParameterizedArray(
     [PSObject] $params,
     [PSObject] $actions, 
     [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics,
-    [switch] $failIfUnableToParse
+    [switch] $failOnError
 ) {
-    
     $converted = $scripts | ForEach-Object {
         $entry = ConvertFrom-ParameterizedScript -script $_ -params $params -actions $actions
         if ($null -eq $entry) {
-            if ($failIfUnableToParse) {
+            if ($failOnError) {
                 Add-ErrorDiagnostic $diagnostics "Unable to evaluate script: '$_'"
             } elseif ($null -ne $diagnostics) {
                 Add-WarningDiagnostic $diagnostics "Unable to evaluate script: '$_'"

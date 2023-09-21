@@ -8,7 +8,7 @@ function ConvertFrom-ParameterizedObject(
     [PSObject] $params,
     [PSObject] $actions, 
     [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics,
-    [switch] $failIfUnableToParse
+    [switch] $failOnError
 ) {
     $fail = $false
     $converted = $scripts.Keys | ConvertTo-HashMap -getValue {
@@ -17,7 +17,7 @@ function ConvertFrom-ParameterizedObject(
         if ($null -eq $entry) {
             [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is used outside the convert script')]
             $fail = $true
-            if ($failIfUnableToParse) {
+            if ($failOnError) {
                 Add-ErrorDiagnostic $diagnostics "Unable to evaluate script: '$target'"
             } elseif ($null -ne $diagnostics) {
                 Add-WarningDiagnostic $diagnostics "Unable to evaluate script: '$target'"
@@ -29,7 +29,7 @@ function ConvertFrom-ParameterizedObject(
         if ($null -eq $entry) {
             [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is used outside the convert script')]
             $fail = $true
-            if ($failIfUnableToParse) {
+            if ($failOnError) {
                 Add-ErrorDiagnostic $diagnostics "Unable to evaluate script: '$_'"
             } elseif ($null -ne $diagnostics) {
                 Add-WarningDiagnostic $diagnostics "Unable to evaluate script: '$_'"
