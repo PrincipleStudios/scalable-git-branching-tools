@@ -1,5 +1,5 @@
+Import-Module -Scope Local "$PSScriptRoot/framework.psm1"
 Import-Module -Scope Local "$PSScriptRoot/framework/diagnostic-framework.mocks.psm1"
-Import-Module -Scope Local "$PSScriptRoot/framework/processlog-framework.psm1"
 Import-Module -Scope Local "$PSScriptRoot/framework/processlog-framework.mocks.psm1"
 Import-Module -Scope Local "$PSScriptRoot/git/Invoke-WriteBlob.mocks.psm1"
 Import-Module -Scope Local "$PSScriptRoot/git/Invoke-WriteTree.mocks.psm1"
@@ -22,7 +22,9 @@ function Register-Framework {
     Lock-InvokeWriteTree
 }
 
-Export-ModuleMember -Function Register-Framework `
+Export-ModuleMember -Function New-Diagnostics, Add-ErrorDiagnostic, Add-WarningDiagnostic, Assert-Diagnostics `
+    , Invoke-ProcessLogs `
+    , Register-Framework `
     , New-Diagnostics, Register-Diagnostics, Get-DiagnosticStrings `
     , Clear-ProcessLogs, Get-ProcessLogs `
     , Initialize-WriteBlob `
