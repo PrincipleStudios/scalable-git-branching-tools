@@ -17,7 +17,7 @@ function Register-Diagnostics {
     }
     Mock -ModuleName 'diagnostic-framework' Write-Host {
         if ($mockPrevNewLine) {
-            $mockDiagnosticResult.Add([string]$Object) *> $nil
+            $mockDiagnosticResult.Add([string]$Object) *> $null
         } else {
             $mockDiagnosticResult[$mockDiagnosticResult.count - 1] += [string]$Object
         }

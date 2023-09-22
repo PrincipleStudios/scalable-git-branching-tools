@@ -1,27 +1,33 @@
 Import-Module -Scope Local "$PSScriptRoot/../framework.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../input.psm1"
-Import-Module -Scope Local "$PSScriptRoot/ConvertFrom-ParameterizedScript.psm1"
 
 function ConvertFrom-ParameterizedArray(
-    [string[]] $scripts,
-    [PSObject] $params,
-    [PSObject] $actions, 
+    [Parameter(Mandatory)][object[]] $script,
+    [Parameter(Mandatory)][PSObject] $params,
+    [Parameter(Mandatory)][PSObject] $actions, 
+    [Parameter(Mandatory)][scriptblock] $convertFromParameterized,
     [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics,
     [switch] $failOnError
 ) {
-    $converted = $scripts | ForEach-Object {
-        $entry = ConvertFrom-ParameterizedScript -script $_ -params $params -actions $actions
-        if ($null -eq $entry) {
-            if ($failOnError) {
-                Add-ErrorDiagnostic $diagnostics "Unable to evaluate script: '$_'"
-            } elseif ($null -ne $diagnostics) {
-                Add-WarningDiagnostic $diagnostics "Unable to evaluate script: '$_'"
+    $fail = $false
+    $converted = New-Object -TypeName 'System.Collections.ArrayList'
+    foreach ($_ in $script) {
+        if ($null -eq $_) {
+            $converted.Add($null) *> $null
+        } else {
+            $entry = & $convertFromParameterized -script $_ -params $params -actions $actions -diagnostics $diagnostics -failOnError:$failOnError
+            $fail = $fail -or $entry.fail
+            if ($entry.result -is [string]) {
+                $expanded = Expand-StringArray $entry.result
+                foreach ($item in $expanded) {
+                    $converted.Add($item) *> $null
+                }
+            } else {
+                $converted.Add($entry.result) *> $null
             }
         }
-        return $entry
     }
-    if ($converted -contains $null) { return $null }
-    return Expand-StringArray $converted
+    return @{ result = $converted; fail = $fail }
 }
 
 Export-ModuleMember -Function ConvertFrom-ParameterizedArray

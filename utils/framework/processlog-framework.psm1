@@ -15,7 +15,7 @@ function Write-ProcessLogs {
             name = $processDescription
             logs = New-Object -TypeName 'System.Collections.ArrayList'
         }
-        $processLogs.Add($next) *> $nil
+        $processLogs.Add($next) *> $null
     
         if (-not $quiet) {
             Write-Host "Begin '$processDescription'..."

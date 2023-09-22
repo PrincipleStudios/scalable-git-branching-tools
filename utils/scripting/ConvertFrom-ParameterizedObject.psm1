@@ -1,45 +1,29 @@
 Import-Module -Scope Local "$PSScriptRoot/../core.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../framework.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../input.psm1"
-Import-Module -Scope Local "$PSScriptRoot/ConvertFrom-ParameterizedScript.psm1"
+Import-Module -Scope Local "$PSScriptRoot/ConvertFrom-ParameterizedString.psm1"
 
 function ConvertFrom-ParameterizedObject(
-    [PSCustomObject] $scripts,
-    [PSObject] $params,
-    [PSObject] $actions, 
+    [Parameter(Mandatory)][PSCustomObject] $script,
+    [Parameter(Mandatory)][PSObject] $params,
+    [Parameter(Mandatory)][PSObject] $actions,
+    [Parameter(Mandatory)][scriptblock] $convertFromParameterized,
     [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics,
     [switch] $failOnError
 ) {
     $fail = $false
-    $converted = $scripts.Keys | ConvertTo-HashMap -getValue {
-        $target = $scripts[$_]
-        $entry = ConvertFrom-ParameterizedScript -script $target -params $params -actions $actions
-        if ($null -eq $entry) {
-            [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is used outside the convert script')]
-            $fail = $true
-            if ($failOnError) {
-                Add-ErrorDiagnostic $diagnostics "Unable to evaluate script: '$target'"
-            } elseif ($null -ne $diagnostics) {
-                Add-WarningDiagnostic $diagnostics "Unable to evaluate script: '$target'"
-            }
-        }
-        return $entry
+    $converted = $script.Keys | ConvertTo-HashMap -getValue {
+        $target = $script[$_]
+        $entry = & $convertFromParameterized -script $target -params $params -actions $actions -diagnostics $diagnostics -failOnError:$failOnError
+        $fail = $fail -or $entry.fail
+        return $entry.result
     } -getKey {
-        $entry = ConvertFrom-ParameterizedScript -script $_ -params $params -actions $actions
-        if ($null -eq $entry) {
-            [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is used outside the convert script')]
-            $fail = $true
-            if ($failOnError) {
-                Add-ErrorDiagnostic $diagnostics "Unable to evaluate script: '$_'"
-            } elseif ($null -ne $diagnostics) {
-                Add-WarningDiagnostic $diagnostics "Unable to evaluate script: '$_'"
-            }
-        }
-        return $entry
+        $entry = ConvertFrom-ParameterizedString -script $_ -params $params -actions $actions -diagnostics $diagnostics -failOnError:$failOnError
+        $fail = $fail -or $entry.fail
+        return $entry.result
     }
 
-    if ($fail) { return $null }
-    return $converted
+    return @{ result = $converted; fail = $fail }
 }
 
 Export-ModuleMember -Function ConvertFrom-ParameterizedObject
