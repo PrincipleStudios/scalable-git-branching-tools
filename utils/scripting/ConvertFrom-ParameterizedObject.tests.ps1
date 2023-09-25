@@ -23,16 +23,24 @@ Describe 'ConvertFrom-ParameterizedObject' {
     }
 
     It 'can evaluate key parameters' {
-        $target = @{ 'foo' = 'bar baz'; 'baz' = '$($params.banter)' }
-        $params = @{ banter = @('woot') }
+        $target = @{ 'foo' = 'bar baz'; '$($params.banter)' = 'woot' }
+        $params = @{ banter = 'baz' }
         $result = ConvertFrom-ParameterizedObject $target -params $params -actions @{} -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
         $result.result | Assert-ShouldBeObject @{ 'foo' = 'bar baz'; 'baz' = 'woot' }
         $result.fail | Should -Be $false
     }
 
     It 'can evaluate key and value parameters' {
-        $target = @{ 'foo' = '$($params.foo)'; 'baz' = '$($params.banter)' }
-        $params = @{ foo = @('bar', 'baz'); banter = @('woot') }
+        $target = @{ 'foo' = '$($params.foo)'; '$($params.banter)' = 'woot' }
+        $params = @{ foo = @('bar', 'baz'); banter = 'baz' }
+        $result = ConvertFrom-ParameterizedObject $target -params $params -actions @{} -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
+        $result.result | Assert-ShouldBeObject @{ 'foo' = 'bar baz'; 'baz' = 'woot' }
+        $result.fail | Should -Be $false
+    }
+
+    It 'can evaluate key and value parameters when loaded from JSON' {
+        $target = @{ 'foo' = '$($params.foo)'; '$($params.banter)' = 'woot' } | ConvertTo-Json | ConvertFrom-Json
+        $params = @{ foo = @('bar', 'baz'); banter = 'baz' }
         $result = ConvertFrom-ParameterizedObject $target -params $params -actions @{} -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
         $result.result | Assert-ShouldBeObject @{ 'foo' = 'bar baz'; 'baz' = 'woot' }
         $result.fail | Should -Be $false
