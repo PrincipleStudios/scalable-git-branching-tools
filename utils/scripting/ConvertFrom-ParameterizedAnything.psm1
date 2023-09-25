@@ -21,9 +21,12 @@ function ConvertFrom-ParameterizedAnything(
     } elseif ($script -is [array]) {
         $result = ConvertFrom-ParameterizedArray @PSBoundParameters -convertFromParameterized ${function:ConvertFrom-ParameterizedAnything}
         return $result
-    } elseif ($script -is [PSObject]) {
+    } elseif ($script -is [PSObject] -or $script -is [PSCustomObject] -or $script -is [Hashtable]) {
         $result = ConvertFrom-ParameterizedObject @PSBoundParameters -convertFromParameterized ${function:ConvertFrom-ParameterizedAnything}
         return $result
+    } else {
+        Add-ErrorDiagnostic $diagnostics "Unknown type $($script.GetType().FullName) when parameterizing"
+        return @{ result = $null; fail = $true }
     }
 }
 

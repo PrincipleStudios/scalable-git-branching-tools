@@ -4,7 +4,7 @@ Import-Module -Scope Local "$PSScriptRoot/../input.psm1"
 Import-Module -Scope Local "$PSScriptRoot/ConvertFrom-ParameterizedString.psm1"
 
 function ConvertFrom-ParameterizedObject(
-    [Parameter(Mandatory)][PSCustomObject] $script,
+    [Parameter(Mandatory)][PSObject] $script,
     [Parameter(Mandatory)][PSObject] $params,
     [Parameter(Mandatory)][PSObject] $actions,
     [Parameter(Mandatory)][scriptblock] $convertFromParameterized,
@@ -12,8 +12,17 @@ function ConvertFrom-ParameterizedObject(
     [switch] $failOnError
 ) {
     $fail = $false
-    $converted = $script.Keys | ConvertTo-HashMap -getValue {
-        $target = $script[$_]
+
+    if ($script -is [Hashtable]) {
+        $ht = $script
+    } else {
+        $ht = @{}
+        $props = $script.Properties ?? $script.PSObject.Properties
+        $props | ForEach-Object { $ht[$_.Name] = $_.Value }
+    }
+
+    $converted = $ht.Keys | ConvertTo-HashMap -getValue {
+        $target = $ht[$_]
         $entry = & $convertFromParameterized -script $target -params $params -actions $actions -diagnostics $diagnostics -failOnError:$failOnError
         $fail = $fail -or $entry.fail
         return $entry.result
