@@ -23,7 +23,7 @@ function Add-Diagnostic(
     [Parameter(Mandatory)][psobject] $diagnostic
 ) {
     if ($nil -ne $diagnostics) {
-        $diagnostics.Add($diagnostic) *> $nil
+        $diagnostics.Add($diagnostic) *> $null
     } else {
         if ($diagnostic.level -eq 'error') {
             throw $diagnostic.message
@@ -64,6 +64,8 @@ function Assert-Diagnostics(
         }
         if ($shouldExit) {
             Exit-DueToAssert
+        } else {
+            $diagnostics.Clear()
         }
     }
 }
