@@ -5,9 +5,7 @@ Import-Module -Scope Local "$PSScriptRoot/Invoke-WriteTree.psm1"
 function Set-GitFiles(
     [Parameter(Position=1, Mandatory)][PSObject]$files,
     [Parameter(Mandatory)][Alias('m')][Alias('message')][String]$commitMessage,
-    [Parameter(Mandatory)][String]$branchName,
-    [Parameter()][String]$remote,
-    [switch]$dryRun
+    [Parameter(Mandatory)][Alias('branchName')][String]$initialCommitish
 ) {
     # Verify that folders/files do not conflict
     $files.Keys | ForEach-Object {
@@ -25,11 +23,10 @@ function Set-GitFiles(
         }
     }
 
-    $fullBranchName = (@($remote, $branchName) | Where-Object {$_}) -join '/'
     $treeSuffix = '^{tree}'
 
-    $parentCommit = git rev-parse --verify $fullBranchName -q 2> $nil
-    $oldTree = git rev-parse --verify ($fullBranchName + $treeSuffix) -q 2> $nil
+    $parentCommit = git rev-parse --verify $initialCommitish -q 2> $nil
+    $oldTree = git rev-parse --verify ($initialCommitish + $treeSuffix) -q 2> $nil
 
     $newTree = Update-Tree (ConvertTo-Alterations $files) $oldTree
 
@@ -40,9 +37,6 @@ function Set-GitFiles(
     $parentSwitch = $parentCommit -eq $nil ? @() : @('-p', $parentCommit)
     $newCommitHash = git commit-tree $newTree -m $commitMessage @parentSwitch
 
-    if (-not $dryRun -AND $remote -ne $nil) {
-        git push $remote "$($newCommitHash):$($branchName)"
-    }
     return $newCommitHash
 }
 
@@ -91,3 +85,5 @@ function Update-Tree($alterations, $treeHash) {
     $result = Invoke-WriteTree $entries
     return $result
 }
+
+Export-ModuleMember -Function Set-GitFiles

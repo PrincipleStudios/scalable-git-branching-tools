@@ -25,8 +25,18 @@ Describe 'diagnostic-framework' {
             $output = Register-Diagnostics -throwInsteadOfExit
             { Assert-Diagnostics $diag } | Should -Not -Throw
 
-            $output | Should -Contain 'WARN: Warning 1'
-            $output | Should -Contain 'WARN: Warning 2'
+            $output | Should -Be @('WARN: Warning 1', 'WARN: Warning 2')
+        }
+
+        It 'only outputs warnings once' {
+            $diag = New-Diagnostics
+            Add-WarningDiagnostic $diag 'Warning 1'
+            Add-WarningDiagnostic $diag 'Warning 2'
+            $output = Register-Diagnostics -throwInsteadOfExit
+            { Assert-Diagnostics $diag } | Should -Not -Throw
+            { Assert-Diagnostics $diag } | Should -Not -Throw
+            
+            $output | Should -Be @('WARN: Warning 1', 'WARN: Warning 2')
         }
 
         It 'can be empty' {
@@ -45,7 +55,6 @@ Describe 'diagnostic-framework' {
 
             $output | Should -Be @('WARN: Warning 1', 'WARN: Warning 2')
         }
-
     }
 
     Context 'when diagnostics are not passed' {

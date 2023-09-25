@@ -9,7 +9,10 @@ function Expand-StringArray {
         # Powershell unwraps the empty list to $nil unless we do this
         return ,@();
     }
-    return ,($strings | ForEach-Object { $_.split(',') } | ForEach-Object { $_ })
+    return ,($strings | ForEach-Object { 
+        if ($null -eq $_) { return $null }
+        return $_.split(',') } | ForEach-Object { $_ }
+    )
 }
 
 Export-ModuleMember -Function Expand-StringArray

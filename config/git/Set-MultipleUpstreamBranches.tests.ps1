@@ -22,17 +22,17 @@ Describe 'Set-MultipleUpstreamBranches' {
         It 'sets the git file' {
             Initialize-FetchUpstreamBranch
 
-            Mock git -ModuleName 'Set-MultipleUpstreamBranches' -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify github/my-upstream -q' } { 'upstream-HEAD' }
-            Mock git -ModuleName 'Set-MultipleUpstreamBranches' -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify github/my-upstream^{tree} -q' } { 'upstream-TREE' }
-            Mock git -ModuleName 'Set-MultipleUpstreamBranches' -ParameterFilter { ($args -join ' ') -eq 'ls-tree upstream-TREE' } {
+            Mock git -ModuleName 'Set-GitFiles' -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify github/my-upstream -q' } { 'upstream-HEAD' }
+            Mock git -ModuleName 'Set-GitFiles' -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify github/my-upstream^{tree} -q' } { 'upstream-TREE' }
+            Mock git -ModuleName 'Set-GitFiles' -ParameterFilter { ($args -join ' ') -eq 'ls-tree upstream-TREE' } {
                 "100644 blob 2adfafd75a2c423627081bb19f06dca28d09cd8e`t.dockerignore"
             }
             Initialize-WriteBlob ([Text.Encoding]::UTF8.GetBytes("baz`nbarbaz`n")) 'new-FILE'
-            Mock -CommandName Invoke-WriteTree -ModuleName 'Set-MultipleUpstreamBranches' -ParameterFilter {
+            Mock -CommandName Invoke-WriteTree -ModuleName 'Set-GitFiles' -ParameterFilter {
                 $treeEntries -contains "100644 blob 2adfafd75a2c423627081bb19f06dca28d09cd8e`t.dockerignore" `
                     -AND $treeEntries -contains "100644 blob new-FILE`tfoobar"
             } { return 'new-TREE' }
-            Mock git  -ModuleName 'Set-MultipleUpstreamBranches' -ParameterFilter { ($args -join ' ') -eq 'commit-tree new-TREE -m Add barbaz to foobar -p upstream-HEAD' } {
+            Mock git  -ModuleName 'Set-GitFiles' -ParameterFilter { ($args -join ' ') -eq 'commit-tree new-TREE -m Add barbaz to foobar -p upstream-HEAD' } {
                 'new-COMMIT'
             }
 
@@ -73,9 +73,9 @@ Describe 'Set-MultipleUpstreamBranches' {
         It 'sets the git file' {
             Initialize-FetchUpstreamBranch
 
-            Mock git -ModuleName 'Set-MultipleUpstreamBranches' -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify my-upstream -q' } { 'upstream-HEAD' }
-            Mock git -ModuleName 'Set-MultipleUpstreamBranches' -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify my-upstream^{tree} -q' } { 'upstream-TREE' }
-            Mock git -ModuleName 'Set-MultipleUpstreamBranches' -ParameterFilter { ($args -join ' ') -eq 'ls-tree upstream-TREE' } {
+            Mock git -ModuleName 'Set-GitFiles' -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify my-upstream -q' } { 'upstream-HEAD' }
+            Mock git -ModuleName 'Set-GitFiles' -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify my-upstream^{tree} -q' } { 'upstream-TREE' }
+            Mock git -ModuleName 'Set-GitFiles' -ParameterFilter { ($args -join ' ') -eq 'ls-tree upstream-TREE' } {
                 "100644 blob 2adfafd75a2c423627081bb19f06dca28d09cd8e`t.dockerignore"
             }
             Initialize-WriteBlob ([Text.Encoding]::UTF8.GetBytes("baz`nbarbaz`n")) 'new-FILE'
@@ -83,7 +83,7 @@ Describe 'Set-MultipleUpstreamBranches' {
                 "100644 blob 2adfafd75a2c423627081bb19f06dca28d09cd8e`t.dockerignore",
                 "100644 blob new-FILE`tfoobar"
             ) 'new-TREE'
-            Mock git  -ModuleName 'Set-MultipleUpstreamBranches' -ParameterFilter { ($args -join ' ') -eq 'commit-tree new-TREE -m Add barbaz to foobar -p upstream-HEAD' } {
+            Mock git  -ModuleName 'Set-GitFiles' -ParameterFilter { ($args -join ' ') -eq 'commit-tree new-TREE -m Add barbaz to foobar -p upstream-HEAD' } {
                 'new-COMMIT'
             }
 
