@@ -1,5 +1,5 @@
 Import-Module -Scope Local "$PSScriptRoot/../../utils/query-state/Get-UpstreamBranch.psm1"
-. $PSScriptRoot/../../utils/git/Set-GitFiles.ps1
+Import-Module -Scope Local "$PSScriptRoot/../../utils/git/Set-GitFiles.psm1"
 . $PSScriptRoot/../core/ArrayToHash.ps1
 
 function Set-MultipleUpstreamBranches(
@@ -8,7 +8,7 @@ function Set-MultipleUpstreamBranches(
 ) {
     $upstreamBranch = Get-UpstreamBranch -fetch
     $contents = $upstreamBanchesByBranchName.Keys | ArrayToHash -getValue { $upstreamBanchesByBranchName[$_] -eq $nil ? $nil : "$($upstreamBanchesByBranchName[$_] -join "`n")`n" }
-    $commitish = Set-GitFiles $contents -m $commitMessage -branchName $upstreamBranch -dryRun
+    $commitish = Set-GitFiles $contents -m $commitMessage -branchName $upstreamBranch
     if ($commitish -eq $nil -OR $commitish -eq '') {
         throw "Failed to create commit"
     }
