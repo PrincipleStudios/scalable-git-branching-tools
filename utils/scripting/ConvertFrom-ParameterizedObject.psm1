@@ -13,13 +13,7 @@ function ConvertFrom-ParameterizedObject(
 ) {
     $fail = $false
 
-    if ($script -is [Hashtable]) {
-        $ht = $script
-    } else {
-        $ht = @{}
-        $props = $script.Properties ?? $script.PSObject.Properties
-        $props | ForEach-Object { $ht[$_.Name] = $_.Value }
-    }
+    $ht = ConvertTo-Hashtable $script
 
     $converted = $ht.Keys | ConvertTo-HashMap -getValue {
         $target = $ht[$_]

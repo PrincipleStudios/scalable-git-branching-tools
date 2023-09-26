@@ -3,7 +3,7 @@ Import-Module -Scope Local "$PSScriptRoot/Invoke-WriteBlob.psm1"
 Import-Module -Scope Local "$PSScriptRoot/Invoke-WriteTree.psm1"
 
 function Set-GitFiles(
-    [Parameter(Position=1, Mandatory)][PSObject]$files,
+    [Parameter(Position=1, Mandatory)][Hashtable]$files,
     [Parameter(Mandatory)][Alias('m')][Alias('message')][String]$commitMessage,
     [Parameter(Mandatory)][Alias('branchName')][String]$initialCommitish
 ) {

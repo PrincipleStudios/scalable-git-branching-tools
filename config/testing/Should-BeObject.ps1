@@ -1,4 +1,4 @@
-
+# Already migrated to Assert-ShouldBeObject
 function Should-BeObject {
     Param (
         [Parameter(Position=0)][PSObject]$b, [Parameter(ValueFromPipeLine = $True)][PSObject]$a
