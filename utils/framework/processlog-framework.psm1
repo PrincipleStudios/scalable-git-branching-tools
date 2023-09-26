@@ -54,4 +54,13 @@ function Get-ProcessLogs {
     return @(,$processLogs.Clone())
 }
 
-Export-ModuleMember -Function Clear-ProcessLogs, Get-ProcessLogs, Invoke-ProcessLogs
+function Show-ProcessLogs {
+    foreach ($entry in $processLogs) {
+        Write-Host $entry.name
+        foreach ($inner in $entry.logs) {
+            Write-Host "    $inner"
+        }
+    }
+}
+
+Export-ModuleMember -Function Clear-ProcessLogs, Get-ProcessLogs, Invoke-ProcessLogs, Show-ProcessLogs

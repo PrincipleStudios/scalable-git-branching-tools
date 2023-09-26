@@ -2,6 +2,7 @@ Describe 'processlog-framework' {
     BeforeAll {
         Import-Module -Scope Local "$PSScriptRoot/processlog-framework.psm1"
         Import-Module -Scope Local "$PSScriptRoot/processlog-framework.mocks.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/../testing.psm1"
     }
 
     BeforeEach {
@@ -30,7 +31,7 @@ Describe 'processlog-framework' {
         $logs[0].logs[0] | Should -Not -BeNullOrEmpty
     }
 
-    It 'can capture variables' {
+    It 'can capture string output' {
         # This is an unmocked command that will always output a success when inside a git repository
         $nameRev = Invoke-ProcessLogs 'name-rev HEAD' {
             git name-rev HEAD
@@ -41,4 +42,13 @@ Describe 'processlog-framework' {
         $nameRev | Should -Not -BeNullOrEmpty
     }
 
+    It 'cannot capture object outputs; it cannot tell the difference between streams' {
+        $output = Invoke-ProcessLogs 'name-rev HEAD' {
+            @{ foo = 'bar' }
+        } -allowSuccessOutput
+        $logs = Get-ProcessLogs
+        $logs[0].name | Should -Be 'name-rev HEAD'
+        $logs[0].logs | Should -Not -BeNullOrEmpty
+        $output | Should -BeNullOrEmpty
+    }
 }
