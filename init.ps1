@@ -37,3 +37,9 @@ git config alias.release "!$dir/git-release.ps1"
 
 # Show a graph of the upstreams
 git config alias.graph-upstreams "!$dir/git-graph-upstreams.ps1"
+
+# Show the upstreams that would confilict
+git config alias.upstream-conflicts "!$dir/git-upstream-conflicts.ps1"
+
+# Show a list of downstreams 
+git config alias.show-downstream "!$dir/git-show-downstreams.ps1"
