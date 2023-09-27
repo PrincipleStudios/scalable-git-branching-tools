@@ -1,6 +1,5 @@
 BeforeAll {
-    . "$PSScriptRoot/../config/testing/Lock-Git.mocks.ps1"
-    Import-Module -Scope Local "$PSScriptRoot/../config/testing/Invoke-VerifyMock.psm1"
+    . "$PSScriptRoot/../utils/testing.ps1"
     Import-Module -Scope Local "$PSScriptRoot/Invoke-Migration.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/Invoke-Migration.psm1"
 

@@ -1,6 +1,6 @@
 BeforeAll {
     . $PSScriptRoot/ConvertTo-BranchName.ps1
-    . $PSScriptRoot/../TestUtils.ps1
+    Import-Module -Scope Local "$PSScriptRoot/../../utils/testing.psm1"
         
 }
 

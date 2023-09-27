@@ -1,9 +1,8 @@
 BeforeAll {
-    . "$PSScriptRoot/../testing/Lock-Git.mocks.ps1"
+    . "$PSScriptRoot/../../utils/testing.ps1"
     Import-Module -Scope Local "$PSScriptRoot/../../utils/query-state.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/Set-RemoteTracking.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/Set-RemoteTracking.psm1"
-    . $PSScriptRoot/../TestUtils.ps1
 }
 
 Describe 'Set-RemoteTracking' {

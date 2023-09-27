@@ -1,9 +1,9 @@
 BeforeAll {
+    . "$PSScriptRoot/../testing.ps1"
     Import-Module -Scope Local "$PSScriptRoot/Compress-UpstreamBranches.psm1"
     Import-Module -Scope Local "$PSScriptRoot/../query-state.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/../framework.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/Select-UpstreamBranches.mocks.psm1"
-    . $PSScriptRoot/../../config/TestUtils.ps1
 }
 
 Describe 'Compress-UpstreamBranches' {
