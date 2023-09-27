@@ -1,1 +1,1 @@
-. $PSScriptRoot/testing/Should-BeObject.ps1
+. $PSScriptRoot/testing/Assert-ShouldBeObject.ps1

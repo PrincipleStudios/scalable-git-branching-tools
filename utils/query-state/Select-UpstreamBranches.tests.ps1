@@ -2,8 +2,8 @@ BeforeAll {
     Import-Module -Scope Local "$PSScriptRoot/../framework.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/Select-UpstreamBranches.psm1"
     Import-Module -Scope Local "$PSScriptRoot/Select-UpstreamBranches.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/../../utils/query-state.mocks.psm1"
-    . $PSScriptRoot/../../config/TestUtils.ps1
+    Import-Module -Scope Local "$PSScriptRoot/../query-state.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/../testing.psm1"
 }
 
 Describe 'Select-UpstreamBranches' {

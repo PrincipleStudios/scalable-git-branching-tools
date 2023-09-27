@@ -2,7 +2,6 @@ BeforeAll {
     . "$PSScriptRoot/../../config/testing/Lock-Git.mocks.ps1"
     Import-Module -Scope Local "$PSScriptRoot/Configuration.psm1"
     Import-Module -Scope Local "$PSScriptRoot/../testing.psm1"
-    . $PSScriptRoot/../../config/TestUtils.ps1
 
     function Invoke-MockGit([string] $gitCli, [object] $MockWith) {
         return Invoke-MockGitModule -ModuleName 'Configuration' @PSBoundParameters
@@ -19,7 +18,7 @@ Describe 'Get-Configuration' {
         Invoke-MockGit 'config scaled-git.upstreamBranch'
         Invoke-MockGit 'config scaled-git.atomicPushEnabled'
 
-        Get-Configuration | Should-BeObject @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = 'main'; atomicPushEnabled = $true }
+        Get-Configuration | Assert-ShouldBeObject @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = 'main'; atomicPushEnabled = $true }
     }
 
     It 'Defaults values with no main branch' {
@@ -30,7 +29,7 @@ Describe 'Get-Configuration' {
         Invoke-MockGit 'config scaled-git.upstreamBranch'
         Invoke-MockGit 'config scaled-git.atomicPushEnabled'
 
-        Get-Configuration | Should-BeObject @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = $nil; atomicPushEnabled = $true }
+        Get-Configuration | Assert-ShouldBeObject @{ remote = $nil; upstreamBranch = '_upstream'; defaultServiceLine = $nil; atomicPushEnabled = $true }
     }
 
     It 'Defaults values with a remote main branch' {
@@ -41,7 +40,7 @@ Describe 'Get-Configuration' {
         Invoke-MockGit 'config scaled-git.upstreamBranch'
         Invoke-MockGit 'config scaled-git.atomicPushEnabled'
 
-        Get-Configuration | Should-BeObject @{ remote = 'origin'; upstreamBranch = '_upstream'; defaultServiceLine = 'main'; atomicPushEnabled = $true }
+        Get-Configuration | Assert-ShouldBeObject @{ remote = 'origin'; upstreamBranch = '_upstream'; defaultServiceLine = 'main'; atomicPushEnabled = $true }
     }
 
     It 'Overrides defaults' {
@@ -50,6 +49,6 @@ Describe 'Get-Configuration' {
         Invoke-MockGit 'config scaled-git.defaultServiceLine' { 'trunk' }
         Invoke-MockGit 'config scaled-git.atomicPushEnabled' { $false }
 
-        Get-Configuration | Should-BeObject @{ remote = 'github'; upstreamBranch = 'upstream-config'; defaultServiceLine = 'trunk'; atomicPushEnabled = $false }
+        Get-Configuration | Assert-ShouldBeObject @{ remote = 'github'; upstreamBranch = 'upstream-config'; defaultServiceLine = 'trunk'; atomicPushEnabled = $false }
     }
 }
