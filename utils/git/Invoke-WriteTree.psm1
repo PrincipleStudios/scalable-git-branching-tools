@@ -1,4 +1,4 @@
-Import-Module -Scope Local "$PSScriptRoot/../core/Invoke-PipeToProcess.psm1"
+Import-Module -Scope Local "$PSScriptRoot/../core.psm1"
 
 function Invoke-WriteTree([String[]]$treeEntries) {
     $InputVar = $treeEntries -join "`n"
