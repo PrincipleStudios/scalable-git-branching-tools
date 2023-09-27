@@ -5,6 +5,7 @@ Import-Module -Scope Local "$PSScriptRoot/query-state/Compress-UpstreamBranches.
 Import-Module -Scope Local "$PSScriptRoot/query-state/Select-UpstreamBranches.psm1"
 Import-Module -Scope Local "$PSScriptRoot/query-state/Get-UpstreamBranch.psm1"
 Import-Module -Scope Local "$PSScriptRoot/query-state/Get-CurrentBranch.psm1"
+Import-Module -Scope Local "$PSScriptRoot/query-state/Get-GitFile.psm1"
 
 Export-ModuleMember -Function Get-Configuration `
     , Update-GitRemote `
@@ -12,4 +13,5 @@ Export-ModuleMember -Function Get-Configuration `
     , Compress-UpstreamBranches `
     , Select-UpstreamBranches `
     , Get-UpstreamBranch `
-    , Get-CurrentBranch
+    , Get-CurrentBranch `
+    , Get-GitFile `
