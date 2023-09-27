@@ -1,7 +1,6 @@
 BeforeAll {
-    . "$PSScriptRoot/../../config/testing/Lock-Git.mocks.ps1"
+    . "$PSScriptRoot/../testing.ps1"
     Import-Module -Scope Local "$PSScriptRoot/Configuration.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/../testing.psm1"
 
     function Invoke-MockGit([string] $gitCli, [object] $MockWith) {
         return Invoke-MockGitModule -ModuleName 'Configuration' @PSBoundParameters

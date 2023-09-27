@@ -10,7 +10,7 @@ function Register-Framework {
         [switch] $throwInsteadOfExit
     )
 
-    . "$PSScriptRoot/../config/testing/Lock-Git.mocks.ps1"
+    . "$PSScriptRoot/testing.ps1"
 
     Register-ProcessLog
     $diagnostics = Register-Diagnostics -throwInsteadOfExit:$throwInsteadOfExit

@@ -5,7 +5,7 @@ BeforeAll {
 
 Describe 'Invoke-PreserveBranch' {
     BeforeAll {
-        . "$PSScriptRoot/../testing/Lock-Git.mocks.ps1"
+        . "$PSScriptRoot/../../utils/testing.ps1"
 
         Import-Module -Scope Local "$PSScriptRoot/../../utils/framework.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/../../utils/query-state.mocks.psm1"

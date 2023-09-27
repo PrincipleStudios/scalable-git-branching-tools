@@ -1,5 +1,5 @@
 BeforeAll {
-    . "$PSScriptRoot/../../config/testing/Lock-Git.mocks.ps1"
+    . "$PSScriptRoot/../testing.ps1"
     Import-Module -Scope Local "$PSScriptRoot/../framework.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/Assert-CleanWorkingDirectory.psm1"
     Import-Module -Scope Local "$PSScriptRoot/Assert-CleanWorkingDirectory.mocks.psm1"

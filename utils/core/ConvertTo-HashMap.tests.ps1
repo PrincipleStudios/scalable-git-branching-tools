@@ -1,5 +1,5 @@
 BeforeAll {
-    Import-Module -Scope Local "$PSScriptRoot/../../utils/testing.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/../testing.psm1"
     Import-Module -Scope Local "$PSScriptRoot/ConvertTo-HashMap.psm1"
 }
 
