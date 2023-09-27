@@ -12,9 +12,9 @@ Describe 'git-add-upstream' {
     BeforeAll {
         Import-Module -Scope Local "$PSScriptRoot/utils/framework.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/utils/query-state.mocks.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/utils/testing.psm1"
         Import-Module -Scope Local "$PSScriptRoot/config/git/Get-CurrentBranch.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.mocks.psm1"
-        Import-Module -Scope Local "$PSScriptRoot/config/testing/Invoke-VerifyMock.psm1"
         Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CheckoutBranch.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-BranchPushed.mocks.psm1"

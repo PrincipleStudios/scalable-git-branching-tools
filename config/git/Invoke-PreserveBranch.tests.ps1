@@ -1,6 +1,6 @@
 BeforeAll {
     Import-Module -Scope Local "$PSScriptRoot/Invoke-PreserveBranch.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/../testing/Invoke-VerifyMock.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/../../utils/testing.psm1"
     . $PSScriptRoot/../TestUtils.ps1
 }
 
