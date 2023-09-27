@@ -9,7 +9,6 @@ Describe 'Invoke-PreserveBranch' {
 
         Import-Module -Scope Local "$PSScriptRoot/../../utils/framework.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/../../utils/query-state.mocks.psm1"
-        Import-Module -Scope Local "$PSScriptRoot/Get-CurrentBranch.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/Invoke-PreserveBranch.mocks.psm1"
 
         Initialize-CleanWorkingDirectory
