@@ -1,0 +1,39 @@
+{
+    "local": [
+        {
+            "id": "set-upstream",
+            "type": "set-upstream",
+            "parameters": {
+                "upstreamBranches": {
+                    "$($params.branchName)": ["$($params.upstreamBranches)"]
+                },
+                "message": "Add branch $($params.branchName)$($params.comment -eq '' ? '' : \" for $($params.comment)\")"
+            }
+        },
+        {
+            "id": "create-branch",
+            "type": "create-branch",
+            "parameters": {
+                "target": "$($params.branchName)",
+                "upstreamBranches": ["$($params.upstreamBranches)"]
+            }
+        }
+    ],
+    "finalize": [
+        {
+            "type": "set-branches",
+            "parameters": {
+                "branches": {
+                    "$($config.upstreamBranch)": "$($actions['add-upstream'].outputs['commit'])",
+                    "$($params.branchName)": "$($actions['create-branch'].outputs['commit'])"
+                }
+            }
+        },
+        {
+            "type": "checkout",
+            "parameters": {
+                "HEAD": "$($params.branchName)"
+            }
+        }
+    ]
+}

@@ -1,9 +1,11 @@
 Import-Module -Scope Local "$PSScriptRoot/../core.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../framework.psm1"
 Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionSetUpstream.psm1"
+Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionCreateBranch.psm1"
 
 $localActions = @{}
 Register-LocalActionSetUpstream $localActions
+Register-LocalActionCreateBranch $localActions
 
 function Invoke-LocalAction(
     [PSObject] $actionDefinition,

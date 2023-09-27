@@ -16,12 +16,6 @@ $upstreamBranches | Assert-ValidBranchName -diagnostics $diagnostics
 Assert-Diagnostics $diagnostics
 
 Import-Module -Scope Local "$PSScriptRoot/utils/query-state.psm1"
-Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CreateBranch.psm1"
-Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CheckoutBranch.psm1"
-Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.psm1"
-Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.psm1"
-Import-Module -Scope Local "$PSScriptRoot/config/git/Set-RemoteTracking.psm1"
-Import-Module -Scope Local "$PSScriptRoot/config/git/Set-MultipleUpstreamBranches.psm1"
 
 $config = Get-Configuration
 Update-GitRemote
@@ -32,7 +26,36 @@ if ($upstreamBranches.length -eq 0) {
 }
 $upstreamBranches = Compress-UpstreamBranches $upstreamBranches -diagnostics $diagnostics
 
+$params = @{
+    branchName = $branchName;
+    upstreamBranches = $upstreamBranches;
+    comment = $comment ?? '';
+}
+
+$instructions = Get-Content "$PSScriptRoot/git-new.json" | ConvertFrom-Json
+
+Import-Module -Scope Local "$PSScriptRoot/utils/scripting.psm1"
+
+# Invoke-Script $instructions -params $params -diagnostics $diagnostics
+# Assert-Diagnostics $diagnostics
+
+# TODO: end here ----------
+
+Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CreateBranch.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CheckoutBranch.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Set-RemoteTracking.psm1"
+Import-Module -Scope Local "$PSScriptRoot/config/git/Set-MultipleUpstreamBranches.psm1"
+
+# $targetTest = 
+# [ScriptBlock]::Create()
+
 Assert-CleanWorkingDirectory $diagnostics
+
+# $actions = @(
+#     New-SetUpstreamBranchAction @{ $branchName = $parentBranchesNoRemote } -m "Add branch $($params.branchName)$($params.comment -eq '' ? '' : " for $params.comment")"
+# )
 # create upstream commit
 # push upstream commit (delayed)
 # create branch
@@ -42,9 +65,9 @@ Assert-CleanWorkingDirectory $diagnostics
 
 Assert-Diagnostics $diagnostics
 
-if ($upstreamBranches -ne $nil -AND $upstreamBranches.length -gt 0) {
+if ($null -ne $upstreamBranches -AND $upstreamBranches.length -gt 0) {
     $parentBranchesNoRemote = $upstreamBranches
-} elseif ($config.defaultServiceLine -ne $nil) {
+} elseif ($null -ne $config.defaultServiceLine) {
     $parentBranchesNoRemote = [string[]] @( $config.defaultServiceLine )
 }
 $parentBranchesNoRemote = Compress-UpstreamBranches $parentBranchesNoRemote
@@ -53,7 +76,7 @@ if ($parentBranchesNoRemote.Length -eq 0) {
     throw "No parents could be determined for new branch '$branchName'."
 }
 
-if ($config.remote -ne $nil) {
+if ($null -ne $config.remote) {
     $upstreamBranches = [string[]]$parentBranchesNoRemote | Foreach-Object { "$($config.remote)/$_" }
 } else {
     $upstreamBranches = $parentBranchesNoRemote
