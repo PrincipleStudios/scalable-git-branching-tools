@@ -16,10 +16,10 @@ $upstreamBranches | Assert-ValidBranchName -diagnostics $diagnostics
 Assert-Diagnostics $diagnostics
 
 Import-Module -Scope Local "$PSScriptRoot/utils/query-state.psm1"
+Import-Module -Scope Local "$PSScriptRoot/utils/git.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CreateBranch.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CheckoutBranch.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.psm1"
-Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Set-RemoteTracking.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Set-MultipleUpstreamBranches.psm1"
 
