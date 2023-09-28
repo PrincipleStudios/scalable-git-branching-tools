@@ -1,5 +1,6 @@
 BeforeAll {
     Import-Module -Scope Local "$PSScriptRoot/Set-GitFiles.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/Invoke-WriteBlob.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/../framework.mocks.psm1"
 }
 
