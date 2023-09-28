@@ -3,9 +3,6 @@ BeforeAll {
     Import-Module -Scope Local "$PSScriptRoot/utils/framework.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/utils/query-state.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/utils/git.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CheckoutBranch.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CreateBranch.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Select-Branches.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/config/git/Set-MultipleUpstreamBranches.mocks.psm1"
 
