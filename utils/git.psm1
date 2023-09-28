@@ -5,6 +5,7 @@ Import-Module -Scope Local "$PSScriptRoot/git/Invoke-PreserveBranch.psm1"
 Import-Module -Scope Local "$PSScriptRoot/git/Invoke-CheckoutBranch.psm1"
 Import-Module -Scope Local "$PSScriptRoot/git/Invoke-CreateBranch.psm1"
 Import-Module -Scope Local "$PSScriptRoot/git/Invoke-MergeBranches.psm1"
+Import-Module -Scope Local "$PSScriptRoot/git/Set-RemoteTracking.psm1"
 
 Export-ModuleMember -Function Invoke-WriteBlob `
     , Invoke-WriteTree `
@@ -13,3 +14,4 @@ Export-ModuleMember -Function Invoke-WriteBlob `
     , Invoke-CheckoutBranch `
     , Invoke-CreateBranch `
     , Invoke-MergeBranches `
+    , Set-RemoteTracking

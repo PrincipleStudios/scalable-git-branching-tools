@@ -16,7 +16,6 @@ Import-Module -Scope Local "$PSScriptRoot/utils/query-state.psm1"
 Import-Module -Scope Local "$PSScriptRoot/utils/git.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-BranchPushed.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Set-MultipleUpstreamBranches.psm1"
-Import-Module -Scope Local "$PSScriptRoot/config/git/Set-RemoteTracking.psm1"
 
 $config = Get-Configuration
 

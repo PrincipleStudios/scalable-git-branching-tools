@@ -5,6 +5,7 @@ Import-Module -Scope Local "$PSScriptRoot/git/Invoke-CheckoutBranch.mocks.psm1"
 Import-Module -Scope Local "$PSScriptRoot/git/Invoke-CreateBranch.mocks.psm1"
 Import-Module -Scope Local "$PSScriptRoot/git/Invoke-MergeBranches.mocks.psm1"
 Import-Module -Scope Local "$PSScriptRoot/git/Set-GitFiles.mocks.psm1"
+Import-Module -Scope Local "$PSScriptRoot/git/Set-RemoteTracking.mocks.psm1"
 
 Export-ModuleMember -Function Lock-InvokeWriteBlob, Initialize-WriteBlob `
     , Lock-InvokeWriteTree, Initialize-WriteTree `
@@ -13,3 +14,4 @@ Export-ModuleMember -Function Lock-InvokeWriteBlob, Initialize-WriteBlob `
     , Initialize-CreateBranch, Initialize-CreateBranchFailed `
     , Initialize-InvokeMergeSuccess, Initialize-InvokeMergeFailure, Get-MergeAbortFilter, Initialize-QuietMergeBranches `
     , Initialize-SetGitFiles `
+    , Initialize-SetRemoteTracking `

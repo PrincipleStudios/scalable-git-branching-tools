@@ -14,7 +14,6 @@ Describe 'git-add-upstream' {
         Import-Module -Scope Local "$PSScriptRoot/utils/query-state.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/utils/git.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-BranchPushed.mocks.psm1"
-        Import-Module -Scope Local "$PSScriptRoot/config/git/Set-RemoteTracking.mocks.psm1"
         Initialize-QuietMergeBranches
     }
 
