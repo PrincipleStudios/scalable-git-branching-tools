@@ -16,9 +16,6 @@ $upstreamBranches = [String[]]($upstreamBranches -eq $nil ? @() : (Split-String 
 Import-Module -Scope Local "$PSScriptRoot/utils/query-state.psm1"
 Import-Module -Scope Local "$PSScriptRoot/utils/git.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Select-Branches.psm1"
-Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CreateBranch.psm1"
-Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CheckoutBranch.psm1";
-Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.psm1";
 Import-Module -Scope Local "$PSScriptRoot/config/git/Set-MultipleUpstreamBranches.psm1"
 
 $config = Get-Configuration

@@ -4,7 +4,7 @@ Describe 'Invoke-MergeBranches' {
     BeforeAll {
         Import-Module -Scope Local "$PSScriptRoot/Invoke-MergeBranches.psm1"
         Import-Module -Scope Local "$PSScriptRoot/Invoke-MergeBranches.mocks.psm1"
-        Import-Module -Scope Local "$PSScriptRoot/../../utils/testing.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/../testing.psm1"
         Initialize-QuietMergeBranches
     }
 
