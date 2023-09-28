@@ -1,7 +1,9 @@
 BeforeAll {
     Import-Module -Scope Local "$PSScriptRoot/Set-GitFiles.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/Set-GitFiles.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/Invoke-WriteBlob.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/../framework.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/../testing.psm1"
 }
 
 Describe 'Set-GitFiles' {
@@ -49,10 +51,23 @@ Describe 'Set-GitFiles' {
 
             Set-GitFiles @{ 'foo/bar' = 'something' } -m 'Test' -branchName 'origin/target'
         }
-        # TODO: looks like Pester's Mock doesn't support testing stdin, which this would really need for a proper test
-        # It 'adds multiple files' {
-        #     Set-GitFiles @{ 'foo/bar' = 'something'; 'foo/baz' = 'something else' } -m 'Test' -branchName 'origin/target'
-        # }
+
+        It 'adds mocks to verify' {
+            $mocks = Initialize-SetGitFiles -files @{ 'foo/bar' = 'something' } -m 'Test' -commitish 'origin/target'
+            Set-GitFiles @{ 'foo/bar' = 'something' } -m 'Test' -branchName 'origin/target'
+            Invoke-VerifyMock $mocks -Times 1
+        }
+
+        It 'fails if not mocked' {
+            Initialize-SetGitFiles -files @{ 'foo/bar' = 'something' } -m 'Test' -commitish 'origin/target'
+            { Set-GitFiles @{ 'foo/bar' = 'something'; 'foo/baz' = 'something else' } -m 'Test' -branchName 'origin/target' } | Should -Throw
+        }
+
+        It 'adds mocks to verify multiple files' {
+            $mocks = Initialize-SetGitFiles -files @{ 'foo/bar' = 'something'; 'foo/baz' = 'something else' } -m 'Test' -commitish 'origin/target'
+            Set-GitFiles @{ 'foo/bar' = 'something'; 'foo/baz' = 'something else' } -m 'Test' -branchName 'origin/target'
+            Invoke-VerifyMock $mocks -Times 1
+        }
     }
     Context 'For an existing new branch' {
         BeforeEach{
