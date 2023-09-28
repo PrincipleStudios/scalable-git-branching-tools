@@ -2,10 +2,10 @@ Describe 'local action "set-upstream"' {
     BeforeAll {
         Import-Module -Scope Local "$PSScriptRoot/../../framework.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/../../query-state.mocks.psm1"
-        Import-Module -Scope Local "$PSScriptRoot/../../testing.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/../../git.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/../Invoke-LocalAction.psm1"
         Import-Module -Scope Local "$PSScriptRoot/Register-LocalActionSetUpstream.mocks.psm1"
-        . $PSScriptRoot/../../../config/TestUtils.ps1
+        . "$PSScriptRoot/../../testing.ps1"
     }
     
     BeforeEach {

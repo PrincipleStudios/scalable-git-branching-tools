@@ -1,6 +1,6 @@
-Import-Module -Scope Local "$PSScriptRoot/../testing/Invoke-MockGitModule.psm1"
-Import-Module -Scope Local "$PSScriptRoot/Invoke-PreserveBranch.psm1"
-Import-Module -Scope Local "$PSScriptRoot/Get-CurrentBranch.psm1"
+Import-Module -Scope Local "$PSScriptRoot/../../utils/testing.psm1"
+Import-Module -Scope Local "$PSScriptRoot/../../utils/query-state.psm1"
+Import-Module -Scope Local "$PSScriptRoot/../../utils/git.psm1"
 
 function Invoke-MockGit([string] $gitCli, [object] $MockWith) {
     return Invoke-MockGitModule -ModuleName 'Invoke-PreserveBranch' @PSBoundParameters

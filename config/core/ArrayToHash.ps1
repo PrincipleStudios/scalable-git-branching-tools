@@ -1,4 +1,5 @@
 
+# Already migrated to ConvertTo-HashMap
 filter ArrayToHash([ScriptBlock]$getKey, [ScriptBlock]$getValue)
 {
     begin { $hash = @{} }

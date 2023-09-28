@@ -1,4 +1,4 @@
-Import-Module -Scope Local "$PSScriptRoot/../testing/Invoke-MockGitModule.psm1"
+Import-Module -Scope Local "$PSScriptRoot/../testing.psm1"
 Import-Module -Scope Local "$PSScriptRoot/Invoke-CheckoutBranch.psm1"
 
 function Initialize-CheckoutBranch([string]$branchName) {

@@ -1,11 +1,8 @@
 BeforeAll {
-    . "$PSScriptRoot/config/testing/Lock-Git.mocks.ps1"
+    . "$PSScriptRoot/utils/testing.ps1"
     Import-Module -Scope Local "$PSScriptRoot/utils/framework.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/utils/query-state.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/config/testing/Invoke-VerifyMock.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/config/testing/Invoke-MockGit.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/config/git/Get-CurrentBranch.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/utils/git.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/migration/Invoke-Migration.mocks.psm1"
 
     Mock -CommandName git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify HEAD' } {
