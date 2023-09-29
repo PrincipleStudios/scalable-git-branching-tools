@@ -45,6 +45,12 @@ function Add-WarningDiagnostic(
     Add-Diagnostic $diagnostics (New-WarningDiagnostic $message)
 }
 
+function Get-HasErrorDiagnostic(
+    [Parameter(Mandatory)][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
+) {
+    return ($diagnostics | Where-Object { $_.level -eq 'error' }).Count -gt 0
+}
+
 function Assert-Diagnostics(
     [Parameter(Mandatory)][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
 ) {
@@ -74,4 +80,4 @@ function Exit-DueToAssert {
     exit 1
 }
 
-Export-ModuleMember -Function New-Diagnostics, Add-ErrorDiagnostic, Add-WarningDiagnostic, Assert-Diagnostics
+Export-ModuleMember -Function New-Diagnostics, Add-ErrorDiagnostic, Add-WarningDiagnostic, Assert-Diagnostics, Get-HasErrorDiagnostic
