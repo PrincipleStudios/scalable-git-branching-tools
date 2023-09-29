@@ -11,18 +11,18 @@ function Lock-LocalActionSetUpstream() {
 function Initialize-LocalActionSetUpstream([PSObject] $upstreamBranches, [string] $message, [string] $commitish) {
     Lock-LocalActionSetUpstream
     $contents = (@(
-        $message -ne '' ? "`$message -eq '$($message.Replace("'", "''"))'" : $nil
-        $upstreamBranches -ne $nil ? @(
+        '' -ne $message ? "`$message -eq '$($message.Replace("'", "''"))'" : $null
+        $null -ne $upstreamBranches ? @(
             "`$files.Keys.Count -eq $($upstreamBranches.Keys.Count)"
             ($upstreamBranches.Keys | ForEach-Object {
-                if ($upstreamBranches[$_] -eq $nil) {
-                    "`$files['$_'] -eq `$nil"
+                if ($null -eq $upstreamBranches[$_]) {
+                    "`$files['$_'] -eq `$null"
                 } else {
-                    "`$files['$_'] -eq ('$($upstreamBranches[$_] -join "`n")' + `"``n`")"
+                    "`$files['$_'] -eq ('$($upstreamBranches[$_] -join "`n")' + `n`"``n`")"
                 }
             })
-        ) : $nil
-     ) | ForEach-Object { $_ } | Where-Object { $_ -ne $nil }) -join ' -AND '
+        ) : $null
+     ) | ForEach-Object { $_ } | Where-Object { $_ -ne $null }) -join ' -AND '
 
     $result = New-VerifiableMock `
         -CommandName Set-GitFiles `

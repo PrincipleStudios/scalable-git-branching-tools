@@ -83,21 +83,43 @@ Describe 'local action "set-upstream"' {
             Invoke-VerifyMock $mock -Times 1
         }
 
-        # It 'allows the mock to not provide the commit message' {
-        #     $mock = Initialize-SetMultipleUpstreamBranches @{ 'foobar' = @('baz', 'barbaz') } -commitish 'new-COMMIT'
+        It 'allows the mock to not provide the commit message' {
+            $mock = Initialize-LocalActionSetUpstream @{ 'foobar' = @('baz', 'barbaz') } -commitish 'new-COMMIT'
 
-        #     $result = Set-MultipleUpstreamBranches @{ 'foobar' = @('baz', 'barbaz') } -m 'Add barbaz to foobar'
-        #     $result | Should -Be 'new-COMMIT'
-        #     Invoke-VerifyMock $mock -Times 1
-        # }
+            $result = Invoke-LocalAction ('{ 
+                "type": "set-upstream", 
+                "parameters": {
+                    "message": "Add barbaz to foobar",
+                    "upstreamBranches": {
+                        "foobar": [
+                            "baz",
+                            "barbaz"
+                        ]
+                    }
+                }
+            }' | ConvertFrom-Json) -diagnostics $diag
+            $result | Assert-ShouldBeObject @{ commit = 'new-COMMIT' }
+            Invoke-VerifyMock $mock -Times 1
+        }
 
-        # It 'allows the mock to not provide the files' {
-        #     $mock = Initialize-SetMultipleUpstreamBranches -commitMessage 'Add barbaz to foobar' -commitish 'new-COMMIT'
+        It 'allows the mock to not provide the files' {
+            $mock = Initialize-LocalActionSetUpstream -message 'Add barbaz to foobar' -commitish 'new-COMMIT'
 
-        #     $result = Set-MultipleUpstreamBranches @{ 'foobar' = @('baz', 'barbaz') } -m 'Add barbaz to foobar'
-        #     $result | Should -Be 'new-COMMIT'
-        #     Invoke-VerifyMock $mock -Times 1
-        # }
+            $result = Invoke-LocalAction ('{ 
+                "type": "set-upstream", 
+                "parameters": {
+                    "message": "Add barbaz to foobar",
+                    "upstreamBranches": {
+                        "foobar": [
+                            "baz",
+                            "barbaz"
+                        ]
+                    }
+                }
+            }' | ConvertFrom-Json) -diagnostics $diag
+            $result | Assert-ShouldBeObject @{ commit = 'new-COMMIT' }
+            Invoke-VerifyMock $mock -Times 1
+        }
     }
 
     Context 'without remote' {
