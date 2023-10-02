@@ -5,7 +5,7 @@
             "type": "set-upstream",
             "parameters": {
                 "upstreamBranches": {
-                    "$($params.branchName)": ["$($params.upstreamBranches)"]
+                    "$($params.branchName)": ["$($params.upstreamBranches -join ',')"]
                 },
                 "message": "Add branch $($params.branchName)$($params.comment -eq '' ? '' : \" for $($params.comment)\")"
             }
@@ -15,7 +15,7 @@
             "type": "create-branch",
             "parameters": {
                 "target": "$($params.branchName)",
-                "upstreamBranches": ["$($params.upstreamBranches)"]
+                "upstreamBranches": ["$($params.upstreamBranches -join ',')"]
             }
         }
     ],
@@ -24,7 +24,7 @@
             "type": "set-branches",
             "parameters": {
                 "branches": {
-                    "$($config.upstreamBranch)": "$($actions['add-upstream'].outputs['commit'])",
+                    "$($config.upstreamBranch)": "$($actions['set-upstream'].outputs['commit'])",
                     "$($params.branchName)": "$($actions['create-branch'].outputs['commit'])"
                 }
             }

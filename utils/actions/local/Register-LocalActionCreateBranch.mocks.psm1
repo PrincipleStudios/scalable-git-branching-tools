@@ -8,7 +8,8 @@ Import-Module -Scope Local "$PSScriptRoot/../../testing.psm1"
 function Initialize-LocalActionCreateBranchSuccess(
     [Parameter(Mandatory)][string] $target, 
     [Parameter(Mandatory)][string[]] $upstreamBranches, 
-    [Parameter(Mandatory)][string] $resultCommitish
+    [Parameter(Mandatory)][string] $resultCommitish,
+    [Parameter()][int] $failAtMerge = -1
 ) {
     Initialize-CleanWorkingDirectory
     Initialize-NoCurrentBranch
@@ -18,6 +19,10 @@ function Initialize-LocalActionCreateBranchSuccess(
     Initialize-CheckoutBranch $target
 
     for ($i = 1; $i -lt $upstreamBranches.Count; $i++) {
+        if ($i -eq $failAtMerge) {
+            Initialize-InvokeMergeFailure $upstreamBranches[$i]
+            return
+        }
         Initialize-InvokeMergeSuccess $upstreamBranches[$i]
     }
 

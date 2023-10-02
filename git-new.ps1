@@ -3,7 +3,8 @@
 Param(
     [Parameter(Mandatory)][String] $branchName,
     [Parameter()][Alias('m')][Alias('message')][ValidateLength(1,25)][String] $comment,
-    [Parameter()][Alias('u')][Alias('upstream')][Alias('upstreams')][String[]] $upstreamBranches
+    [Parameter()][Alias('u')][Alias('upstream')][Alias('upstreams')][String[]] $upstreamBranches,
+    [switch] $dryRun
 )
 
 Import-Module -Scope Local "$PSScriptRoot/utils/framework.psm1"
@@ -37,63 +38,5 @@ $instructions = Get-Content "$PSScriptRoot/git-new.json" | ConvertFrom-Json
 
 Import-Module -Scope Local "$PSScriptRoot/utils/scripting.psm1"
 
-# Invoke-Script $instructions -params $params -diagnostics $diagnostics
-# Assert-Diagnostics $diagnostics
-
-# TODO: end here ----------
-
-Import-Module -Scope Local "$PSScriptRoot/config/git/Set-MultipleUpstreamBranches.psm1"
-
-# $targetTest = 
-# [ScriptBlock]::Create()
-
-Assert-CleanWorkingDirectory $diagnostics
-
-# $actions = @(
-#     New-SetUpstreamBranchAction @{ $branchName = $parentBranchesNoRemote } -m "Add branch $($params.branchName)$($params.comment -eq '' ? '' : " for $params.comment")"
-# )
-# create upstream commit
-# push upstream commit (delayed)
-# create branch
-# merge branches together
-# push new branch to remote (delayed)
-# check out branch if successful, otherwise clean up
-
+Invoke-Script $instructions -params $params -diagnostics $diagnostics -dryRun:$dryRun
 Assert-Diagnostics $diagnostics
-
-if ($null -ne $upstreamBranches -AND $upstreamBranches.length -gt 0) {
-    $parentBranchesNoRemote = $upstreamBranches
-} elseif ($null -ne $config.defaultServiceLine) {
-    $parentBranchesNoRemote = [string[]] @( $config.defaultServiceLine )
-}
-$parentBranchesNoRemote = Compress-UpstreamBranches $parentBranchesNoRemote
-
-if ($parentBranchesNoRemote.Length -eq 0) {
-    throw "No parents could be determined for new branch '$branchName'."
-}
-
-if ($null -ne $config.remote) {
-    $upstreamBranches = [string[]]$parentBranchesNoRemote | Foreach-Object { "$($config.remote)/$_" }
-} else {
-    $upstreamBranches = $parentBranchesNoRemote
-}
-
-
-$upstreamCommitish = Set-MultipleUpstreamBranches @{ $branchName = $parentBranchesNoRemote } -m "Add branch $branchName$($comment -eq $nil -OR $comment -eq '' ? '' : " for $comment")"
-
-Invoke-PreserveBranch {
-    Invoke-CreateBranch $branchName $upstreamBranches[0]
-    Invoke-CheckoutBranch $branchName
-    Assert-CleanWorkingDirectory # checkouts can change ignored files; reassert clean
-    $(Invoke-MergeBranches ($upstreamBranches | Select-Object -skip 1)).ThrowIfInvalid()
-
-    if ($config.remote -ne $nil) {
-        $atomicPart = $config.atomicPushEnabled ? @("--atomic") : @()
-        git push $config.remote @atomicPart "$($branchName):refs/heads/$($branchName)" "$($upstreamCommitish):refs/heads/$($config.upstreamBranch)"
-        Set-RemoteTracking $branchName
-    } else {
-        git branch -f $config.upstreamBranch $upstreamCommitish --quiet
-    }
-} -cleanup {
-    git branch -D $branchName 2> $nil
-} -onlyIfError
