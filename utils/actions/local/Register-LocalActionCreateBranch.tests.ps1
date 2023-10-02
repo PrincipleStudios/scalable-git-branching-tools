@@ -9,8 +9,6 @@ Describe 'local action "create-branch"' {
     }
     
     BeforeEach {
-        Register-Framework
-
         Initialize-ToolConfiguration -noRemote
 
         Initialize-AnyUpstreamBranches
@@ -71,6 +69,27 @@ Describe 'local action "create-branch"' {
         }' | ConvertFrom-Json) -diagnostics $diag
         $diag | Should -Be $null
         $result | Assert-ShouldBeObject @{ commit = 'new-COMMIT' }
+        Invoke-VerifyMock $mocks -Times 1
+    }
+
+    It 'reports merge failures' {
+        $mocks = Initialize-LocalActionCreateBranchSuccess 'foobar' @('baz', 'barbaz') 'new-Commit' `
+            -failAtMerge 1
+
+        $output = Register-Diagnostics -throwInsteadOfExit
+        $result = Invoke-LocalAction ('{ 
+            "type": "create-branch", 
+            "parameters": {
+                "target": "foobar",
+                "upstreamBranches": [
+                    "baz",
+                    "barbaz"
+                ]
+            }
+        }' | ConvertFrom-Json) -diagnostics $diag
+        { Assert-Diagnostics $diag } | Should -Throw
+        $output | Should -contain 'ERR:  Failed to merge all branches'
+        $result | Should -Be $null
         Invoke-VerifyMock $mocks -Times 1
     }
 }

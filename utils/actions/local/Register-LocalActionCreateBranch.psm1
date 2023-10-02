@@ -20,8 +20,14 @@ function Register-LocalActionCreateBranch([PSObject] $localActions) {
             Assert-CleanWorkingDirectory -diagnostics $diagnostics # checkouts can change ignored files; reassert clean
             if (Get-HasErrorDiagnostic $diagnostics) { return }
 
-            $(Invoke-MergeBranches ($upstreamBranches | Select-Object -skip 1) -quiet).ThrowIfInvalid()
+            try {
+                $(Invoke-MergeBranches ($upstreamBranches | Select-Object -skip 1) -quiet).ThrowIfInvalid()
+            } catch {
+                Add-ErrorDiagnostic $diagnostics "Failed to merge all branches"
+            }
         }
+
+        if (Get-HasErrorDiagnostic $diagnostics) { return }
 
         $commit = Invoke-ProcessLogs "git rev-parse $target" {
             git rev-parse $target
