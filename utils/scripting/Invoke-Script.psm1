@@ -44,21 +44,27 @@ function Invoke-Script(
     if ($dryRun) {
         # TODO: describe this rather than dumping JSON
         Write-Host (ConvertTo-Json $allFinalizeScripts)
-    } else {
-        for ($i = 0; $i -lt $allFinalizeScripts.Count; $i++) {
-            $name = $allFinalizeScripts[$i].id ?? "#$($i + 1) (1-based)";
-            $finalize = $allFinalizeScripts[$i]
-            try {
-                $outputs = Invoke-FinalizeAction $finalize -diagnostics $diagnostics
-                if ($null -ne $finalize.id -AND $null -ne $outputs) {
-                    $actions += @{ $finalize.id = $outputs }
-                }
-            } catch {
-                Add-ErrorDiagnostic $diagnostics "Encountered error while running finalize action $($name): see the following error."
-                Add-ErrorException $diagnostics $_
+        return
+    }
+
+    for ($i = 0; $i -lt $allFinalizeScripts.Count; $i++) {
+        $name = $allFinalizeScripts[$i].id ?? "#$($i + 1) (1-based)";
+        $finalize = $allFinalizeScripts[$i]
+        try {
+            $outputs = Invoke-FinalizeAction $finalize -diagnostics $diagnostics
+            if ($null -ne $finalize.id -AND $null -ne $outputs) {
+                $actions += @{ $finalize.id = @{ outputs = $outputs } }
             }
-            Assert-Diagnostics $diagnostics
+        } catch {
+            Add-ErrorDiagnostic $diagnostics "Encountered error while running finalize action $($name): see the following error."
+            Add-ErrorException $diagnostics $_
         }
+        Assert-Diagnostics $diagnostics
+    }
+    
+    if ($null -ne $script.output) {
+        $allOutput = ConvertFrom-ParameterizedAnything -script $script.output -config $config -params $params -actions $actions -diagnostics $diagnostics
+        $allOutput.result | Write-Output
     }
 }
 

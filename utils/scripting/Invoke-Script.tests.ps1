@@ -207,4 +207,38 @@ Describe 'Invoke-Script' {
         Should -InvokeVerifiable
         Should -Invoke -CommandName Invoke-FinalizeAction -ModuleName Invoke-Script -ParameterFilter { $actionDefinition.type -eq '4' } -Times 0
     }
+
+    It 'can have a final output script' {
+        Mock -Verifiable -ModuleName Invoke-Script -CommandName Invoke-LocalAction { $actionDefinition.type -eq '1' } -MockWith { @{ 'part1' = 'complete' } }
+        Mock -Verifiable -ModuleName Invoke-Script -CommandName Invoke-LocalAction { $actionDefinition.type -eq '2' } -MockWith { @{ 'part2' = 'complete' } }
+        Mock -Verifiable -ModuleName Invoke-Script -CommandName Invoke-FinalizeAction { $actionDefinition.type -eq '3' } -MockWith { @{ 'part3' = 'complete' } }
+        Mock -Verifiable -ModuleName Invoke-Script -CommandName Invoke-FinalizeAction { $actionDefinition.type -eq '4' } -MockWith { @{ 'part4' = 'complete' } }
+
+        $scriptOutput = Invoke-Script ('{
+            "local": [
+                { "id": "1", "type": "1" },
+                { "id": "2", "type": "2", "parameters": { "item": "$($actions[\"1\"].outputs[\"part1\"])" } }
+            ],
+            "finalize": [
+                { "id": "3", "type": "3", "parameters": { "item": "$($actions[\"2\"].outputs[\"part2\"])" } },
+                { "id": "4", "type": "4", "parameters": { "item": "$($actions[\"2\"].outputs[\"part2\"])" } }
+            ],
+            "output": [
+                "Status of everything:",
+                "- part1: $($actions[\"1\"].outputs[\"part1\"])",
+                "- part2: $($actions[\"2\"].outputs[\"part2\"])",
+                "- part3: $($actions[\"3\"].outputs[\"part3\"])",
+                "- part4: $($actions[\"4\"].outputs[\"part4\"])"
+            ]
+        }' | ConvertFrom-Json) -diagnostics $diag
+        Get-HasErrorDiagnostic $diag | Should -Be $false
+        $output | Should -Be $null
+        $scriptOutput | Should -contain 'Status of everything:'
+        $scriptOutput | Should -contain '- part1: complete'
+        $scriptOutput | Should -contain '- part2: complete'
+        $scriptOutput | Should -contain '- part3: complete'
+        $scriptOutput | Should -contain '- part4: complete'
+
+        Should -InvokeVerifiable
+    }
 }

@@ -39,4 +39,3 @@ $instructions = Get-Content "$PSScriptRoot/git-new.json" | ConvertFrom-Json
 Import-Module -Scope Local "$PSScriptRoot/utils/scripting.psm1"
 
 Invoke-Script $instructions -params $params -diagnostics $diagnostics -dryRun:$dryRun
-Assert-Diagnostics $diagnostics

@@ -35,5 +35,8 @@
                 "HEAD": "$($params.branchName)"
             }
         }
+    ],
+    "output": [
+        "$($params.branchName) is now checked out."
     ]
 }

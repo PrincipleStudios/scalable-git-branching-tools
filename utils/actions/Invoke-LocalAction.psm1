@@ -24,8 +24,8 @@ function Invoke-LocalAction(
     try {
         $outputs = & $targetAction @parameters -diagnostics $diagnostics
     } catch {
-        throw $_
-        Add-ErrorDiagnostic $diagnostics "Unhandled exception occurred while running '$displayName': $_"
+        Add-ErrorDiagnostic $diagnostics "Unhandled exception occurred while running '$displayName':"
+        Add-ErrorException $diagnostics $_
     }
 
     return $outputs
