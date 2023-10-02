@@ -21,7 +21,8 @@ function Register-LocalActionCreateBranch([PSObject] $localActions) {
             if (Get-HasErrorDiagnostic $diagnostics) { return }
 
             try {
-                $(Invoke-MergeBranches ($upstreamBranches | Select-Object -skip 1) -quiet).ThrowIfInvalid()
+                # TODO - use diagnostics and record output to processlog
+                $(Invoke-MergeBranches ($upstreamBranches | Select-Object -skip 1) -quiet).ThrowIfInvalid() *> $null
             } catch {
                 Add-ErrorDiagnostic $diagnostics "Failed to merge all branches"
             }
