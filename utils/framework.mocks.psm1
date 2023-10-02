@@ -22,7 +22,7 @@ function Register-Framework {
     Lock-InvokeWriteTree
 }
 
-Export-ModuleMember -Function New-Diagnostics, Add-ErrorDiagnostic, Add-WarningDiagnostic, Assert-Diagnostics `
+Export-ModuleMember -Function New-Diagnostics, Add-ErrorDiagnostic, Add-ErrorException, Add-WarningDiagnostic, Assert-Diagnostics `
     , Invoke-ProcessLogs `
     , Register-Framework `
     , New-Diagnostics, Register-Diagnostics, Get-DiagnosticStrings `

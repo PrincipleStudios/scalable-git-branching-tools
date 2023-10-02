@@ -13,6 +13,7 @@ function Register-LocalActionCreateBranch([PSObject] $localActions) {
         Assert-CleanWorkingDirectory $diagnostics
         if (Get-HasErrorDiagnostic $diagnostics) { return $nil }
 
+        # TODO: update these to use diagnostics
         Invoke-PreserveBranch {
             Invoke-CreateBranch $target $upstreamBranches[0]
             Invoke-CheckoutBranch $target

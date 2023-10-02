@@ -4,36 +4,48 @@ Import-Module -Scope Local "$PSScriptRoot/../actions.psm1"
 Import-Module -Scope Local "$PSScriptRoot/ConvertFrom-ParameterizedAnything.psm1"
 
 function Invoke-Script(
-    [PSObject] $script,
+    [Parameter(Mandatory)][PSObject] $script,
     [PSObject] $params,
-    [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
+    [Parameter(Mandatory)][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
 ) {
     $actions = @{}
-    $unresolvedTasks = New-Object System.Collections.ArrayList
-    $unresolvedTasks.AddRange($script.local)
-    for ($i = 0; $i -lt $unresolvedTasks.Count; $i++) {
-        $local = ConvertFrom-ParameterizedAnything -script $unresolvedTasks[$i] -params $params -actions $actions
-        if ($local.fail) { continue; }
-        $outputs = Invoke-LocalAction $local.result -diagnostics $diagnostics
-        $unresolvedTasks.RemoveAt($i)
-        $i--;
-        if ($null -ne $local.result.id -AND $null -ne $outputs) {
-            $actions[$local.result.id] = $outputs
-            # Return to the beginning to see if the local tasks were out of order
-            $i = -1
+    $params = $params ?? @{}
+
+    for ($i = 0; $i -lt $script.local.Count; $i++) {
+        $name = $script.local[$i].id ?? "#$($i + 1) (1-based)";
+        $local = ConvertFrom-ParameterizedAnything -script $script.local[$i] -params $params -actions $actions -diagnostics $diagnostics
+        if ($local.fail) {
+            Add-ErrorDiagnostic $diagnostics "Could not apply parameters to local action $name; see above errors."
+            continue;
         }
-    }
-    if ($unresolvedTasks.Count -gt 0) {
-        Show-ProcessLogs
-        for ($i = 0; $i -lt $unresolvedTasks.Count; $i++) {
-            $local = ConvertFrom-ParameterizedAnything -params $params -actions $actions -diagnostics $diagnostics
+        try {
+            $outputs = Invoke-LocalAction $local.result -diagnostics $diagnostics
+            if ($null -ne $local.result.id -AND $null -ne $outputs) {
+                $actions += @{ $local.result.id = @{ outputs = $outputs } }
+            }
+        } catch {
+            Add-ErrorDiagnostic $diagnostics "Encountered error while running local action $($name): see the following error."
+            Add-ErrorException $diagnostics $_
         }
-        Add-ErrorDiagnostic $diagnostics 'At least one task could not be parsed; see the above warnings'
-        return
     }
 
-    # TODO - do finalize scripts
-    Write-Host (ConvertTo-Json $actions)
+    Assert-Diagnostics $diagnostics
+
+    for ($i = 0; $i -lt $script.finalize.Count; $i++) {
+        $name = $script.finalize[$i].id ?? "#$($i + 1) (1-based)";
+        $finalize = ConvertFrom-ParameterizedAnything -script $script.finalize[$i] -params $params -actions $actions -diagnostics $diagnostics
+        if ($finalize.fail) { continue; }
+        try {
+            $outputs = Invoke-FinalizeAction $finalize.result -diagnostics $diagnostics
+            if ($null -ne $finalize.result.id -AND $null -ne $outputs) {
+                $actions += @{ $finalize.result.id = $outputs }
+            }
+        } catch {
+            Add-ErrorDiagnostic $diagnostics "Encountered error while running finalize action $($name): see the following error."
+            Add-ErrorException $diagnostics $_
+        }
+        Assert-Diagnostics $diagnostics
+    }
 }
 
 Export-ModuleMember -Function Invoke-Script

@@ -38,6 +38,13 @@ function Add-ErrorDiagnostic(
     Add-Diagnostic $diagnostics (New-ErrorDiagnostic $message)
 }
 
+function Add-ErrorException(
+    [Parameter(Mandatory)][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics,
+    [Parameter(Mandatory)][System.Management.Automation.ErrorRecord] $exception
+) {
+    Add-Diagnostic $diagnostics (New-ErrorDiagnostic "$($exception.Exception.Message)`n$($exception.ScriptStackTrace)")
+}
+
 function Add-WarningDiagnostic(
     [Parameter(Mandatory)][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics,
     [Parameter(Mandatory)][string] $message
@@ -80,4 +87,4 @@ function Exit-DueToAssert {
     exit 1
 }
 
-Export-ModuleMember -Function New-Diagnostics, Add-ErrorDiagnostic, Add-WarningDiagnostic, Assert-Diagnostics, Get-HasErrorDiagnostic
+Export-ModuleMember -Function New-Diagnostics, Add-ErrorDiagnostic, Add-ErrorException, Add-WarningDiagnostic, Assert-Diagnostics, Get-HasErrorDiagnostic
