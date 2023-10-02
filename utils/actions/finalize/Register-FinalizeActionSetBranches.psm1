@@ -23,7 +23,7 @@ function Register-FinalizeActionSetBranches([PSObject] $finalizeActions) {
         $branches = ConvertTo-Hashtable $branches
         $config = Get-Configuration
 
-        if ($config.remote -ne $nil) {
+        if ($null -ne $config.remote) {
             $atomicPart = $config.atomicPushEnabled ? @("--atomic") : @()
             $branchList = ConvertTo-PushBranchList $branches
             Invoke-ProcessLogs "git push $($config.remote)" {

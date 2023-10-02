@@ -8,7 +8,7 @@ function Invoke-CheckoutBranch(
 ) {
     Invoke-ProcessLogs "git checkout $branchName" {
         git checkout $branchName
-    }
+    } -quiet
     if ($LASTEXITCODE -ne 0) {
         Add-ErrorDiagnostic $diagnostics "Could not checkout newly created branch '$branchName'"
     }

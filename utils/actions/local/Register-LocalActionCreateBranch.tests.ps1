@@ -57,7 +57,7 @@ Describe 'local action "create-branch"' {
     }
 
     It 'handles standard functionality' {
-        Initialize-LocalActionCreateBranchSuccess 'foobar' @('baz', 'barbaz') 'new-Commit'
+        $mocks = Initialize-LocalActionCreateBranchSuccess 'foobar' @('baz', 'barbaz') 'new-Commit'
 
         $result = Invoke-LocalAction ('{ 
             "type": "create-branch", 
@@ -71,5 +71,6 @@ Describe 'local action "create-branch"' {
         }' | ConvertFrom-Json) -diagnostics $diag
         $diag | Should -Be $null
         $result | Assert-ShouldBeObject @{ commit = 'new-COMMIT' }
+        Invoke-VerifyMock $mocks -Times 1
     }
 }

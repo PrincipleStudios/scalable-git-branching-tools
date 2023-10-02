@@ -2,6 +2,7 @@ Describe 'Invoke-Script' {
     BeforeAll {
         Import-Module -Scope Local "$PSScriptRoot/../framework.psm1"
         Import-Module -Scope Local "$PSScriptRoot/../framework.mocks.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/../query-state.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/../actions.psm1"
         Import-Module -Scope Local "$PSScriptRoot/Invoke-Script.psm1"
         . "$PSScriptRoot/../testing.ps1"
@@ -9,6 +10,7 @@ Describe 'Invoke-Script' {
 
     BeforeEach {
         Register-Framework
+        Initialize-ToolConfiguration
 
         Mock -CommandName Invoke-LocalAction -ModuleName Invoke-Script -MockWith { throw 'Unmocked local action' }
         Mock -CommandName Invoke-FinalizeAction -ModuleName Invoke-Script -MockWith { throw 'Unmocked finalize action' }

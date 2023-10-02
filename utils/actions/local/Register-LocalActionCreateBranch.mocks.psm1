@@ -17,13 +17,11 @@ function Initialize-LocalActionCreateBranchSuccess(
     Initialize-CreateBranch $target $upstreamBranches[0]
     Initialize-CheckoutBranch $target
 
-    for ($i = 0; $i -lt $upstreamBranches.Count; $i++) {
+    for ($i = 1; $i -lt $upstreamBranches.Count; $i++) {
         Initialize-InvokeMergeSuccess $upstreamBranches[$i]
     }
 
     Invoke-MockGitModule -ModuleName Register-LocalActionCreateBranch "rev-parse $target" -MockWith $resultCommitish
-
-    return $result
 }
 
 Export-ModuleMember -Function Initialize-LocalActionCreateBranchSuccess

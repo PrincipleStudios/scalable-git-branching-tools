@@ -16,14 +16,16 @@ function Register-LocalActionCreateBranch([PSObject] $localActions) {
         # TODO: update these to use diagnostics
         Invoke-PreserveBranch {
             Invoke-CreateBranch $target $upstreamBranches[0]
-            Invoke-CheckoutBranch $target
-            Assert-CleanWorkingDirectory # checkouts can change ignored files; reassert clean
+            Invoke-CheckoutBranch $target -diagnostics $diagnostics
+            Assert-CleanWorkingDirectory -diagnostics $diagnostics # checkouts can change ignored files; reassert clean
+            if (Get-HasErrorDiagnostic $diagnostics) { return }
+
             $(Invoke-MergeBranches ($upstreamBranches | Select-Object -skip 1) -quiet).ThrowIfInvalid()
         }
 
         $commit = Invoke-ProcessLogs "git rev-parse $target" {
             git rev-parse $target
-        } -allowSuccessOutput
+        } -allowSuccessOutput -quiet
         return @{ commit = $commit }
     }
 }

@@ -2,6 +2,7 @@ Import-Module -Scope Local "$PSScriptRoot/../framework.psm1"
 
 function ConvertFrom-ParameterizedString(
     [string] $script, 
+    [PSObject] $config,
     [PSObject] $params,
     [PSObject] $actions,
     [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics,
