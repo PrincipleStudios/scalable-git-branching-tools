@@ -9,8 +9,7 @@ function Register-FinalizeActionCheckout([PSObject] $finalizeActions) {
             [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
         )
 
-        # TODO: pass diagnostics
-        Invoke-CheckoutBranch $HEAD -quiet
+        Invoke-CheckoutBranch $HEAD -diagnostics $diagnostics
     }
 }
 

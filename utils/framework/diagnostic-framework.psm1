@@ -22,7 +22,7 @@ function Add-Diagnostic(
     [Parameter(Mandatory)][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics,
     [Parameter(Mandatory)][psobject] $diagnostic
 ) {
-    if ($nil -ne $diagnostics) {
+    if ($null -ne $diagnostics) {
         $diagnostics.Add($diagnostic) *> $null
     } else {
         if ($diagnostic.level -eq 'error') {
@@ -61,7 +61,7 @@ function Get-HasErrorDiagnostic(
 function Assert-Diagnostics(
     [Parameter(Mandatory)][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
 ) {
-    if ($diagnostics -ne $nil) {
+    if ($null -ne $diagnostics) {
         $shouldExit = $false
         foreach ($diagnostic in $diagnostics) {
             switch ($diagnostic.level) {
