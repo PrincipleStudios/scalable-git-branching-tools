@@ -9,7 +9,7 @@ Describe 'Invoke-Script' {
 
     BeforeEach {
         Register-Framework
-        
+
         Mock -CommandName Invoke-LocalAction -ModuleName Invoke-Script -MockWith { throw 'Unmocked local action' }
         Mock -CommandName Invoke-FinalizeAction -ModuleName Invoke-Script -MockWith { throw 'Unmocked finalize action' }
 
@@ -68,7 +68,7 @@ Describe 'Invoke-Script' {
         Mock -ModuleName Invoke-Script -CommandName Invoke-LocalAction { $actionDefinition.type -eq '1' } -MockWith { @{ 'part1' = 'foo' } }
         Mock -ModuleName Invoke-Script -CommandName Invoke-LocalAction { $actionDefinition.type -eq '2' -AND $actionDefinition.parameters.item -eq 'foo' } -MockWith { @{ 'part2' = 'bar' } }
         Mock -ModuleName Invoke-Script -CommandName Invoke-FinalizeAction { $actionDefinition.type -eq '3' -AND $actionDefinition.parameters.item -eq 'bar' } -MockWith { @{ 'part3' = 'baz' } }
-        Mock -ModuleName Invoke-Script -CommandName Invoke-FinalizeAction { $actionDefinition.type -eq '4' -AND $actionDefinition.parameters.item -eq 'baz' } -MockWith { @{ 'part4' = 'complete' } }
+        Mock -ModuleName Invoke-Script -CommandName Invoke-FinalizeAction { $actionDefinition.type -eq '4' -AND $actionDefinition.parameters.item -eq 'bar' } -MockWith { @{ 'part4' = 'complete' } }
 
         Invoke-Script ('{
             "local": [
@@ -77,10 +77,33 @@ Describe 'Invoke-Script' {
             ],
             "finalize": [
                 { "id": "3", "type": "3", "parameters": { "item": "$($actions[\"2\"].outputs[\"part2\"])" } },
-                { "id": "4", "type": "4", "parameters": { "item": "$($actions[\"3\"].outputs[\"part3\"])" } }
+                { "id": "4", "type": "4", "parameters": { "item": "$($actions[\"2\"].outputs[\"part2\"])" } }
             ]
         }' | ConvertFrom-Json) -diagnostics $diag
         Get-HasErrorDiagnostic $diag | Should -Be $false
+
+        Should -InvokeVerifiable
+    }
+    It 'does not allow parameters from within finalize stage' {
+        Mock -ModuleName Invoke-Script -CommandName Invoke-LocalAction { $actionDefinition.type -eq '1' } -MockWith { @{ 'part1' = 'foo' } }
+        Mock -ModuleName Invoke-Script -CommandName Invoke-LocalAction { $actionDefinition.type -eq '2' -AND $actionDefinition.parameters.item -eq 'foo' } -MockWith { @{ 'part2' = 'bar' } }
+        Mock -ModuleName Invoke-Script -CommandName Invoke-FinalizeAction { }
+
+        {
+            Invoke-Script ('{
+                "local": [
+                    { "id": "1", "type": "1" },
+                    { "id": "2", "type": "2", "parameters": { "item": "$($actions[\"1\"].outputs[\"part1\"])" } }
+                ],
+                "finalize": [
+                    { "id": "3", "type": "3", "parameters": { "item": "$($actions[\"2\"].outputs[\"part2\"])" } },
+                    { "id": "4", "type": "4", "parameters": { "item": "$($actions[\"3\"].outputs[\"part3\"])" } }
+                ]
+            }' | ConvertFrom-Json) -diagnostics $diag
+        } | Should -Throw 'Fake Exit-DueToAssert'
+        Get-HasErrorDiagnostic $diag | Should -Be $true
+        $output | Should -contain "WARN: Unable to evaluate script: '`$(`$actions[`"3`"].outputs[`"part3`"])'"
+        $output | Should -contain 'ERR:  Could not apply parameters for finalize actions; see above errors.'
 
         Should -InvokeVerifiable
     }
