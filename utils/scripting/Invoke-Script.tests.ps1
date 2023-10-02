@@ -8,6 +8,8 @@ Describe 'Invoke-Script' {
     }
 
     BeforeEach {
+        Register-Framework
+        
         Mock -CommandName Invoke-LocalAction -ModuleName Invoke-Script -MockWith { throw 'Unmocked local action' }
         Mock -CommandName Invoke-FinalizeAction -ModuleName Invoke-Script -MockWith { throw 'Unmocked finalize action' }
 
