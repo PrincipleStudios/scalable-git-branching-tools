@@ -3,6 +3,7 @@ Import-Module -Scope Local "$PSScriptRoot/../../query-state.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../git.psm1"
 
 # TODO: this action has a side effect that creates the local branch.
+# TODO: this assumes all branches are remotes (if remote is specified)
 function Register-LocalActionCreateBranch([PSObject] $localActions) {
     $localActions['create-branch'] = {
         param(
@@ -11,6 +12,10 @@ function Register-LocalActionCreateBranch([PSObject] $localActions) {
             [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
         )
 
+        $config = Get-Configuration
+        if ($null -ne $config.remote) {
+            $upstreamBranches = [string[]]$upstreamBranches | Foreach-Object { "$($config.remote)/$_" }
+        }
         Assert-CleanWorkingDirectory $diagnostics
         if (Get-HasErrorDiagnostic $diagnostics) { return $nil }
 
