@@ -17,7 +17,7 @@ function Register-LocalActionCreateBranch([PSObject] $localActions) {
             $upstreamBranches = [string[]]$upstreamBranches | Foreach-Object { "$($config.remote)/$_" }
         }
         Assert-CleanWorkingDirectory $diagnostics
-        if (Get-HasErrorDiagnostic $diagnostics) { return $nil }
+        if (Get-HasErrorDiagnostic $diagnostics) { return $null }
 
         # TODO: update these to use diagnostics
         Invoke-PreserveBranch {

@@ -5,7 +5,7 @@ Import-Module -Scope Local "$PSScriptRoot/Register-FinalizeActionSetBranches.psm
 function Initialize-FinalizeActionSetBranches([Hashtable] $branches, [switch] $fail) {
     $config = Get-Configuration
     
-    if ($config.remote -ne $nil) {
+    if ($null -ne $config.remote) {
         $atomicPart = $config.atomicPushEnabled ? "--atomic " : ''
         $branchList = ConvertTo-PushBranchList $branches
         Invoke-MockGitModule -ModuleName 'Register-FinalizeActionSetBranches' `
