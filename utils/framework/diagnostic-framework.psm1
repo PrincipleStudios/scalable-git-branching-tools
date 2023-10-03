@@ -1,3 +1,4 @@
+Import-Module -Scope Local "$PSScriptRoot/processlog-framework.psm1"
 
 function New-Diagnostics {
     [OutputType([System.Collections.ArrayList])]
@@ -62,12 +63,15 @@ function Assert-Diagnostics(
     [Parameter(Mandatory)][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
 ) {
     if ($null -ne $diagnostics) {
-        $shouldExit = $false
+        $shouldExit = Get-HasErrorDiagnostic $diagnostics
+        if ($shouldExit) {
+            Show-ProcessLogs
+            Clear-ProcessLogs
+        }
         foreach ($diagnostic in $diagnostics) {
             switch ($diagnostic.level) {
                 'error' {
                     Write-Host 'ERR:  ' -ForegroundColor Red -BackgroundColor Black -NoNewline
-                    $shouldExit = $true
                 }
                 'warning' {
                     Write-Host 'WARN: ' -ForegroundColor Yellow -BackgroundColor Black -NoNewline

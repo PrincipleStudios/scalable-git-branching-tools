@@ -8,11 +8,16 @@ Describe 'local action "create-branch"' {
         . "$PSScriptRoot/../../testing.ps1"
     }
 
+    BeforeEach {
+        $fw = Register-Framework -throwInsteadOfExit
+        [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
+        $output = $fw.diagnostics
+    }
+
     function AddStandardTests() {
         It 'halts if the working directory is not clean' {
             Initialize-DirtyWorkingDirectory
 
-            $output = Register-Diagnostics -throwInsteadOfExit
             $result = Invoke-LocalAction ('{ 
                     "type": "create-branch", 
                     "parameters": {
@@ -66,7 +71,6 @@ Describe 'local action "create-branch"' {
             $mocks = Initialize-LocalActionCreateBranchSuccess 'foobar' @('baz', 'barbaz') 'new-Commit' `
                 -failAtMerge 1
 
-            $output = Register-Diagnostics -throwInsteadOfExit
             $result = Invoke-LocalAction ('{ 
                 "type": "create-branch", 
                 "parameters": {
