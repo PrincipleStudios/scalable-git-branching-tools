@@ -27,6 +27,7 @@ function Add-Diagnostic(
         $diagnostics.Add($diagnostic) *> $null
     } else {
         if ($diagnostic.level -eq 'error') {
+            Show-ProcessLogs
             throw $diagnostic.message
         }
     }
