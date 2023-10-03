@@ -5,7 +5,7 @@ function Write-ProcessLogs {
     [OutputType([string])]
     Param (
         [Parameter(Mandatory)][string]$processDescription,
-        [Parameter(Mandatory, ValueFromPipeline = $true)][object]$inputLog,
+        [Parameter(Mandatory, ValueFromPipeline = $true)][AllowNull()][object]$inputLog,
         [Switch] $allowSuccessOutput,
         [Switch] $quiet
     )
