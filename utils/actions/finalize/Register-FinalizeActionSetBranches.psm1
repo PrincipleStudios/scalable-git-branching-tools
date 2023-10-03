@@ -4,7 +4,7 @@ Import-Module -Scope Local "$PSScriptRoot/../../query-state.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../git.psm1"
 
 function ConvertTo-PushBranchList([Parameter(Mandatory)][Hashtable] $branches) {
-    $result = $branches.Keys | Foreach-Object {
+    $result = $branches.Keys | Sort-Object | Foreach-Object {
         "$($branches[$_]):refs/heads/$($_)"
     }
     return $result

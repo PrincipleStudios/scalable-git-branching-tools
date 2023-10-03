@@ -9,12 +9,13 @@ Describe 'finalize action "set-branches"' {
     }
     
     BeforeEach {
-        Register-Framework
+        [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
+        $fw = Register-Framework -throwInsteadOfExit
 
         [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
         $diag = New-Diagnostics
         [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
-        $output = Register-Diagnostics -throwInsteadOfExit
+        $output = $fw.diagnostics
         [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
         $standardScript = ('{ 
             "type": "set-branches", 
@@ -76,7 +77,7 @@ Describe 'finalize action "set-branches"' {
         It 'handles standard functionality' {
             $mocks = @(
                 Invoke-MockGitModule -ModuleName 'Register-FinalizeActionSetBranches' `
-                    -gitCli "push origin --atomic new-upstream-commitish:refs/heads/_upstream other-commitish:refs/heads/other another-commitish:refs/heads/another"
+                    -gitCli "push origin --atomic new-upstream-commitish:refs/heads/_upstream another-commitish:refs/heads/another other-commitish:refs/heads/other"
             )
             
             Invoke-FinalizeAction $standardScript -diagnostics $diag
@@ -105,7 +106,7 @@ Describe 'finalize action "set-branches"' {
         It 'handles standard functionality' {
             $mocks = @(
                 Invoke-MockGitModule -ModuleName 'Register-FinalizeActionSetBranches' `
-                    -gitCli "push origin new-upstream-commitish:refs/heads/_upstream other-commitish:refs/heads/other another-commitish:refs/heads/another"
+                    -gitCli "push origin new-upstream-commitish:refs/heads/_upstream another-commitish:refs/heads/another other-commitish:refs/heads/other"
             )
             
             Invoke-FinalizeAction $standardScript -diagnostics $diag
