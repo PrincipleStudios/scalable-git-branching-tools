@@ -1,13 +1,13 @@
 
 $processLogs = New-Object -TypeName 'System.Collections.ArrayList'
+$beginThreshold = 0.5
 
 function Write-ProcessLogs {
     [OutputType([string])]
     Param (
         [Parameter(Mandatory)][string]$processDescription,
         [Parameter(Mandatory, ValueFromPipeline = $true)][AllowNull()][object]$inputLog,
-        [Switch] $allowSuccessOutput,
-        [Switch] $quiet
+        [Switch] $allowSuccessOutput
     )
 
     BEGIN {
@@ -16,10 +16,6 @@ function Write-ProcessLogs {
             logs = New-Object -TypeName 'System.Collections.ArrayList'
         }
         $processLogs.Add($next) *> $null
-    
-        if (-not $quiet) {
-            Write-Host "Begin '$processDescription'..."
-        }
     }
     PROCESS
     {
@@ -30,9 +26,6 @@ function Write-ProcessLogs {
         $next.logs.Add($inputLog) *>$nil
     }
     END {
-        if (-not $quiet) {
-            Write-Host "End '$processDescription'."
-        }
     }
 }
 
@@ -43,7 +36,22 @@ function Invoke-ProcessLogs {
         [Switch] $allowSuccessOutput,
         [Switch] $quiet
     )
-    & $process *>&1 | Write-ProcessLogs $processDescription -allowSuccessOutput:$allowSuccessOutput -quiet:$quiet
+    $reportProgress = [scriptblock]::Create((-not $quiet) ? "
+        Start-Sleep -Seconds $beginThreshold
+        Write-Host `"Working on '$($processDescription.Replace('"', '`"').Replace('`', '``'))'...`"
+    " : "")
+    $timer = [Diagnostics.Stopwatch]::StartNew()
+    $job = Start-ThreadJob $reportProgress -StreamingHost $Host
+    & $process *>&1 | Write-ProcessLogs $processDescription -allowSuccessOutput:$allowSuccessOutput
+    $timer.Stop()
+    if ($job.jobstateinfo.state -ne 'Completed') {
+        Stop-Job $job *>$null
+    } else {
+        if (-not $quiet) {
+            Write-Host "End '$processDescription'. ($([math]::Round($timer.Elapsed.TotalSeconds, 1))s)"
+        }
+    }
+    Remove-Job $job -Force
 }
 
 function Clear-ProcessLogs {
