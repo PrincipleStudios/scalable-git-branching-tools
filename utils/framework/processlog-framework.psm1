@@ -37,27 +37,31 @@ function Invoke-ProcessLogs {
     )
     $state = @{ isRunning = $true; hasOutput = $false }
     $quiet = Get-IsQuiet
-    $reportProgress = [scriptblock]::Create((-not $quiet) ? "
-        params(`$state)
-
-        Start-Sleep -Seconds $beginThreshold
-        if (`$state.isRunning) {
-            `$state.hasOutput = $true
-            Write-Host `"Working on '$($processDescription.Replace('"', '`"').Replace('`', '``'))'...`"
-        }
-    " : "")
     $timer = [Diagnostics.Stopwatch]::StartNew()
-    $job = Start-ThreadJob $reportProgress -StreamingHost $Host -ArgumentList @($state)
+    if (-not $quiet) {
+        $reportProgress = [scriptblock]::Create("
+            params(`$state)
+
+            Start-Sleep -Seconds $beginThreshold
+            if (`$state.isRunning) {
+                `$state.hasOutput = $true
+                Write-Host `"Working on '$($processDescription.Replace('"', '`"').Replace('`', '``'))'...`"
+            }
+        ")
+        $job = Start-ThreadJob $reportProgress -StreamingHost $Host -ArgumentList @($state)
+    } else {
+        $job = $null
+    }
     & $process *>&1 | Write-ProcessLogs $processDescription -allowSuccessOutput:$allowSuccessOutput
     $state.isRunning = $false
     $timer.Stop()
-    if ($job.jobstateinfo.state -ne 'Completed') {
+    if ($null -ne $job -AND $job.jobstateinfo.state -ne 'Completed') {
         Stop-Job $job *>$null
+        Remove-Job $job -Force
     }
     if ($state.hasOutput) {
         Write-Host "End '$processDescription'. ($([math]::Round($timer.Elapsed.TotalSeconds, 1))s)"
     }
-    Remove-Job $job -Force
 }
 
 function Get-IsQuiet {
