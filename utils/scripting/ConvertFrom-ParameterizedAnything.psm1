@@ -17,6 +17,26 @@ function ConvertFrom-ParameterizedAnything(
 ) {
     if ($null -eq $script) {
         return @{ result = $null; fail = $false }
+    } elseif ($script -is [string] -AND $script[0] -eq '$' -AND $script[1] -ne '(') {
+        try {
+            $targetScript = [ScriptBlock]::Create('
+                Set-StrictMode -Version 3.0; 
+                try {
+                    ' + $script.replace('`', '``').replace('{', '`{').replace('}', '`}') + '
+                } catch {
+                    $null
+                }
+            ')
+            $entry = Invoke-Command -ScriptBlock $targetScript
+        } catch {
+            $entry = $null
+        }
+        if ($null -ne $entry) {
+            return @{ result = $entry; fail = $false }
+        } else {
+            Add-ErrorDiagnostic $diagnostics "Error trying to handle script '$_'; please ensure strings use `$(...) syntax"
+            return @{ result = $null; fail = $true }
+        }
     } elseif ($script -is [string]) {
         return ConvertFrom-ParameterizedString @PSBoundParameters
     } elseif ($script -is [array]) {
