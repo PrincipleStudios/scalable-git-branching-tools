@@ -6,7 +6,7 @@ Describe 'ConvertFrom-ParameterizedString' {
 
     It 'can evaluate from params' {
         $params = @{ foo = 'bar' }
-        $result = ConvertFrom-ParameterizedString -script '$($params.foo)' -params $params -actions @{}
+        $result = ConvertFrom-ParameterizedString -script '$($params.foo)' -config @{} -params $params -actions @{}
         $result.result | Should -Be 'bar'
         $result.fail | Should -Be $false
     }
@@ -19,26 +19,26 @@ Describe 'ConvertFrom-ParameterizedString' {
                 }
             }
         }
-        $result = ConvertFrom-ParameterizedString -script '$($actions["create-branch"].outputs["commit"])' -params @{} -actions $actions
+        $result = ConvertFrom-ParameterizedString -script '$($actions["create-branch"].outputs["commit"])' -config @{} -params @{} -actions $actions
         $result.result | Should -Be 'baadf00d'
         $result.fail | Should -Be $false
     }
 
     It 'returns null if accessing an action that does not exist' {
-        $result = ConvertFrom-ParameterizedString -script '$($actions["create-branch"].outputs["commit"])' -params @{} -actions @{}
+        $result = ConvertFrom-ParameterizedString -script '$($actions["create-branch"].outputs["commit"])' -config @{} -params @{} -actions @{}
         $result.result | Should -Be $null
         $result.fail | Should -Be $true
     }
 
     It 'returns null if an error occurs' {
-        $result = ConvertFrom-ParameterizedString -script '$($config.upstreamBranch)' -params @{} -actions @{}
+        $result = ConvertFrom-ParameterizedString -script '$($config.upstreamBranch)' -config @{} -params @{} -actions @{}
         $result.result | Should -Be $null
         $result.fail | Should -Be $true
     }
 
     It 'reports warnings if diagnostics are provided' {
         $diag = New-Diagnostics
-        $result = ConvertFrom-ParameterizedString -script '$($config.upstreamBranch)' -params @{} -actions @{} -diagnostics $diag
+        $result = ConvertFrom-ParameterizedString -script '$($config.upstreamBranch)' -config @{} -params @{} -actions @{} -diagnostics $diag
         $result.result | Should -Be $null
         $result.fail | Should -Be $true
 
@@ -49,7 +49,7 @@ Describe 'ConvertFrom-ParameterizedString' {
 
     It 'reports errors if diagnostics are provided and flagged to fail on error' {
         $diag = New-Diagnostics
-        $result = ConvertFrom-ParameterizedString -script '$($config.upstreamBranch)' -params @{} -actions @{} -diagnostics $diag -failOnError
+        $result = ConvertFrom-ParameterizedString -script '$($config.upstreamBranch)' -config @{} -params @{} -actions @{} -diagnostics $diag -failOnError
         $result.result | Should -Be $null
         $result.fail | Should -Be $true
 

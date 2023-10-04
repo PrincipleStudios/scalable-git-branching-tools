@@ -9,7 +9,6 @@ non-interactive script will be organized into the following steps:
 3. Determine all actions necessary based on present state
 4. Resolve local actions
 5. Finalize actions
-6. Cleanup
 
 Organizing like this will allow for additional support flags, such as:
 
@@ -34,9 +33,7 @@ etc. Local actions must not make alterations to any local or remote refs.
 For example, an action to "merge feature/a into feature/b" would resolve to a
 "push (result-of-merge) commit to feature/b" finalization action.
 
-Local actions may require specific orders of execution, or be grouped for
-execution. For instance, setting multiple upstream branches may be combined into
-a single action.
+Local actions will execute sequentially.
 
 ### Finalization actions
 
@@ -74,35 +71,32 @@ These utilities should be migrated to the `/utils/loading` folder.
 This stage will combine the inputs and present state to create an array of
 action objects to be executed in further steps.
 
+In most cases, the actions can be defined as a templated JSON script, similar to
+many build pipelines. This will be supported by a `/utils/scripting` set of
+modules.
+
 This stage will probably not have reusable components other than creating
-actions, which can come from either the `/actions/local` or `/actions/remote`
-areas.
+actions, which can come from either the `/utils/actions/local` or
+`/utils/actions/finalize` areas.
 
 ### Resolve local actions
 
-Local actions are performed at this stage, mostly in an iterative loop
-until there are no more local actions. These actions should all remain
-local only and not affect local branch names or commits, operating in almost
-entirely a headless mode.
+Local actions are performed at this stage, mostly in an iterative loop. These
+actions should all remain local only and not affect local branch names or
+commits, operating in almost entirely a headless mode.
 
-Local action resolvers should be nested under an `/actions/local`
-folder and registered with the `Invoke-LocalActions` module.
+Local action resolvers should be nested under an `/utils/actions/local`
+folder and registered with the `Invoke-LocalAction` module.
 
 ### Finalize actions
 
-Once all actions have been resolved successfully to finalization actions, the
-side-effects on the final repository may begin. Ideally, this uses `git push
---atomic`, but not all destinations support that.
+Once all actions have been resolved successfully, the side-effects on the final
+repository may begin. Ideally, atomic actions like `git push --atomic` are
+leveraged, but not all destinations support that.
 
-Finalization actions may be grouped for execution, especially for updating the
-`_upstream` branch.
-
-Finalization action resolvers should be nested under an `/actions/finalization`
-folder and registered with a `Invoke-FinalizationActions` module.
-
-### Cleanup
-
-Some actions may need to restore the working directory to a previous state. In those cases, that should occur in cleanup.
+Finalization action resolvers should be nested under an
+`/utils/actions/finalize` folder and registered with a `Invoke-FinalizeAction`
+module.
 
 ## Example
 
@@ -121,17 +115,10 @@ Under this methodology, the `git new` command would have the basic outline:
         - Checkout the branch locally
     - Set upstream branches
 4. Resolve local actions
-    - `Invoke-LocalActions`
-        - Merge each branch into the previous hash, tracking the resulting hash
-    - Final actions would be:
-        - Push the new branch
-        - Checkout the new branch
-        - Set upstream branches
-5. Finalize actions
-    - `Invoke-FinalizeActions`
+    - `Invoke-LocalAction`
         - Create commit to track upstream branches in `_upstream`
+        - Merge each branch into the previous hash, tracking the resulting hash
+5. Finalize actions
+    - `Invoke-FinalizeAction`
         - A single `git push` would set `_upstream` and create the new branch
         - Checkout the new branch
-6. Cleanup
-    - No actions for `git new` unless there was a failure.
-    
