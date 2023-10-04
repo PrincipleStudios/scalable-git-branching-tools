@@ -5,10 +5,10 @@ function Assert-CleanWorkingDirectory(
 ) {
     $cleanOutput = Invoke-ProcessLogs "git clean -n" {
         git clean -n
-    } -allowSuccessOutput -quiet
+    } -allowSuccessOutput
     Invoke-ProcessLogs "git diff --stat" {
         git diff --stat --exit-code
-    } -quiet
+    }
 
     if ($LASTEXITCODE -ne 0 -OR $null -ne $cleanOutput) {
         Add-ErrorDiagnostic $diagnostics 'Git working directory is not clean.'
