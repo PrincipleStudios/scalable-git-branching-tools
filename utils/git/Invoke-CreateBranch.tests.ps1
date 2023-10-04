@@ -4,7 +4,7 @@ BeforeAll {
     Import-Module -Scope Local "$PSScriptRoot/Invoke-CreateBranch.psm1"
     Import-Module -Scope Local "$PSScriptRoot/Invoke-CreateBranch.mocks.psm1"
 
-    # Register-Framework
+    Register-Framework
 }
 
 Describe 'Invoke-CreateBranch' {
