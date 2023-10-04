@@ -18,7 +18,11 @@ function ConvertFrom-ParameterizedArray(
         } else {
             $entry = & $convertFromParameterized -script $_ -config $config -params $params -actions $actions -diagnostics $diagnostics -failOnError:$failOnError
             $fail = $fail -or $entry.fail
-            if ($entry.result -is [string]) {
+            if ($entry.result -is [array]) {
+                foreach ($item in $entry.result) {
+                    $converted.Add($item) *> $null
+                }
+            } elseif ($entry.result -is [string]) {
                 $expanded = Expand-StringArray $entry.result
                 foreach ($item in $expanded) {
                     $converted.Add($item) *> $null

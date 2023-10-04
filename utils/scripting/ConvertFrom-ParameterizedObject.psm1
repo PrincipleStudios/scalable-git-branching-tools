@@ -22,7 +22,11 @@ function ConvertFrom-ParameterizedObject(
         $fail = $fail -or $entry.fail
         return $entry.result
     } -getKey {
-        $entry = ConvertFrom-ParameterizedString -script $_ -config $config -params $params -actions $actions -diagnostics $diagnostics -failOnError:$failOnError
+        $entry = & $convertFromParameterized -script $_ -config $config -params $params -actions $actions -diagnostics $diagnostics -failOnError:$failOnError
+        if ($entry.result -isnot [string]) {
+            $fail = $true
+            return $null
+        }
         $fail = $fail -or $entry.fail
         return $entry.result
     }
