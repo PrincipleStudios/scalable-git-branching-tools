@@ -18,7 +18,8 @@ function Invoke-Script(
         $name = $script.local[$i].id ?? "#$($i + 1) (1-based)";
         $local = ConvertFrom-ParameterizedAnything -script $script.local[$i] -config $config -params $params -actions $actions -diagnostics $diagnostics
         if ($local.fail) {
-            Add-ErrorDiagnostic $diagnostics "Could not apply parameters to local action $name; see above errors."
+            Add-ErrorDiagnostic $diagnostics "Could not apply parameters to local action $name; see above errors. Evaluation below:"
+            Add-ErrorDiagnostic $diagnostics "$(ConvertTo-Json $local.result -Depth 10)"
             continue;
         }
         try {
@@ -27,7 +28,8 @@ function Invoke-Script(
                 $actions += @{ $local.result.id = @{ outputs = $outputs } }
             }
         } catch {
-            Add-ErrorDiagnostic $diagnostics "Encountered error while running local action $($name): see the following error."
+            Add-ErrorDiagnostic $diagnostics "Encountered error while running local action $($name), evaluated below, with the error following."
+            Add-ErrorDiagnostic $diagnostics "$(ConvertTo-Json $local.result -Depth 10)"
             Add-ErrorException $diagnostics $_
         }
     }

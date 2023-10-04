@@ -151,7 +151,7 @@ Describe 'Invoke-Script' {
             }' | ConvertFrom-Json) -diagnostics $diag
         } | Should -Throw 'Fake Exit-DueToAssert'
         Get-HasErrorDiagnostic $diag | Should -Be $true
-        $output | Should -Contain 'ERR:  Encountered error while running local action #1 (1-based): See the following error.'
+        $output | Should -Contain 'ERR:  Encountered error while running local action #1 (1-based), evaluated below, with the error following.'
         $entry = ($output | Where-Object { $_.StartsWith('ERR:  Cannot run 1') })
         $entry.Count | Should -Be 1
 
@@ -177,7 +177,7 @@ Describe 'Invoke-Script' {
             }' | ConvertFrom-Json) -diagnostics $diag
         } | Should -Throw 'Fake Exit-DueToAssert'
         Get-HasErrorDiagnostic $diag | Should -Be $true
-        $output | Should -Contain 'ERR:  Could not apply parameters to local action 2; see above errors.'
+        $output | Should -Contain 'ERR:  Could not apply parameters to local action 2; see above errors. Evaluation below:'
 
         Should -InvokeVerifiable
     }
