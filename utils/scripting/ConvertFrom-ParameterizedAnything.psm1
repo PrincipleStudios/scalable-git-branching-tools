@@ -9,6 +9,7 @@ Import-Module -Scope Local "$PSScriptRoot/ConvertFrom-ParameterizedObject.psm1"
 #>
 function ConvertFrom-ParameterizedAnything(
     [Parameter(Mandatory)][AllowNull()][PSCustomObject] $script,
+    [Parameter(Mandatory)][PSObject] $config,
     [Parameter(Mandatory)][PSObject] $params,
     [Parameter(Mandatory)][PSObject] $actions,
     [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics,
