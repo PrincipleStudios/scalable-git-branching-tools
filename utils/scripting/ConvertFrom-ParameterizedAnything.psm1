@@ -1,3 +1,4 @@
+Import-Module -Scope Local "$PSScriptRoot/../framework.psm1"
 Import-Module -Scope Local "$PSScriptRoot/ConvertFrom-ParameterizedString.psm1"
 Import-Module -Scope Local "$PSScriptRoot/ConvertFrom-ParameterizedArray.psm1"
 Import-Module -Scope Local "$PSScriptRoot/ConvertFrom-ParameterizedObject.psm1"
@@ -22,7 +23,7 @@ function ConvertFrom-ParameterizedAnything(
             $targetScript = [ScriptBlock]::Create('
                 Set-StrictMode -Version 3.0; 
                 try {
-                    ' + $script.replace('`', '``').replace('{', '`{').replace('}', '`}') + '
+                    @{ result = ' + $script.replace('`', '``').replace('{', '`{').replace('}', '`}').replace(';', '`;') + '; fail = $false }
                 } catch {
                     $null
                 }
@@ -32,7 +33,7 @@ function ConvertFrom-ParameterizedAnything(
             $entry = $null
         }
         if ($null -ne $entry) {
-            return @{ result = $entry; fail = $false }
+            return $entry
         } else {
             Add-ErrorDiagnostic $diagnostics "Error trying to handle script '$_'; please ensure strings use `$(...) syntax"
             return @{ result = $null; fail = $true }
