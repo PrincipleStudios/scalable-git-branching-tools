@@ -6,9 +6,6 @@ BeforeAll {
     Import-Module -Scope Local "$PSScriptRoot/utils/git.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/utils/actions.mocks.psm1"
     Initialize-QuietMergeBranches
-
-    # User-interface commands are a bit noisy; TODO: add quiet option and test it by making this throw
-    # Mock -CommandName Write-Host {}
 }
 
 Describe 'git-new' {
@@ -23,9 +20,6 @@ Describe 'git-new' {
             Lock-LocalActionSetUpstream
 
             Initialize-AnyUpstreamBranches
-            Initialize-UpstreamBranches @{
-                'feature/homepage-redesign' = @('infra/upgrade-dependencies')
-            }
         }
 
         It 'halts if the working directory is not clean' {
