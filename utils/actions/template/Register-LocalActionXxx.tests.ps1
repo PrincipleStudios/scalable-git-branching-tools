@@ -13,7 +13,7 @@ Describe 'local action "xxx"' {
         [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
         $output = $fw.assertDiagnosticOutput
         [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
-        $diag = New-Diagnostics
+        $diag = $fw.diagnostics
     }
 
     It 'will be implemented' -Pending {}

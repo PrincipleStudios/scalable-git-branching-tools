@@ -9,12 +9,12 @@ Describe 'finalize action "checkout"' {
     }
     
     BeforeEach {
-        Register-Framework
+        $fw = Register-Framework
 
         [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
-        $diag = New-Diagnostics
+        $diag = $fw.diagnostics
         [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
-        $output = Register-Diagnostics -throwInsteadOfExit
+        $output = $fw.assertDiagnosticOutput
         [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
         $standardScript = ('{ 
             "type": "checkout", 

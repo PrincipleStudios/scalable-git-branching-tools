@@ -12,6 +12,8 @@ Describe 'local action "create-branch"' {
         $fw = Register-Framework -throwInsteadOfExit
         [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
         $output = $fw.assertDiagnosticOutput
+        [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
+        $diag = $fw.diagnostics
     }
 
     function AddStandardTests() {
@@ -96,8 +98,6 @@ Describe 'local action "create-branch"' {
             Initialize-UpstreamBranches @{
                 'feature/homepage-redesign' = @('infra/upgrade-dependencies')
             }
-            [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
-            $diag = New-Diagnostics
         }
 
         AddStandardTests
@@ -111,8 +111,6 @@ Describe 'local action "create-branch"' {
             Initialize-UpstreamBranches @{
                 'feature/homepage-redesign' = @('infra/upgrade-dependencies')
             }
-            [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
-            $diag = New-Diagnostics
         }
         
         AddStandardTests

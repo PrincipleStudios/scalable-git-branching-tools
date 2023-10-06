@@ -7,18 +7,18 @@ Describe 'Assert-ValidBranchName' {
     }
     
     BeforeEach {
-        Register-Framework
+        $fw = Register-Framework
+        [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
+        $diag = $fw.diagnostics
     }
 
     Context 'when diagnostics are passed' {
         It 'allows a valid branch' {
-            $diag = New-Diagnostics
             Initialize-AssertValidBranchName 'good-branch'
             Assert-ValidBranchName -branchName 'good-branch' -diagnostics $diag
             Should -ActualValue $diag.Count -BeExactly 0
         }
         It 'disallows an invalid branch name' {
-            $diag = New-Diagnostics
             Initialize-AssertInvalidBranchName 'bad-branch'
             Assert-ValidBranchName -branchName 'bad-branch' -diagnostics $diag
             Should -ActualValue $diag.Count -BeExactly 1
@@ -26,7 +26,6 @@ Describe 'Assert-ValidBranchName' {
             $diag[0].level | Should -Be 'error'
         }
         It 'can accept multiple via a pipeline' {
-            $diag = New-Diagnostics
             Initialize-AssertValidBranchName 'branch-a'
             Initialize-AssertValidBranchName 'branch-b'
             Initialize-AssertInvalidBranchName 'bad-branch-1'

@@ -22,7 +22,9 @@ Describe 'Compress-UpstreamBranches' {
     }
 
     BeforeEach {
-        Register-Framework
+        $fw = Register-Framework
+        [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
+        $diag = $fw.diagnostics
     }
 
     It 'can handle a flat string' {
@@ -46,11 +48,6 @@ Describe 'Compress-UpstreamBranches' {
     }
 
     Context 'with diagnostics' {
-        BeforeEach {
-            [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
-            $diag = New-Diagnostics
-        }
-        
         It 'can handle a flat string' {
             Compress-UpstreamBranches my-branch $diag | Should -Be @( 'my-branch' )
             Should -ActualValue (Get-DiagnosticStrings $diag) -Be @()
