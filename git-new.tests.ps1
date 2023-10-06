@@ -26,10 +26,12 @@ Describe 'git-new' {
             Initialize-DirtyWorkingDirectory
 
             Initialize-AssertValidBranchName 'feature/PS-100-some-work'
-            $output = Register-Diagnostics -throwInsteadOfExit
+            Initialize-LocalActionSetUpstream @{
+                'feature/PS-100-some-work' = 'main'
+            } -commitish 'new-commit'
             
-            { & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -m 'some work' } | Should -Throw
-            $output | Should -Contain 'ERR:  Git working directory is not clean.'
+            { & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -m 'some work' } | Should -Throw 'ERR:  Git working directory is not clean.'
+            $fw.assertDiagnosticOutput | Should -Contain 'ERR:  Git working directory is not clean.'
         }
 
         It 'handles standard functionality' {
@@ -49,6 +51,7 @@ Describe 'git-new' {
             )
 
             & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -m 'some work'
+            $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
             Invoke-VerifyMock $mocks -Times 1
         }
 
@@ -69,6 +72,7 @@ Describe 'git-new' {
             )
 
             & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -m 'some work'
+            $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
             Invoke-VerifyMock $mocks -Times 1
         }
 
@@ -90,8 +94,8 @@ Describe 'git-new' {
             )
 
             & $PSScriptRoot/git-new.ps1 feature/PS-600-some-work -u 'infra/foo' -m 'some work'
+            $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
             Invoke-VerifyMock $mocks -Times 1
-            $fw.diagnostics | Should -Be $null
         }
     }
 
@@ -114,7 +118,7 @@ Describe 'git-new' {
             
             { & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -m 'some work' } | Should -Throw
 
-            $fw.diagnostics | Should -Be @(
+            $fw.assertDiagnosticOutput | Should -Be @(
                 "ERR:  Invalid branch name specified: 'feature/PS-100-some-work'"
             )
         }
@@ -137,7 +141,7 @@ Describe 'git-new' {
 
             & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -m 'some work'
             Invoke-VerifyMock $mocks -Times 1
-            $fw.diagnostics | Should -Be $null
+            $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
         }
 
         It 'creates a remote branch when a remote is configured and an upstream branch is provided' {
@@ -159,7 +163,7 @@ Describe 'git-new' {
 
             & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -u 'infra/foo' -m 'some work'
             Invoke-VerifyMock $mocks -Times 1
-            $fw.diagnostics | Should -Be $null
+            $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
         }
 
         It 'creates a remote branch with simplified upstream dependencies' {
@@ -183,6 +187,10 @@ Describe 'git-new' {
 
             & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -u 'infra/foo,main,feature/homepage-redesign' -m 'some work'
             Invoke-VerifyMock $mocks -Times 1
+            $fw.assertDiagnosticOutput | Should -Be @(
+                "WARN: Removing 'infra/foo' from branches; it is redundant via the following: feature/homepage-redesign"
+                "WARN: Removing 'main' from branches; it is redundant via the following: feature/homepage-redesign"
+            )
         }
 
         It 'creates a remote branch with simplified upstream dependencies but still multiple' {
@@ -207,6 +215,10 @@ Describe 'git-new' {
 
             & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -u 'infra/foo,main,feature/homepage-redesign,infra/update-dependencies' -m 'some work'
             Invoke-VerifyMock $mocks -Times 1
+            $fw.assertDiagnosticOutput | Should -Be @(
+                "WARN: Removing 'infra/foo' from branches; it is redundant via the following: feature/homepage-redesign"
+                "WARN: Removing 'main' from branches; it is redundant via the following: feature/homepage-redesign"
+            )
         }
 
         It 'reports failed merges and does not push' {
@@ -223,9 +235,8 @@ Describe 'git-new' {
                     -failAtMerge 1
             )
 
-            { & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -u 'feature/homepage-redesign,infra/update-dependencies' -m 'some work' } | Should -Throw 'Fake Exit-DueToAssert'
-            # TODO - verify error messages
-            # $fw.diagnostics
+            { & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -u 'feature/homepage-redesign,infra/update-dependencies' -m 'some work' } | Should -Throw 'ERR:  Failed to merge all branches'
+            $fw.assertDiagnosticOutput | Should -Contain 'ERR:  Failed to merge all branches'
             Invoke-VerifyMock $mocks -Times 1
         }
     }

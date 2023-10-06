@@ -13,9 +13,13 @@ function Register-Framework {
     . "$PSScriptRoot/testing.ps1"
 
     Register-ProcessLog
-    $diagnostics = Register-Diagnostics -throwInsteadOfExit:$throwInsteadOfExit
+    $diag = New-Diagnostics
+    Mock -CommandName New-Diagnostics -MockWith { $diag }
+    
+    $diagnostics = Register-Diagnostics -throwInsteadOfExit
     return @{
-        diagnostics = $diagnostics
+        assertDiagnosticOutput = $diagnostics
+        diagnostics = $diag
     }
 
     Lock-InvokeWriteBlob

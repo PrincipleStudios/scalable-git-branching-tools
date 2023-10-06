@@ -11,7 +11,7 @@ Describe 'local action "create-branch"' {
     BeforeEach {
         $fw = Register-Framework -throwInsteadOfExit
         [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
-        $output = $fw.diagnostics
+        $output = $fw.assertDiagnosticOutput
     }
 
     function AddStandardTests() {

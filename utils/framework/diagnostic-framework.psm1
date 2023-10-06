@@ -70,6 +70,8 @@ function Assert-Diagnostics(
             Clear-ProcessLogs
         }
         foreach ($diagnostic in $diagnostics) {
+            if ($diagnostic.reported) { continue }
+            $diagnostic.reported = $true
             switch ($diagnostic.level) {
                 'error' {
                     Write-Host 'ERR:  ' -ForegroundColor Red -BackgroundColor Black -NoNewline

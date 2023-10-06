@@ -9,16 +9,16 @@ Describe 'Invoke-Script' {
     }
 
     BeforeEach {
-        Register-Framework
+        $fw = Register-Framework
         Initialize-ToolConfiguration
 
         Mock -CommandName Invoke-LocalAction -ModuleName Invoke-Script -MockWith { throw 'Unmocked local action' }
         Mock -CommandName Invoke-FinalizeAction -ModuleName Invoke-Script -MockWith { throw 'Unmocked finalize action' }
 
         [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
-        $diag = New-Diagnostics
+        $diag = $fw.diagnostics
         [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
-        $output = Register-Diagnostics -throwInsteadOfExit
+        $output = $fw.assertDiagnosticOutput
     }
 
     It 'runs local and finalize scripts' {
@@ -102,10 +102,12 @@ Describe 'Invoke-Script' {
                     { "id": "4", "type": "4", "parameters": { "item": "$($actions[\"3\"].outputs[\"part3\"])" } }
                 ]
             }' | ConvertFrom-Json) -diagnostics $diag
-        } | Should -Throw 'Fake Exit-DueToAssert'
+        } | Should -Throw # TODO - can't verify multiple: "WARN: Unable to evaluate script: '`$(`$actions[`"3`"].outputs[`"part3`"])'`nERR:  Could not apply parameters for finalize actions; see above errors."
         Get-HasErrorDiagnostic $diag | Should -Be $true
-        $output | Should -contain "WARN: Unable to evaluate script: '`$(`$actions[`"3`"].outputs[`"part3`"])'"
-        $output | Should -contain 'ERR:  Could not apply parameters for finalize actions; see above errors.'
+        $output | Should -Be @(
+            "WARN: Unable to evaluate script: '`$(`$actions[`"3`"].outputs[`"part3`"])'"
+            'ERR:  Could not apply parameters for finalize actions; see above errors.'
+        )
 
         Should -InvokeVerifiable
     }
@@ -125,7 +127,7 @@ Describe 'Invoke-Script' {
                     { "type": "4" }
                 ]
             }' | ConvertFrom-Json) -diagnostics $diag
-        } | Should -Throw 'Fake Exit-DueToAssert'
+        } | Should -Throw 'ERR:  Stop here'
         Get-HasErrorDiagnostic $diag | Should -Be $true
         $output | Should -Contain 'ERR:  Stop here'
 
@@ -149,7 +151,7 @@ Describe 'Invoke-Script' {
                     { "type": "4" }
                 ]
             }' | ConvertFrom-Json) -diagnostics $diag
-        } | Should -Throw 'Fake Exit-DueToAssert'
+        } | Should -Throw # TODO - can't verify multiple messages
         Get-HasErrorDiagnostic $diag | Should -Be $true
         $output | Should -Contain 'ERR:  Encountered error while running local action #1 (1-based), evaluated below, with the error following.'
         $entry = ($output | Where-Object { $_.StartsWith('ERR:  Cannot run 1') })
@@ -175,7 +177,7 @@ Describe 'Invoke-Script' {
                     { "id": "4", "type": "4", "parameters": { "item": "$($actions[\"3\"].outputs[\"part3\"])" } }
                 ]
             }' | ConvertFrom-Json) -diagnostics $diag
-        } | Should -Throw 'Fake Exit-DueToAssert'
+        } | Should -Throw # TODO - can't verify multiple
         Get-HasErrorDiagnostic $diag | Should -Be $true
         $output | Should -Contain 'ERR:  Could not apply parameters to local action 2; see above errors. Evaluation below:'
 
@@ -198,7 +200,7 @@ Describe 'Invoke-Script' {
                     { "type": "4" }
                 ]
             }' | ConvertFrom-Json) -diagnostics $diag
-        } | Should -Throw 'Fake Exit-DueToAssert'
+        } | Should -Throw # TODO - can't verify multiple
         Get-HasErrorDiagnostic $diag | Should -Be $true
         $output | Should -Contain 'ERR:  Encountered error while running finalize action #1 (1-based): See the following error.'
         $entry = ($output | Where-Object { $_.StartsWith('ERR:  Cannot run 3') })

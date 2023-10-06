@@ -25,6 +25,7 @@ function Invoke-LocalAction(
     try {
         $outputs = & $targetAction @parameters -diagnostics $diagnostics
     } catch {
+        Write-Host "ex: $_"
         Add-ErrorDiagnostic $diagnostics "Unhandled exception occurred while running $(ConvertTo-Json $actionDefinition -Depth 10):"
         Add-ErrorException $diagnostics $_
     }

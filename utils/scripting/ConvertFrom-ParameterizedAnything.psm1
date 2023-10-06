@@ -35,7 +35,7 @@ function ConvertFrom-ParameterizedAnything(
         if ($null -ne $entry) {
             return $entry
         } else {
-            Add-ErrorDiagnostic $diagnostics "Error trying to handle script '$_'; please ensure strings use `$(...) syntax"
+            Add-ErrorDiagnostic $diagnostics "Error trying to handle script '$script'; please ensure strings use `$(...) syntax"
             return @{ result = $null; fail = $true }
         }
     } elseif ($script -is [string]) {

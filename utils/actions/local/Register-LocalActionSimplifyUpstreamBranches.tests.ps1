@@ -11,7 +11,7 @@ Describe 'local action "simplify-upstream"' {
     BeforeEach {
         $fw = Register-Framework -throwInsteadOfExit
         [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
-        $output = $fw.diagnostics
+        $output = $fw.assertDiagnosticOutput
         [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
         $diag = New-Diagnostics
     }
