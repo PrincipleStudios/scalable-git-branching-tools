@@ -4,7 +4,7 @@ Import-Module -Scope Local "$PSScriptRoot/../framework.psm1"
 function Invoke-CreateBranch([String]$branchName, [String]$source) {
     Invoke-ProcessLogs "Create branch $branchName from $source" {
         git branch $branchName $source --quiet --no-track
-    } -quiet
+    }
     if ($LASTEXITCODE -ne 0) {
         throw "Could not create new branch '$branchName' from '$($source)'"
     }

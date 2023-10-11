@@ -27,10 +27,10 @@ function Get-GitHead() {
 function Restore-GitHead([String] $previousHead) {
     Invoke-ProcessLogs "git reset --hard" {
         git reset --hard
-    } -quiet
+    }
     Invoke-ProcessLogs "git checkout $previousHead" {
         git checkout $previousHead
-    } -quiet
+    }
 }
 
 function Invoke-PreserveBranch([ScriptBlock]$scriptBlock, [ScriptBlock]$cleanup, [switch]$noDefaultCleanup, [switch]$onlyIfError) {

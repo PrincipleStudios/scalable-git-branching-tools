@@ -18,7 +18,7 @@ function Invoke-MergeTogether(
         if ($null -eq $currentCommit) {
             $parsedCommitish = Invoke-ProcessLogs "git rev-parse --verify $target" {
                 git rev-parse --verify $target
-            } -allowSuccessOutput -quiet
+            } -allowSuccessOutput
             if ($global:LASTEXITCODE -eq 0) {
                 $currentCommit = $parsedCommitish
                 $remaining = $remaining | Where-Object { $_ -ne $target }
