@@ -15,3 +15,6 @@ Export-ModuleMember -Function Invoke-WriteBlob `
     , Invoke-CreateBranch `
     , Invoke-MergeBranches `
     , Set-RemoteTracking
+
+Import-Module -Scope Local "$PSScriptRoot/git/Invoke-MergeTogether.psm1"
+Export-ModuleMember -Function Invoke-MergeTogether

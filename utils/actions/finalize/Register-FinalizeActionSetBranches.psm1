@@ -17,6 +17,7 @@ function Register-FinalizeActionSetBranches([PSObject] $finalizeActions) {
     $finalizeActions['set-branches'] = {
         param(
             [Parameter()] $branches,
+            [Parameter()][AllowEmptyCollection()][string[]] $track,
             [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
         )
 
@@ -32,7 +33,13 @@ function Register-FinalizeActionSetBranches([PSObject] $finalizeActions) {
             if ($global:LASTEXITCODE -ne 0) {
                 Add-ErrorDiagnostic $diagnostics "Unable to push updates to $($config.remote)"
             }
-            # TODO: set upstream? We don't even know what the local branches would push to
+            
+
+            foreach ($key in $track) {
+                Invoke-ProcessLogs "git branch $key --set-upstream-to $($config.remote)/$key" {
+                    git branch $key --set-upstream-to "$($config.remote)/$key"
+                }
+            }
         } else {
             foreach ($key in $branches.Keys) {
                 Invoke-ProcessLogs "git branch $key $($branches[$key])" {

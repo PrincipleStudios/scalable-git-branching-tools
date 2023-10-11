@@ -5,6 +5,7 @@ Import-Module -Scope Local "$PSScriptRoot/query-state/Select-UpstreamBranches.mo
 Import-Module -Scope Local "$PSScriptRoot/query-state/Update-GitRemote.mocks.psm1"
 Import-Module -Scope Local "$PSScriptRoot/query-state/Get-CurrentBranch.mocks.psm1"
 Import-Module -Scope Local "$PSScriptRoot/query-state/Get-GitFile.mocks.psm1"
+Import-Module -Scope Local "$PSScriptRoot/query-state/Get-MergeTree.mocks.psm1"
 
 Export-ModuleMember -Function `
     Initialize-CleanWorkingDirectory, Initialize-DirtyWorkingDirectory, Initialize-UntrackedFiles `
@@ -14,3 +15,4 @@ Export-ModuleMember -Function `
     , Initialize-UpdateGitRemote `
     , Initialize-CurrentBranch, Initialize-NoCurrentBranch `
     , Initialize-OtherGitFilesAsBlank, Initialize-GitFile `
+    , Initialize-MergeTree `

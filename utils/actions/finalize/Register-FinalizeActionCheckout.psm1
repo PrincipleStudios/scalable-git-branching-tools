@@ -10,7 +10,10 @@ function Register-FinalizeActionCheckout([PSObject] $finalizeActions) {
             [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
         )
 
-        Invoke-CheckoutBranch $HEAD -diagnostics $diagnostics
+        Assert-CleanWorkingDirectory -diagnostics $diagnostics
+        if (-not (Get-HasErrorDiagnostic $diagnostics)) {
+            Invoke-CheckoutBranch $HEAD -diagnostics $diagnostics
+        }
     }
 }
 

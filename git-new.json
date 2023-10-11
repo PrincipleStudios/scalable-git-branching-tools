@@ -21,8 +21,8 @@
             "id": "create-branch",
             "type": "create-branch",
             "parameters": {
-                "target": "$params.branchName",
-                "upstreamBranches": ["$actions['simplify-upstream'].outputs"]
+                "upstreamBranches": ["$actions['simplify-upstream'].outputs"],
+                "mergeMessageTemplate": "Merge '{}' for creation of $($params.branchName)"
             }
         }
     ],
@@ -33,7 +33,8 @@
                 "branches": {
                     "$config.upstreamBranch": "$actions['set-upstream'].outputs['commit']",
                     "$params.branchName": "$actions['create-branch'].outputs['commit']"
-                }
+                },
+                "track": ["$params.branchName"]
             }
         },
         {

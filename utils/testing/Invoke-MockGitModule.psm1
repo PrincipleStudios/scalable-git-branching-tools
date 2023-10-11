@@ -1,6 +1,7 @@
 Import-Module -Scope Local "$PSScriptRoot/Invoke-VerifyMock.psm1"
 
 function Invoke-MockGitModule([string] $ModuleName, [string] $gitCli, [object] $MockWith) {
+    $gitCli = $gitCli.Replace("'", "''")
     $result = New-VerifiableMock `
         -ModuleName $ModuleName `
         -CommandName git `

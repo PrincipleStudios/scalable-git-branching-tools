@@ -17,51 +17,33 @@ Describe 'local action "create-branch"' {
     }
 
     function AddStandardTests() {
-        It 'halts if the working directory is not clean' {
-            Initialize-DirtyWorkingDirectory
-
-            $result = Invoke-LocalAction ('{ 
-                    "type": "create-branch", 
-                    "parameters": {
-                        "target": "foobar",
-                        "upstreamBranches": [
-                            "baz",
-                            "barbaz"
-                        ]
-                    }
-                }' | ConvertFrom-Json) -diagnostics $diag
-            $result | Should -Be $null
-            { Assert-Diagnostics $diag } | Should -Throw
-            $output | Should -Contain 'ERR:  Git working directory is not clean.'
-        }
-
         It 'creates from a single branch' {
-            Initialize-LocalActionCreateBranchSuccess 'foobar' @('baz') 'new-Commit'
+            Initialize-LocalActionCreateBranchSuccess @('baz') 'new-Commit' -mergeMessageTemplate "Merge {}"
 
             $result = Invoke-LocalAction ('{ 
                 "type": "create-branch", 
                 "parameters": {
-                    "target": "foobar",
                     "upstreamBranches": [
                         "baz"
-                    ]
+                    ],
+                    "mergeMessageTemplate": "Merge {}"
                 }
             }' | ConvertFrom-Json) -diagnostics $diag
-            $diag | Should -Be $null
+            $diag | Should -BeNullOrEmpty
             $result | Assert-ShouldBeObject @{ commit = 'new-COMMIT' }
         }
 
         It 'handles standard functionality' {
-            $mocks = Initialize-LocalActionCreateBranchSuccess 'foobar' @('baz', 'barbaz') 'new-Commit'
+            $mocks = Initialize-LocalActionCreateBranchSuccess @('baz', 'barbaz') 'new-Commit' -mergeMessageTemplate "Merge {}"
 
             $result = Invoke-LocalAction ('{ 
                 "type": "create-branch", 
                 "parameters": {
-                    "target": "foobar",
                     "upstreamBranches": [
                         "baz",
                         "barbaz"
-                    ]
+                    ],
+                    "mergeMessageTemplate": "Merge {}"
                 }
             }' | ConvertFrom-Json) -diagnostics $diag
             $diag | Should -Be $null
@@ -69,23 +51,24 @@ Describe 'local action "create-branch"' {
             Invoke-VerifyMock $mocks -Times 1
         }
 
-        It 'reports merge failures' {
-            $mocks = Initialize-LocalActionCreateBranchSuccess 'foobar' @('baz', 'barbaz') 'new-Commit' `
-                -failAtMerge 1
+        It 'fails if all branches could not be resolved' {
+            $mocks = Initialize-LocalActionCreateBranchSuccess @('baz', 'barbaz') 'new-Commit' `
+                -mergeMessageTemplate "Merge {}" `
+                -failAtMerge 0
 
             $result = Invoke-LocalAction ('{ 
                 "type": "create-branch", 
                 "parameters": {
-                    "target": "foobar",
                     "upstreamBranches": [
                         "baz",
                         "barbaz"
-                    ]
+                    ],
+                    "mergeMessageTemplate": "Merge {}"
                 }
             }' | ConvertFrom-Json) -diagnostics $diag
             { Assert-Diagnostics $diag } | Should -Throw
-            $output | Should -contain 'ERR:  Failed to merge all branches'
-            $result | Should -Be $null
+            $output | Should -contain 'ERR:  No branches could be resolved to merge'
+            $result | Assert-ShouldBeObject @{ commit = $null }
             Invoke-VerifyMock $mocks -Times 1
         }
     }
@@ -101,6 +84,27 @@ Describe 'local action "create-branch"' {
         }
 
         AddStandardTests
+        
+        It 'reports merge failures' {
+            $mocks = Initialize-LocalActionCreateBranchSuccess @('baz', 'barbaz') 'new-Commit' `
+                -mergeMessageTemplate "Merge {}" `
+                -failAtMerge 1
+
+            $result = Invoke-LocalAction ('{ 
+                "type": "create-branch", 
+                "parameters": {
+                    "upstreamBranches": [
+                        "baz",
+                        "barbaz"
+                    ],
+                    "mergeMessageTemplate": "Merge {}"
+                }
+            }' | ConvertFrom-Json) -diagnostics $diag
+            { Assert-Diagnostics $diag } | Should -Not -Throw
+            $output | Should -contain 'WARN: Could not merge the following branches: barbaz'
+            $result | Assert-ShouldBeObject @{ commit = 'new-COMMIT' }
+            Invoke-VerifyMock $mocks -Times 1
+        }
     }
     
     Context 'with remote' {
@@ -114,5 +118,26 @@ Describe 'local action "create-branch"' {
         }
         
         AddStandardTests
+        
+        It 'reports merge failures' {
+            $mocks = Initialize-LocalActionCreateBranchSuccess @('baz', 'barbaz') 'new-Commit' `
+                -mergeMessageTemplate "Merge {}" `
+                -failAtMerge 1
+
+            $result = Invoke-LocalAction ('{ 
+                "type": "create-branch", 
+                "parameters": {
+                    "upstreamBranches": [
+                        "baz",
+                        "barbaz"
+                    ],
+                    "mergeMessageTemplate": "Merge {}"
+                }
+            }' | ConvertFrom-Json) -diagnostics $diag
+            { Assert-Diagnostics $diag } | Should -Not -Throw
+            $output | Should -contain 'WARN: Could not merge the following branches: origin/barbaz'
+            $result | Assert-ShouldBeObject @{ commit = 'new-COMMIT' }
+            Invoke-VerifyMock $mocks -Times 1
+        }
     }
 }
