@@ -70,15 +70,20 @@ Describe 'processlog-framework' {
         $logs.Count | Should -Be 1
     }
     
-    # This is best tested independently without 'Register-ProcessLog' above
+    # Skipping because the "Working on 'sleep'..." cannot be mocked
     It 'can run for a while without logs' -Skip {
+        Mock -ModuleName 'processlog-framework' -CommandName 'Get-IsQuiet' { return $false }
         $output = Invoke-ProcessLogs 'sleep' {
-            Start-Sleep -Milliseconds 750
-        }
+            Start-Sleep -Milliseconds 100
+        } -beginThreshold 0.05
+
         $logs = Get-ProcessLogs
         $logs[0].name | Should -Be 'sleep'
         $logs[0].logs | Should -BeNullOrEmpty
         $output | Should -BeNullOrEmpty
         $logs.Count | Should -Be 1
+
+        # Should -ModuleName 'processlog-framework' -Invoke -CommandName 'Write-Host' -ParameterFilter { $Object.StartsWith("Working on 'sleep'...") } -Times 1
+        Should -ModuleName 'processlog-framework' -Invoke -CommandName 'Write-Host' -ParameterFilter { $Object.StartsWith("End 'sleep'.") } -Times 1
     }
 }

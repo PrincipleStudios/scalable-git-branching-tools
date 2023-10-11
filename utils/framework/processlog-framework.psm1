@@ -1,6 +1,5 @@
 
 $processLogs = New-Object -TypeName 'System.Collections.ArrayList'
-$beginThreshold = 0.5
 
 function Write-ProcessLogs {
     [OutputType([string])]
@@ -33,22 +32,23 @@ function Invoke-ProcessLogs {
     Param (
         [Parameter(Mandatory)][string]$processDescription,
         [Parameter(Mandatory)][scriptblock]$process,
-        [Switch] $allowSuccessOutput
+        [Switch] $allowSuccessOutput,
+        [Parameter()] $beginThreshold = 0.5
     )
-    $state = @{ isRunning = $true; hasOutput = $false; description = $processDescription }
+    $state = @{ isRunning = $true; hasOutput = $false }
     $quiet = Get-IsQuiet
     $timer = [Diagnostics.Stopwatch]::StartNew()
     if (-not $quiet) {
         $reportProgress = {
-            params($state)
+            param ($state, $processDescription, $beginThreshold)
 
             Start-Sleep -Seconds $beginThreshold
             if ($state.isRunning) {
                 $state.hasOutput = $true
-                Write-Host "Working on '$($state.description)'..."
+                Write-Host "Working on '$($processDescription)'..."
             }
         }
-        $job = Start-ThreadJob $reportProgress -StreamingHost $Host -ArgumentList @($state)
+        $job = Start-ThreadJob $reportProgress -StreamingHost $Host -ArgumentList @($state, $processDescription, $beginThreshold)
     } else {
         $job = $null
     }
