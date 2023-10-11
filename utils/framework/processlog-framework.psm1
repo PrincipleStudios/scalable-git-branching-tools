@@ -35,19 +35,19 @@ function Invoke-ProcessLogs {
         [Parameter(Mandatory)][scriptblock]$process,
         [Switch] $allowSuccessOutput
     )
-    $state = @{ isRunning = $true; hasOutput = $false }
+    $state = @{ isRunning = $true; hasOutput = $false; description = $processDescription }
     $quiet = Get-IsQuiet
     $timer = [Diagnostics.Stopwatch]::StartNew()
     if (-not $quiet) {
-        $reportProgress = [scriptblock]::Create("
-            params(`$state)
+        $reportProgress = {
+            params($state)
 
             Start-Sleep -Seconds $beginThreshold
-            if (`$state.isRunning) {
-                `$state.hasOutput = $true
-                Write-Host `"Working on '$($processDescription.Replace('"', '`"').Replace('`', '``'))'...`"
+            if ($state.isRunning) {
+                $state.hasOutput = $true
+                Write-Host "Working on '$($state.description)'..."
             }
-        ")
+        }
         $job = Start-ThreadJob $reportProgress -StreamingHost $Host -ArgumentList @($state)
     } else {
         $job = $null
