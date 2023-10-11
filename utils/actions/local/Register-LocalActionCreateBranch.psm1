@@ -38,7 +38,7 @@ function Register-LocalActionCreateBranch([PSObject] $localActions) {
 
         $commit = Invoke-ProcessLogs "git rev-parse $target" {
             git rev-parse $target
-        } -allowSuccessOutput -quiet
+        } -allowSuccessOutput
         return @{ commit = $commit }
     }
 }
