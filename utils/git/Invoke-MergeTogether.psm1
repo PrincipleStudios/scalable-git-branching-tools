@@ -36,13 +36,29 @@ function Invoke-MergeTogether(
             $allFailed = $true
             for ($i = 0; $i -lt $remaining.Count; $i++) {
                 $target = $remaining[$i]
+                $targetCommit = Invoke-ProcessLogs "git rev-parse --verify $target" {
+                    git rev-parse --verify $target
+                } -allowSuccessOutput
+                if ($global:LASTEXITCODE -ne 0) {
+                    # If we can't resolve the commit, it'll never resolve
+                    $remaining = $remaining | Where-Object { $_ -ne $target }
+                    $failed += $target
+                    if ($asWarnings) {
+                        Add-WarningDiagnostic $diagnostics "Could not resolve '$($target)'"
+                    } else {
+                        Add-ErrorDiagnostic $diagnostics "Could not resolve '$($target)'"
+                    }
+                    $i--
+                    continue
+                }
+
                 $mergeTreeResult = Get-MergeTree $currentCommit $target
                 if (-not $mergeTreeResult.isSuccess) { continue }
                 $nextTree = $mergeTreeResult.treeish
 
                 $commitMessage = $messageTemplate.Replace('{}', $target)
-                $resultCommit = Invoke-ProcessLogs "git commit-tree $nextTree -m $commitMessage -p $currentCommit" {
-                    git commit-tree $nextTree -m $commitMessage -p $currentCommit
+                $resultCommit = Invoke-ProcessLogs "git commit-tree $nextTree -m $commitMessage -p $currentCommit -p $targetCommit" {
+                    git commit-tree $nextTree -m $commitMessage -p $currentCommit -p $targetCommit
                 } -allowSuccessOutput
                 if ($global:LASTEXITCODE -ne 0) { continue }
 
@@ -53,7 +69,7 @@ function Invoke-MergeTogether(
                 $successful += $target
                 break;
             }
-            if ($allFailed) {
+            if ($allFailed -AND $remaining.Count -gt 0) {
                 if ($asWarnings) {
                     Add-WarningDiagnostic $diagnostics "Could not merge the following branches: $remaining"
                 } else {

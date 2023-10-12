@@ -58,11 +58,12 @@ function Initialize-MergeTogether(
         if ($successfulBranches -contains $current) {
             $success += $current
             if ($current -eq $initialSuccessfulBranch) { continue }
+            Invoke-MockGit "rev-parse --verify $current" -MockWith "$current-commitish"
 
             $treeish = "$current-tree"
             $message = $messageTemplate.Replace('{}', $current)
             Initialize-MergeTree $currentCommit $current $treeish
-            Invoke-MockGit "commit-tree $treeish -m $message -p $currentCommit" -MockWith "$($commitish[$current])"
+            Invoke-MockGit "commit-tree $treeish -m $message -p $currentCommit -p $current-commitish" -MockWith "$($commitish[$current])"
             $currentCommit = $commitish[$current]
 
             foreach ($failedBranch in $failed) {
@@ -72,6 +73,7 @@ function Initialize-MergeTogether(
             if ($success.Count -eq 0) {
                 Invoke-MockGit "rev-parse --verify $current" -MockWith { $global:LASTEXITCODE = 1 }
             } else {
+                Invoke-MockGit "rev-parse --verify $current" -MockWith "$current-commitish"
                 $treeish = "$current-tree"
                 Initialize-MergeTree $currentCommit $current $treeish -fail
             }
