@@ -36,6 +36,9 @@ function Register-FinalizeActionSetBranches([PSObject] $finalizeActions) {
             
 
             foreach ($key in $track) {
+                Invoke-ProcessLogs "git branch $key $($branches[$key])" {
+                    git branch $key $($branches[$key]) -f
+                }
                 Invoke-ProcessLogs "git branch $key --set-upstream-to $($config.remote)/$key" {
                     git branch $key --set-upstream-to "$($config.remote)/$key"
                 }

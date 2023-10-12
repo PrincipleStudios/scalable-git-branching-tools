@@ -16,6 +16,9 @@ function Initialize-FinalizeActionSetBranches([Hashtable] $branches, [string[]] 
             -MockWith $($fail ? { $Global:LASTEXITCODE = 1 } : {})
 
         foreach ($branch in $track) {
+            Invoke-MockGit `
+                -gitCli "branch $($branch) $($branches[$branch]) -f" `
+                -MockWith $($fail ? { $Global:LASTEXITCODE = 1 } : {})
             Invoke-MockGit -gitCli "branch $branch --set-upstream-to $($config.remote)/$branch"
         }
     } else {
