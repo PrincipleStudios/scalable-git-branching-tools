@@ -45,6 +45,6 @@
         }
     ],
     "output": [
-        "$($params.branchName) is now checked out."
+        "Switched to branch '$($params.branchName)'"
     ]
 }
