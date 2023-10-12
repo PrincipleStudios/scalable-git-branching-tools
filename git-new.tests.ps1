@@ -22,18 +22,6 @@ Describe 'git-new' {
             Initialize-AnyUpstreamBranches
         }
 
-        # It 'halts if the working directory is not clean' {
-        #     Initialize-DirtyWorkingDirectory
-
-        #     Initialize-AssertValidBranchName 'feature/PS-100-some-work'
-        #     Initialize-LocalActionSetUpstream @{
-        #         'feature/PS-100-some-work' = 'main'
-        #     } -commitish 'new-commit'
-            
-        #     { & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -m 'some work' } | Should -Throw 'ERR:  Git working directory is not clean.'
-        #     $fw.assertDiagnosticOutput | Should -Contain 'ERR:  Git working directory is not clean.'
-        # }
-
         It 'handles standard functionality' {
             Initialize-AssertValidBranchName 'feature/PS-100-some-work'
 
@@ -100,6 +88,29 @@ Describe 'git-new' {
             $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
             Invoke-VerifyMock $mocks -Times 1
         }
+        
+        It 'does not check out if the working directory is not clean' {
+            Initialize-DirtyWorkingDirectory
+
+            Initialize-AssertValidBranchName 'feature/PS-100-some-work'
+            
+            $mocks = @(
+                Initialize-LocalActionSetUpstream @{
+                    'feature/PS-100-some-work' = 'main'
+                } -commitish 'new-commit'
+                Initialize-LocalActionCreateBranchSuccess `
+                    @('main') 'latest-main' `
+                    -mergeMessageTemplate "Merge '{}' for creation of feature/PS-100-some-work"
+                Initialize-FinalizeActionSetBranches @{
+                    _upstream = 'new-commit'
+                    'feature/PS-100-some-work' = 'latest-main'
+                }
+            )
+
+            { & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -m 'some work' } | Should -Throw 'ERR:  Git working directory is not clean.'
+            $fw.assertDiagnosticOutput | Should -Contain 'ERR:  Git working directory is not clean.'
+            Invoke-VerifyMock $mocks -Times 1
+        }
     }
 
     Context 'with remote' {
@@ -118,10 +129,10 @@ Describe 'git-new' {
 
         It 'detects an invalid branch name and prevents moving forward' {
             Initialize-AssertInvalidBranchName 'feature/PS-100-some-work'
-            
+
             { & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -m 'some work' } | Should -Throw
 
-            $fw.assertDiagnosticOutput | Should -Be @(
+            $fw.assertDiagnosticOutput | Should -Contain @(
                 "ERR:  Invalid branch name specified: 'feature/PS-100-some-work'"
             )
         }

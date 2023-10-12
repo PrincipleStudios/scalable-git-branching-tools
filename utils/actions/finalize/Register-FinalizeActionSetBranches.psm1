@@ -1,5 +1,6 @@
 Import-Module -Scope Local "$PSScriptRoot/../../core.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../framework.psm1"
+Import-Module -Scope Local "$PSScriptRoot/../../input.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../query-state.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../git.psm1"
 
@@ -23,6 +24,8 @@ function Register-FinalizeActionSetBranches([PSObject] $finalizeActions) {
 
         $branches = ConvertTo-Hashtable $branches
         $config = Get-Configuration
+
+        $branches.Keys | Assert-ValidBranchName -diagnostics $diagnostics
 
         if ($null -ne $config.remote) {
             $atomicPart = $config.atomicPushEnabled ? @("--atomic") : @()

@@ -11,6 +11,7 @@ function Register-LocalActionSimplifyUpstreamBranches([PSObject] $localActions) 
         )
         
         $upstreamBranches | Assert-ValidBranchName -diagnostics $diagnostics
+        if (Get-HasErrorDiagnostic $diagnostics) { return $null }
 
         if ($upstreamBranches.Count -eq 0) {
             $config = Get-Configuration

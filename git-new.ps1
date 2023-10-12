@@ -25,24 +25,22 @@ Param(
 
 Import-Module -Scope Local "$PSScriptRoot/utils/framework.psm1"
 Import-Module -Scope Local "$PSScriptRoot/utils/input.psm1"
-
-$diagnostics = New-Diagnostics
-Assert-ValidBranchName $branchName -diagnostics $diagnostics
-Assert-Diagnostics $diagnostics
-
 Import-Module -Scope Local "$PSScriptRoot/utils/query-state.psm1"
 Import-Module -Scope Local "$PSScriptRoot/utils/git.psm1"
-
-Update-GitRemote
+Import-Module -Scope Local "$PSScriptRoot/utils/scripting.psm1"
 
 $params = @{
     branchName = $branchName;
     upstreamBranches = Expand-StringArray $upstreamBranches;
     comment = $comment ?? '';
 }
+$scriptPath = "$PSScriptRoot/git-new.json"
 
-$instructions = Get-Content "$PSScriptRoot/git-new.json" | ConvertFrom-Json
+$diagnostics = New-Diagnostics
+# TODO: move this into a JSON task
+Assert-ValidBranchName $branchName -diagnostics $diagnostics
+Assert-Diagnostics $diagnostics
 
-Import-Module -Scope Local "$PSScriptRoot/utils/scripting.psm1"
-
+Update-GitRemote
+$instructions = Get-Content $scriptPath | ConvertFrom-Json
 Invoke-Script $instructions -params $params -diagnostics $diagnostics -dryRun:$dryRun

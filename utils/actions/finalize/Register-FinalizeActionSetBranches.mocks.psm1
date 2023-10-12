@@ -1,4 +1,5 @@
 Import-Module -Scope Local "$PSScriptRoot/../../testing.psm1"
+Import-Module -Scope Local "$PSScriptRoot/../../input.mocks.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../query-state.psm1"
 Import-Module -Scope Local "$PSScriptRoot/Register-FinalizeActionSetBranches.psm1"
 
@@ -9,6 +10,10 @@ function Invoke-MockGit([string] $gitCli, [object] $MockWith) {
 function Initialize-FinalizeActionSetBranches([Hashtable] $branches, [string[]] $track, [switch] $fail) {
     $config = Get-Configuration
     
+    foreach ($branch in $branches.Keys) {
+        Initialize-AssertValidBranchName $branch
+    }
+
     if ($null -ne $config.remote) {
         $atomicPart = $config.atomicPushEnabled ? "--atomic " : ''
         $branchList = ConvertTo-PushBranchList $branches
