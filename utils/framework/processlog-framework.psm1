@@ -52,15 +52,18 @@ function Invoke-ProcessLogs {
     } else {
         $job = $null
     }
-    & $process *>&1 | Write-ProcessLogs $processDescription -allowSuccessOutput:$allowSuccessOutput
-    $state.isRunning = $false
-    $timer.Stop()
-    if ($null -ne $job -AND $job.jobstateinfo.state -ne 'Completed') {
-        Stop-Job $job *>$null
-        Remove-Job $job -Force
-    }
-    if ($state.hasOutput) {
-        Write-Host "End '$processDescription'. ($([math]::Round($timer.Elapsed.TotalSeconds, 1))s)"
+    try {
+        & $process *>&1 | Write-ProcessLogs $processDescription -allowSuccessOutput:$allowSuccessOutput
+    } finally {
+        $state.isRunning = $false
+        $timer.Stop()
+        if ($null -ne $job -AND $job.jobstateinfo.state -ne 'Completed') {
+            Stop-Job $job *>$null
+            Remove-Job $job -Force
+        }
+        if ($state.hasOutput) {
+            Write-Host "End '$processDescription'. ($([math]::Round($timer.Elapsed.TotalSeconds, 1))s)"
+        }
     }
 }
 
