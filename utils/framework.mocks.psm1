@@ -5,7 +5,6 @@ Import-Module -Scope Local "$PSScriptRoot/git/Invoke-WriteBlob.mocks.psm1"
 Import-Module -Scope Local "$PSScriptRoot/git/Invoke-WriteTree.mocks.psm1"
 
 function Register-Framework {
-    [OutputType([System.Collections.ArrayList])]
     Param (
         [switch] $throwInsteadOfExit
     )
@@ -26,8 +25,14 @@ function Register-Framework {
     Lock-InvokeWriteTree
 }
 
+function Invoke-FlushAssertDiagnostic(
+    [Parameter(Mandatory)][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
+) {
+    try { Assert-Diagnostics $diagnostics } catch { }
+}
+
 Export-ModuleMember -Function New-Diagnostics, Add-ErrorDiagnostic, Add-ErrorException, Add-WarningDiagnostic, Assert-Diagnostics, Get-HasErrorDiagnostic `
     , Invoke-ProcessLogs `
-    , Register-Framework `
+    , Register-Framework, Invoke-FlushAssertDiagnostic `
     , New-Diagnostics, Register-Diagnostics, Get-DiagnosticStrings `
     , Clear-ProcessLogs, Get-ProcessLogs
