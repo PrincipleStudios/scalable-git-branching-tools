@@ -1,5 +1,6 @@
 Import-Module -Scope Local "$PSScriptRoot/../../core.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../framework.psm1"
+Import-Module -Scope Local "$PSScriptRoot/../../input.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../query-state.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../git.psm1"
 
@@ -17,11 +18,14 @@ function Register-FinalizeActionSetBranches([PSObject] $finalizeActions) {
     $finalizeActions['set-branches'] = {
         param(
             [Parameter()] $branches,
+            [Parameter()][AllowEmptyCollection()][string[]] $track,
             [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
         )
 
         $branches = ConvertTo-Hashtable $branches
         $config = Get-Configuration
+
+        $branches.Keys | Assert-ValidBranchName -diagnostics $diagnostics
 
         if ($null -ne $config.remote) {
             $atomicPart = $config.atomicPushEnabled ? @("--atomic") : @()
@@ -32,7 +36,16 @@ function Register-FinalizeActionSetBranches([PSObject] $finalizeActions) {
             if ($global:LASTEXITCODE -ne 0) {
                 Add-ErrorDiagnostic $diagnostics "Unable to push updates to $($config.remote)"
             }
-            # TODO: set upstream? We don't even know what the local branches would push to
+            
+
+            foreach ($key in $track) {
+                Invoke-ProcessLogs "git branch $key $($branches[$key])" {
+                    git branch $key $($branches[$key]) -f
+                }
+                Invoke-ProcessLogs "git branch $key --set-upstream-to $($config.remote)/$key" {
+                    git branch $key --set-upstream-to "$($config.remote)/$key"
+                }
+            }
         } else {
             foreach ($key in $branches.Keys) {
                 Invoke-ProcessLogs "git branch $key $($branches[$key])" {

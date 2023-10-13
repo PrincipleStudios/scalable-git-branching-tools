@@ -5,6 +5,12 @@ Describe 'ConvertFrom-ParameterizedObject' {
         Import-Module -Scope Local "$PSScriptRoot/ConvertFrom-ParameterizedString.psm1"
         Import-Module -Scope Local "$PSScriptRoot/ConvertFrom-ParameterizedObject.psm1"
     }
+    
+    BeforeEach {
+        $fw = Register-Framework
+        [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
+        $diag = $fw.diagnostics
+    }
 
     It 'ignores non-parameterized objects' {
         $target = @{ 'foo' = 'bar'; 'baz' = 'woot' }
@@ -53,7 +59,6 @@ Describe 'ConvertFrom-ParameterizedObject' {
     }
     
     It 'reports warnings if diagnostics are provided' {
-        $diag = New-Diagnostics
         $target = @{ 'foo' = '$($params.foo)'; 'baz' = '$($params.banter)' }
         $result = ConvertFrom-ParameterizedObject $target -config @{} -params @{} -actions @{} -diagnostics $diag -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
         $result.fail | Should -Be $true
@@ -66,7 +71,6 @@ Describe 'ConvertFrom-ParameterizedObject' {
     }
 
     It 'reports errors if diagnostics are provided and flagged to fail on error' {
-        $diag = New-Diagnostics
         $target = @{ 'foo' = '$($params.foo)'; 'baz' = '$($params.banter)' }
         $result = ConvertFrom-ParameterizedObject $target -config @{} -params @{} -actions @{} -diagnostics $diag -failOnError -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
         $result.fail | Should -Be $true

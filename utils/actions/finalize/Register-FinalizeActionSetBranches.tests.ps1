@@ -2,6 +2,7 @@ Describe 'finalize action "set-branches"' {
     BeforeAll {
         Import-Module -Scope Local "$PSScriptRoot/../../framework.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/../../query-state.mocks.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/../../input.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/../../git.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/../Invoke-FinalizeAction.psm1"
         Import-Module -Scope Local "$PSScriptRoot/Register-FinalizeActionSetBranches.mocks.psm1"
@@ -12,9 +13,9 @@ Describe 'finalize action "set-branches"' {
         $fw = Register-Framework -throwInsteadOfExit
 
         [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
-        $diag = New-Diagnostics
+        $diag = $fw.diagnostics
         [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
-        $output = $fw.diagnostics
+        $output = $fw.assertDiagnosticOutput
         [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
         $standardScript = ('{ 
             "type": "set-branches", 
@@ -41,6 +42,9 @@ Describe 'finalize action "set-branches"' {
 
         It 'handles standard functionality' {
             $mocks = @(
+                Initialize-AssertValidBranchName '_upstream'
+                Initialize-AssertValidBranchName 'other'
+                Initialize-AssertValidBranchName 'another'
                 Invoke-MockGitModule -ModuleName 'Register-FinalizeActionSetBranches' `
                     -gitCli "branch _upstream new-upstream-commitish -f"
                 Invoke-MockGitModule -ModuleName 'Register-FinalizeActionSetBranches' `
@@ -50,14 +54,14 @@ Describe 'finalize action "set-branches"' {
             )
             
             Invoke-FinalizeAction $standardScript -diagnostics $diag
-            $diag | Should -Be $null
+            $diag | Should -BeNullOrEmpty
             Invoke-VerifyMock $mocks -Times 1
         }
 
         It 'handles standard functionality using mocks' {
             $mocks = Initialize-FinalizeActionSetBranches $standardBranches
             Invoke-FinalizeAction $standardScript -diagnostics $diag
-            $diag | Should -Be $null
+            $diag | Should -BeNullOrEmpty
             Invoke-VerifyMock $mocks -Times 1
         }
 
@@ -75,6 +79,9 @@ Describe 'finalize action "set-branches"' {
 
         It 'handles standard functionality' {
             $mocks = @(
+                Initialize-AssertValidBranchName '_upstream'
+                Initialize-AssertValidBranchName 'other'
+                Initialize-AssertValidBranchName 'another'
                 Invoke-MockGitModule -ModuleName 'Register-FinalizeActionSetBranches' `
                     -gitCli "push origin --atomic new-upstream-commitish:refs/heads/_upstream another-commitish:refs/heads/another other-commitish:refs/heads/other"
             )
@@ -104,6 +111,9 @@ Describe 'finalize action "set-branches"' {
 
         It 'handles standard functionality' {
             $mocks = @(
+                Initialize-AssertValidBranchName '_upstream'
+                Initialize-AssertValidBranchName 'other'
+                Initialize-AssertValidBranchName 'another'
                 Invoke-MockGitModule -ModuleName 'Register-FinalizeActionSetBranches' `
                     -gitCli "push origin new-upstream-commitish:refs/heads/_upstream another-commitish:refs/heads/another other-commitish:refs/heads/other"
             )

@@ -6,7 +6,9 @@ Describe 'ConvertFrom-ParameterizedArray' {
         Import-Module -Scope Local "$PSScriptRoot/ConvertFrom-ParameterizedArray.psm1"
     }
     BeforeEach {
-        Register-Framework
+        $fw = Register-Framework
+        [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
+        $diag = $fw.diagnostics
     }
 
     It 'can evaluate single parameters' {
@@ -30,7 +32,6 @@ Describe 'ConvertFrom-ParameterizedArray' {
     }
 
     It 'reports warnings if diagnostics are provided' {
-        $diag = New-Diagnostics
         $params = @{ foo = @('bar', 'baz') }
         $result = ConvertFrom-ParameterizedArray @('foo', '$($config.upstreamBranch)') -config @{} -params $params -actions @{} -diagnostics $diag -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
         $result.fail | Should -Be $true
@@ -41,7 +42,6 @@ Describe 'ConvertFrom-ParameterizedArray' {
     }
 
     It 'reports errors if diagnostics are provided and flagged to fail on error' {
-        $diag = New-Diagnostics
         $params = @{ foo = @('bar', 'baz') }
         $result = ConvertFrom-ParameterizedArray @('foo', '$($config.upstreamBranch)') -config @{} -params $params -actions @{} -diagnostics $diag -failOnError -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
         $result.fail | Should -Be $true

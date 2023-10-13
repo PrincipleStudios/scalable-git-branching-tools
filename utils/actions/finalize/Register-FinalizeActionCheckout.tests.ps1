@@ -9,12 +9,10 @@ Describe 'finalize action "checkout"' {
     }
     
     BeforeEach {
-        Register-Framework
+        $fw = Register-Framework
 
         [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
-        $diag = New-Diagnostics
-        [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
-        $output = Register-Diagnostics -throwInsteadOfExit
+        $diag = $fw.diagnostics
         [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
         $standardScript = ('{ 
             "type": "checkout", 
@@ -27,19 +25,32 @@ Describe 'finalize action "checkout"' {
 
     It 'handles standard functionality' {
         $mocks = @(
+            Initialize-CleanWorkingDirectory
             Invoke-MockGitModule -ModuleName 'Invoke-CheckoutBranch' `
                 -gitCli "checkout new-branch"
         )
         
         Invoke-FinalizeAction $standardScript -diagnostics $diag
-        $diag | Should -Be $null
+        $diag | Should -BeNullOrEmpty
+        Invoke-VerifyMock $mocks -Times 1
+    }
+
+    It 'fails if the working directory is not clean' {
+        $mocks = @(
+            Initialize-DirtyWorkingDirectory
+        )
+        
+        Invoke-FinalizeAction $standardScript -diagnostics $diag
+        { Assert-Diagnostics $diag } | Should -Throw
+        Get-HasErrorDiagnostic $diag | Should -BeTrue
+        $fw.assertDiagnosticOutput | Should -Contain 'ERR:  Git working directory is not clean.'
         Invoke-VerifyMock $mocks -Times 1
     }
 
     It 'handles standard functionality using mocks' {
         $mocks = Initialize-FinalizeActionCheckout 'new-branch'
         Invoke-FinalizeAction $standardScript -diagnostics $diag
-        $diag | Should -Be $null
+        $diag | Should -BeNullOrEmpty
         Invoke-VerifyMock $mocks -Times 1
     }
 

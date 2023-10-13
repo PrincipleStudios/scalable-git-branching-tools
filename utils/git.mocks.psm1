@@ -15,3 +15,6 @@ Export-ModuleMember -Function Lock-InvokeWriteBlob, Initialize-WriteBlob `
     , Initialize-InvokeMergeSuccess, Initialize-InvokeMergeFailure, Get-MergeAbortFilter, Initialize-QuietMergeBranches `
     , Initialize-SetGitFiles `
     , Initialize-SetRemoteTracking `
+
+Import-Module -Scope Local "$PSScriptRoot/git/Invoke-MergeTogether.mocks.psm1"
+Export-ModuleMember -Function Initialize-MergeTogetherAllFailed, Initialize-MergeTogether

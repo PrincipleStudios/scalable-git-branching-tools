@@ -2,6 +2,8 @@ Describe 'diagnostic-framework' {
     BeforeAll {
         Import-Module -Scope Local "$PSScriptRoot/diagnostic-framework.psm1"
         Import-Module -Scope Local "$PSScriptRoot/diagnostic-framework.mocks.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/processlog-framework.mocks.psm1"
+        Register-ProcessLog
     }
 
     Context 'when diagnostics are passed' {

@@ -13,16 +13,20 @@ function Register-Framework {
     . "$PSScriptRoot/testing.ps1"
 
     Register-ProcessLog
-    $diagnostics = Register-Diagnostics -throwInsteadOfExit:$throwInsteadOfExit
+    $diag = New-Diagnostics
+    Mock -CommandName New-Diagnostics -MockWith { $diag }
+    
+    $diagnostics = Register-Diagnostics -throwInsteadOfExit
     return @{
-        diagnostics = $diagnostics
+        assertDiagnosticOutput = $diagnostics
+        diagnostics = $diag
     }
 
     Lock-InvokeWriteBlob
     Lock-InvokeWriteTree
 }
 
-Export-ModuleMember -Function New-Diagnostics, Add-ErrorDiagnostic, Add-ErrorException, Add-WarningDiagnostic, Assert-Diagnostics `
+Export-ModuleMember -Function New-Diagnostics, Add-ErrorDiagnostic, Add-ErrorException, Add-WarningDiagnostic, Assert-Diagnostics, Get-HasErrorDiagnostic `
     , Invoke-ProcessLogs `
     , Register-Framework `
     , New-Diagnostics, Register-Diagnostics, Get-DiagnosticStrings `

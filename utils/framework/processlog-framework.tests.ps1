@@ -10,7 +10,7 @@ Describe 'processlog-framework' {
     }
 
     It 'can handle errors' {
-        # This is an unmocked command. Git explicitly allows `.lock` branch names
+        # This is an unmocked command. Git explicitly disallows `.lock` branch names
         Invoke-ProcessLogs 'check-ref-format with invalid branch' {
             git check-ref-format --branch "test.lock"
         }

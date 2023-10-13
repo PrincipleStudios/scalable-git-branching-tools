@@ -21,7 +21,7 @@ function Invoke-VerifyMock([Object] $verifiableMock,
         try {
             Should -ModuleName $_.ModuleName -Invoke -CommandName $_.commandName -ParameterFilter $_.parameterFilter -Times $Times
         } catch {
-            Write-Host "Exception encountered; $info"
+            Write-Host "Exception encountered while verifying mocks; $info"
             throw
         }
     }

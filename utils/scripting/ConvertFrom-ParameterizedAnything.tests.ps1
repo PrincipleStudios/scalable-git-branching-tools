@@ -40,6 +40,28 @@ Describe 'ConvertFrom-ParameterizedAnything' {
         $result.result | Assert-ShouldBeObject @{ 'foo' = @('bar', 'baz', 'woot'); 'baz' = 'woot' }
     }
     
+    It 'can evaluate parameters in single-element-arrays nested in objects without extra syntax' {
+        $target = @{ 'foo' = @('$params.foo'); 'baz' = '$params.banter' }
+        $params = @{ foo = @('bar'); banter = @('woot') }
+        $result = ConvertFrom-ParameterizedAnything $target -config @{} -params $params -actions @{} -failOnError
+        $result.result | Assert-ShouldBeObject @{ 'foo' = @('bar'); 'baz' = 'woot' }
+    }
+    
+    It 'can evaluate parameters in empty arrays nested in objects without extra syntax' {
+        $target = @{ 'foo' = @('$params.foo'); 'baz' = '$params.banter' }
+        $params = @{ foo = @(); banter = @('woot') }
+        $result = ConvertFrom-ParameterizedAnything $target -config @{} -params $params -actions @{} -failOnError
+        $result.result | Assert-ShouldBeObject @{ 'foo' = @(); 'baz' = 'woot' }
+    }
+    
+    It 'can evaluate single-element arrays as arrays' {
+        $target = @('$params.foo')
+        $params = @{ foo = @('bar'); banter = @('woot') }
+        $result = ConvertFrom-ParameterizedAnything $target -config @{} -params $params -actions @{} -failOnError
+        $result.result.Count | Should -Be 1
+        Should -ActualValue $result.result -Be @('bar')
+    }
+    
     It 'can evaluate complex strings' {
         $target = '$($params.foo) and $($params.baz)'
         $target = $target | ConvertTo-Json | ConvertFrom-Json

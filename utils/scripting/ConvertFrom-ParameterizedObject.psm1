@@ -16,19 +16,20 @@ function ConvertFrom-ParameterizedObject(
 
     $ht = ConvertTo-Hashtable $script
 
-    $converted = $ht.Keys | ConvertTo-HashMap -getValue {
-        $target = $ht[$_]
-        $entry = & $convertFromParameterized -script $target -config $config -params $params -actions $actions -diagnostics $diagnostics -failOnError:$failOnError
-        $fail = $fail -or $entry.fail
-        return $entry.result
-    } -getKey {
+    $converted = @{}
+    foreach ($_ in $ht.Keys) {
         $entry = & $convertFromParameterized -script $_ -config $config -params $params -actions $actions -diagnostics $diagnostics -failOnError:$failOnError
         if ($entry.result -isnot [string]) {
             $fail = $true
-            return $null
+            continue
         }
         $fail = $fail -or $entry.fail
-        return $entry.result
+
+        $target = $ht[$_]
+        $entryValue = & $convertFromParameterized -script $target -config $config -params $params -actions $actions -diagnostics $diagnostics -failOnError:$failOnError
+        $fail = $fail -or $entryValue.fail
+        
+        $converted += @{ $entry.result = $entryValue.result }
     }
 
     return @{ result = $converted; fail = $fail }

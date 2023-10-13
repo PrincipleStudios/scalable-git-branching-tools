@@ -4,6 +4,12 @@ Describe 'ConvertFrom-ParameterizedString' {
         Import-Module -Scope Local "$PSScriptRoot/ConvertFrom-ParameterizedString.psm1"
     }
 
+    BeforeEach {
+        $fw = Register-Framework
+        [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
+        $diag = $fw.diagnostics
+    }
+
     It 'can evaluate from params' {
         $params = @{ foo = 'bar' }
         $result = ConvertFrom-ParameterizedString -script '$($params.foo)' -config @{} -params $params -actions @{}
@@ -37,7 +43,6 @@ Describe 'ConvertFrom-ParameterizedString' {
     }
 
     It 'reports warnings if diagnostics are provided' {
-        $diag = New-Diagnostics
         $result = ConvertFrom-ParameterizedString -script '$($config.upstreamBranch)' -config @{} -params @{} -actions @{} -diagnostics $diag
         $result.result | Should -Be $null
         $result.fail | Should -Be $true
@@ -48,7 +53,6 @@ Describe 'ConvertFrom-ParameterizedString' {
     }
 
     It 'reports errors if diagnostics are provided and flagged to fail on error' {
-        $diag = New-Diagnostics
         $result = ConvertFrom-ParameterizedString -script '$($config.upstreamBranch)' -config @{} -params @{} -actions @{} -diagnostics $diag -failOnError
         $result.result | Should -Be $null
         $result.fail | Should -Be $true

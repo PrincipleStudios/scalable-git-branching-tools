@@ -1,7 +1,7 @@
 Import-Module -Scope Local "$PSScriptRoot/../../core.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../framework.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../query-state.psm1"
-Import-Module -Scope Local "$PSScriptRoot/../../git/Set-GitFiles.psm1"
+Import-Module -Scope Local "$PSScriptRoot/../../git.psm1"
 
 function Register-LocalActionSetUpstream([PSObject] $localActions) {
     $localActions['set-upstream'] = {

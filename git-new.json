@@ -1,11 +1,18 @@
 {
     "local": [
         {
+            "id": "simplify-upstream",
+            "type": "simplify-upstream",
+            "parameters": {
+                "upstreamBranches": ["$params.upstreamBranches"]
+            }
+        },
+        {
             "id": "set-upstream",
             "type": "set-upstream",
             "parameters": {
                 "upstreamBranches": {
-                    "$params.branchName": ["$params.upstreamBranches"]
+                    "$params.branchName": ["$actions['simplify-upstream'].outputs"]
                 },
                 "message": "Add branch $($params.branchName)$($params.comment -eq '' ? '' : \" for $($params.comment)\")"
             }
@@ -14,8 +21,8 @@
             "id": "create-branch",
             "type": "create-branch",
             "parameters": {
-                "target": "$params.branchName",
-                "upstreamBranches": ["$params.upstreamBranches"]
+                "upstreamBranches": ["$actions['simplify-upstream'].outputs"],
+                "mergeMessageTemplate": "Merge '{}' for creation of $($params.branchName)"
             }
         }
     ],
@@ -26,7 +33,8 @@
                 "branches": {
                     "$config.upstreamBranch": "$actions['set-upstream'].outputs['commit']",
                     "$params.branchName": "$actions['create-branch'].outputs['commit']"
-                }
+                },
+                "track": ["$params.branchName"]
             }
         },
         {
@@ -37,6 +45,6 @@
         }
     ],
     "output": [
-        "$($params.branchName) is now checked out."
+        "Switched to branch '$($params.branchName)'"
     ]
 }

@@ -10,7 +10,7 @@ function Invoke-CheckoutBranch(
         git checkout $branchName
     }
     if ($LASTEXITCODE -ne 0) {
-        Add-ErrorDiagnostic $diagnostics "Could not checkout newly created branch '$branchName'"
+        Add-ErrorDiagnostic $diagnostics "Could not checkout '$branchName'"
     }
 
     if (-not $quiet -AND $null -eq $diagnostics) {

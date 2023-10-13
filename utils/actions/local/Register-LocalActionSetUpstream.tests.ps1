@@ -9,7 +9,9 @@ Describe 'local action "set-upstream"' {
     }
     
     BeforeEach {
-        Register-Framework
+        $fw = Register-Framework
+        [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
+        $diag = $fw.diagnostics
     }
 
     Context 'with remote' {
@@ -32,8 +34,6 @@ Describe 'local action "set-upstream"' {
                 'new-COMMIT'
             }
 
-            $diag = New-Diagnostics
-            
             $result = Invoke-LocalAction @{
                 type = 'set-upstream'
                 parameters = @{
@@ -41,7 +41,6 @@ Describe 'local action "set-upstream"' {
                     message = 'Add barbaz to foobar'
                 }
             } -diagnostics $diag
-            Register-Diagnostics -throwInsteadOfExit
             { Assert-Diagnostics $diag } | Should -Not -Throw
             $result | Assert-ShouldBeObject @{ commit = 'new-COMMIT' }
         }
@@ -49,7 +48,6 @@ Describe 'local action "set-upstream"' {
         It 'provides mocks to do the same' {
             $mock = Initialize-LocalActionSetUpstream @{ 'foobar' = @('baz', 'barbaz') } -message 'Add barbaz to foobar' -commitish 'new-COMMIT'
 
-            $diag = New-Diagnostics
             $result = Invoke-LocalAction @{
                 type = 'set-upstream'
                 parameters = @{
@@ -57,7 +55,6 @@ Describe 'local action "set-upstream"' {
                     message = 'Add barbaz to foobar'
                 }
             } -diagnostics $diag
-            Register-Diagnostics -throwInsteadOfExit
             $result | Assert-ShouldBeObject @{ commit = 'new-COMMIT' }
             Invoke-VerifyMock $mock -Times 1
         }
@@ -65,7 +62,6 @@ Describe 'local action "set-upstream"' {
         It 'handles action deserialized from json' {
             $mock = Initialize-LocalActionSetUpstream @{ 'foobar' = @('baz', 'barbaz') } -message 'Add barbaz to foobar' -commitish 'new-COMMIT'
 
-            $diag = New-Diagnostics
             $result = Invoke-LocalAction ('{ 
                 "type": "set-upstream", 
                 "parameters": {
@@ -78,7 +74,6 @@ Describe 'local action "set-upstream"' {
                     }
                 }
             }' | ConvertFrom-Json) -diagnostics $diag
-            Register-Diagnostics -throwInsteadOfExit
             $result | Assert-ShouldBeObject @{ commit = 'new-COMMIT' }
             Invoke-VerifyMock $mock -Times 1
         }
@@ -142,7 +137,6 @@ Describe 'local action "set-upstream"' {
                 'new-COMMIT'
             }
 
-            $diag = New-Diagnostics
             $result = Invoke-LocalAction @{
                 type = 'set-upstream'
                 parameters = @{
@@ -150,7 +144,6 @@ Describe 'local action "set-upstream"' {
                     message = 'Add barbaz to foobar'
                 }
             } -diagnostics $diag
-            Register-Diagnostics -throwInsteadOfExit
             { Assert-Diagnostics $diag } | Should -Not -Throw
             $result | Assert-ShouldBeObject @{ commit = 'new-COMMIT' }
         }

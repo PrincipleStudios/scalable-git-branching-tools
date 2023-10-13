@@ -5,7 +5,7 @@ Creates a new branch and checks it out from the specified branches
 Usage:
 
     git-new.ps1 [-branchName] <string> [-comment <string>] `
-        [-upstreamBranches <string[]>]
+        [-upstreamBranches <string[]>] [-dryRun]
 
 ## Parameters:
 
@@ -24,3 +24,7 @@ Specifies a comment as part of the commit message for the upstream branch.
 _Aliases: -u, -upstream, -upstreams_
 
 A comma-delimited list of branches (without the remote, if applicable). If not specified, assumes the default service line (see [tool-config](./tool-config.md).)
+
+### `-dryRun` (Optional)
+
+If specified, only test merging, do not push the updates.

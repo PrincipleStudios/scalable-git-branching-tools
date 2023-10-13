@@ -2,10 +2,12 @@ Import-Module -Scope Local "$PSScriptRoot/../core.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../framework.psm1"
 Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionSetUpstream.psm1"
 Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionCreateBranch.psm1"
+Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionSimplifyUpstreamBranches.psm1"
 
 $localActions = @{}
 Register-LocalActionSetUpstream $localActions
 Register-LocalActionCreateBranch $localActions
+Register-LocalActionSimplifyUpstreamBranches $localActions
 
 function Invoke-LocalAction(
     [PSObject] $actionDefinition,
@@ -19,12 +21,12 @@ function Invoke-LocalAction(
     }
 
     # run
-    $displayName = $actionDefinition.displayName ?? $actionDefinition.id ?? "task of type $($actionDefinition.type)"
     $parameters = ConvertTo-Hashtable $actionDefinition.parameters
     try {
         $outputs = & $targetAction @parameters -diagnostics $diagnostics
     } catch {
-        Add-ErrorDiagnostic $diagnostics "Unhandled exception occurred while running '$displayName':"
+        Write-Host "ex: $_"
+        Add-ErrorDiagnostic $diagnostics "Unhandled exception occurred while running $(ConvertTo-Json $actionDefinition -Depth 10):"
         Add-ErrorException $diagnostics $_
     }
 

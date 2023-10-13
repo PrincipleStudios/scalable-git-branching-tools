@@ -19,12 +19,11 @@ function Invoke-FinalizeAction(
     }
 
     # run
-    $displayName = $actionDefinition.displayName ?? $actionDefinition.id ?? "task of type $($actionDefinition.type)"
     $parameters = ConvertTo-Hashtable $actionDefinition.parameters
     try {
         $outputs = & $targetAction @parameters -diagnostics $diagnostics
     } catch {
-        Add-ErrorDiagnostic $diagnostics "Unhandled exception occurred while running '$displayName':"
+        Add-ErrorDiagnostic $diagnostics "Unhandled exception occurred while running '$(ConvertTo-Json $actionDefinition -Depth 10)':"
         Add-ErrorException $diagnostics $_
     }
 
