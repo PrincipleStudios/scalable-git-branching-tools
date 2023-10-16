@@ -16,3 +16,6 @@ Export-ModuleMember -Function `
     , Initialize-CurrentBranch, Initialize-NoCurrentBranch `
     , Initialize-OtherGitFilesAsBlank, Initialize-GitFile `
     , Initialize-MergeTree `
+
+Import-Module -Scope Local "$PSScriptRoot/query-state/Get-LocalBranchForRemote.mocks.psm1"
+Export-ModuleMember -Function Initialize-GetLocalBranchForRemote
