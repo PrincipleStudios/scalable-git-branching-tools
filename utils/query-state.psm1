@@ -18,5 +18,8 @@ Export-ModuleMember -Function Get-Configuration `
     , Get-GitFile `
     , Get-MergeTree `
 
+Import-Module -Scope Local "$PSScriptRoot/query-state/Get-BranchSyncState.psm1"
+Export-ModuleMember -Function Get-BranchSyncState
+
 Import-Module -Scope Local "$PSScriptRoot/query-state/Get-LocalBranchForRemote.psm1"
 Export-ModuleMember -Function Get-LocalBranchForRemote
