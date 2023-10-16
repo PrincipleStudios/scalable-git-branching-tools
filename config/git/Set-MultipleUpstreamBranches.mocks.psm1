@@ -1,6 +1,6 @@
 Import-Module -Scope Local "$PSScriptRoot/../../utils/query-state/Get-UpstreamBranch.mocks.psm1"
 Import-Module -Scope Local "$PSScriptRoot/Set-MultipleUpstreamBranches.psm1"
-Import-Module -Scope Local "$PSScriptRoot/../testing/Invoke-VerifyMock.psm1"
+Import-Module -Scope Local "$PSScriptRoot/../../utils/testing.psm1"
 
 function Lock-SetMultipleUpstreamBranches() {
     Mock -ModuleName 'Set-MultipleUpstreamBranches' -CommandName Set-GitFiles -MockWith {

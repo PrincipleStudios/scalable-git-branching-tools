@@ -1,93 +1,115 @@
 BeforeAll {
-    . "$PSScriptRoot/config/testing/Lock-Git.mocks.ps1"
+    . "$PSScriptRoot/utils/testing.ps1"
     Import-Module -Scope Local "$PSScriptRoot/utils/framework.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/utils/input/Assert-ValidBranchName.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/utils/query-state.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-PreserveBranch.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-MergeBranches.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CheckoutBranch.mocks.psm1";
-    Import-Module -Scope Local "$PSScriptRoot/config/git/Invoke-CreateBranch.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/config/git/Set-RemoteTracking.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/config/git/Set-MultipleUpstreamBranches.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/utils/git.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/utils/actions.mocks.psm1"
     Initialize-QuietMergeBranches
-
-    # User-interface commands are a bit noisy; TODO: add quiet option and test it by making this throw
-    Mock -CommandName Write-Host {}
-
-    Mock -CommandName Invoke-PreserveBranch -ParameterFilter { $onlyIfError } {
-        & $scriptBlock
-    }
 }
 
 Describe 'git-new' {
     BeforeEach {
-        Register-Framework
+        [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
+        $fw = Register-Framework -throwInsteadOfExit
     }
     
     Context 'without remote' {
         BeforeAll {
             Initialize-ToolConfiguration -noRemote
-            Lock-SetMultipleUpstreamBranches
+            Lock-LocalActionSetUpstream
 
             Initialize-AnyUpstreamBranches
-            Initialize-UpstreamBranches @{
-                'feature/homepage-redesign' = @('infra/upgrade-dependencies')
-            }
-        }
-
-        It 'halts if the working directory is not clean' {
-            Initialize-DirtyWorkingDirectory
-
-            Initialize-AssertValidBranchName 'feature/PS-100-some-work'
-            $output = Register-Diagnostics -throwInsteadOfExit
-            
-            { & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -m 'some work' } | Should -Throw
-            $output | Should -Contain 'ERR:  Git working directory is not clean.'
         }
 
         It 'handles standard functionality' {
-            Initialize-CleanWorkingDirectory
-
             Initialize-AssertValidBranchName 'feature/PS-100-some-work'
-            Mock git -ParameterFilter { ($args -join ' ') -eq 'branch' } {
-                Write-Output 'main'
-            }
-            Mock git -ParameterFilter { ($args -join ' ') -eq 'clean -n' } {}
-            Initialize-SetMultipleUpstreamBranches @{
-                'feature/PS-100-some-work' = 'main'
-            } 'Add branch feature/PS-100-some-work for some work' -commitish 'new-commit'
-            Initialize-CreateBranch 'feature/PS-100-some-work' 'main'
-            Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f _upstream new-commit --quiet' } { $Global:LASTEXITCODE = 0 }
-            Initialize-CheckoutBranch 'feature/PS-100-some-work'
+
+            $mocks = @(
+                Initialize-LocalActionSetUpstream @{
+                    'feature/PS-100-some-work' = 'main'
+                } -commitish 'new-commit'
+                Initialize-LocalActionCreateBranchSuccess `
+                    @('main') 'latest-main' `
+                    -mergeMessageTemplate "Merge '{}' for creation of feature/PS-100-some-work"
+                Initialize-FinalizeActionSetBranches @{
+                    _upstream = 'new-commit'
+                    'feature/PS-100-some-work' = 'latest-main'
+                }
+                Initialize-FinalizeActionCheckout 'feature/PS-100-some-work'
+            )
 
             & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -m 'some work'
+            $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
+            Invoke-VerifyMock $mocks -Times 1
         }
 
         It 'creates a local branch when no remotes are configured' {
             Initialize-AssertValidBranchName 'feature/PS-100-some-work'
-            Initialize-SetMultipleUpstreamBranches @{
-                'feature/PS-100-some-work' = 'main'
-            } -commitish 'new-commit'
-            Initialize-CleanWorkingDirectory
-            Initialize-CreateBranch -branchName 'feature/PS-100-some-work' -source 'main'
-            Initialize-CheckoutBranch 'feature/PS-100-some-work'
-            Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f _upstream new-commit --quiet' } { $Global:LASTEXITCODE = 0 }
+            
+            $mocks = @(
+                Initialize-LocalActionSetUpstream @{
+                    'feature/PS-100-some-work' = 'main'
+                } -commitish 'new-commit'
+                Initialize-LocalActionCreateBranchSuccess `
+                    @('main') 'latest-main' `
+                    -mergeMessageTemplate "Merge '{}' for creation of feature/PS-100-some-work"
+                Initialize-FinalizeActionSetBranches @{
+                    _upstream = 'new-commit'
+                    'feature/PS-100-some-work' = 'latest-main'
+                }
+                Initialize-FinalizeActionCheckout 'feature/PS-100-some-work'
+            )
 
             & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -m 'some work'
+            $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
+            Invoke-VerifyMock $mocks -Times 1
         }
 
         It 'creates a local branch from the specified branch when no remotes are configured' {
             Initialize-AssertValidBranchName 'feature/PS-600-some-work'
             Initialize-AssertValidBranchName 'infra/foo'
-            Initialize-SetMultipleUpstreamBranches @{
-                'feature/PS-600-some-work' = 'infra/foo'
-            } -commitish 'new-commit'
-            Initialize-CleanWorkingDirectory
-            Initialize-CreateBranch -branchName 'feature/PS-600-some-work' -source 'infra/foo'
-            Initialize-CheckoutBranch 'feature/PS-600-some-work'
-            Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f _upstream new-commit --quiet' } { $Global:LASTEXITCODE = 0 }
+
+            $mocks = @(
+                Initialize-LocalActionSetUpstream @{
+                    'feature/PS-600-some-work' = 'infra/foo'
+                } -commitish 'new-commit'
+                Initialize-LocalActionCreateBranchSuccess `
+                    @('infra/foo') 'latest-foo' `
+                    -mergeMessageTemplate "Merge '{}' for creation of feature/PS-600-some-work"
+                Initialize-FinalizeActionSetBranches @{
+                    _upstream = 'new-commit'
+                    'feature/PS-600-some-work' = 'latest-foo'
+                }
+                Initialize-FinalizeActionCheckout 'feature/PS-600-some-work'
+            )
 
             & $PSScriptRoot/git-new.ps1 feature/PS-600-some-work -u 'infra/foo' -m 'some work'
+            $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
+            Invoke-VerifyMock $mocks -Times 1
+        }
+        
+        It 'does not check out if the working directory is not clean' {
+            Initialize-DirtyWorkingDirectory
+
+            Initialize-AssertValidBranchName 'feature/PS-100-some-work'
+            
+            $mocks = @(
+                Initialize-LocalActionSetUpstream @{
+                    'feature/PS-100-some-work' = 'main'
+                } -commitish 'new-commit'
+                Initialize-LocalActionCreateBranchSuccess `
+                    @('main') 'latest-main' `
+                    -mergeMessageTemplate "Merge '{}' for creation of feature/PS-100-some-work"
+                Initialize-FinalizeActionSetBranches @{
+                    _upstream = 'new-commit'
+                    'feature/PS-100-some-work' = 'latest-main'
+                }
+            )
+
+            { & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -m 'some work' } | Should -Throw 'ERR:  Git working directory is not clean.'
+            $fw.assertDiagnosticOutput | Should -Contain 'ERR:  Git working directory is not clean.'
+            Invoke-VerifyMock $mocks -Times 1
         }
     }
 
@@ -102,49 +124,62 @@ Describe 'git-new' {
                 'feature/homepage-redesign' = @('infra/foo')
                 'infra/foo' = @('main')
             }
-            Lock-SetMultipleUpstreamBranches
+            Lock-LocalActionSetUpstream
         }
 
         It 'detects an invalid branch name and prevents moving forward' {
             Initialize-AssertInvalidBranchName 'feature/PS-100-some-work'
-            $fw = Register-Framework
-            
-            & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -m 'some work'
 
-            $fw.diagnostics | Should -Be @(
+            { & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -m 'some work' } | Should -Throw
+
+            $fw.assertDiagnosticOutput | Should -Contain @(
                 "ERR:  Invalid branch name specified: 'feature/PS-100-some-work'"
             )
         }
 
         It 'creates a remote branch when a remote is configured' {
-            $fw = Register-Framework
             Initialize-AssertValidBranchName 'feature/PS-100-some-work'
-            Initialize-SetMultipleUpstreamBranches @{
-                'feature/PS-100-some-work' = 'main'
-            } -commitish 'new-commit'
-            Initialize-CreateBranch -branchName 'feature/PS-100-some-work' -source 'origin/main'
-            Initialize-CheckoutBranch 'feature/PS-100-some-work'
-            $verifySetRemoteTracking = Initialize-SetRemoteTracking 'feature/PS-100-some-work'
-            Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin --atomic feature/PS-100-some-work:refs/heads/feature/PS-100-some-work new-commit:refs/heads/_upstream' } { $Global:LASTEXITCODE = 0 }
+
+            $mocks = @(
+                Initialize-LocalActionSetUpstream @{
+                    'feature/PS-100-some-work' = 'main'
+                } -commitish 'new-commit'
+                Initialize-LocalActionCreateBranchSuccess `
+                    @('main') 'latest-main' `
+                    -mergeMessageTemplate "Merge '{}' for creation of feature/PS-100-some-work"
+                Initialize-FinalizeActionSetBranches @{
+                    _upstream = 'new-commit'
+                    'feature/PS-100-some-work' = 'latest-main'
+                } -track @('feature/PS-100-some-work')
+                Initialize-FinalizeActionCheckout 'feature/PS-100-some-work'
+            )
 
             & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -m 'some work'
-            Invoke-VerifyMock $verifySetRemoteTracking -Times 1
-            $fw.diagnostics | Should -Be $nil
+            Invoke-VerifyMock $mocks -Times 1
+            $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
         }
 
         It 'creates a remote branch when a remote is configured and an upstream branch is provided' {
             Initialize-AssertValidBranchName 'feature/PS-100-some-work'
             Initialize-AssertValidBranchName 'infra/foo'
-            Initialize-SetMultipleUpstreamBranches @{
-                'feature/PS-100-some-work' = 'infra/foo'
-            } -commitish 'new-commit'
-            Initialize-CreateBranch -branchName 'feature/PS-100-some-work' -source 'origin/infra/foo'
-            Initialize-CheckoutBranch 'feature/PS-100-some-work'
-            $verifySetRemoteTracking = Initialize-SetRemoteTracking 'feature/PS-100-some-work'
-            Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin --atomic feature/PS-100-some-work:refs/heads/feature/PS-100-some-work new-commit:refs/heads/_upstream' } { $Global:LASTEXITCODE = 0 }
+
+            $mocks = @(
+                Initialize-LocalActionSetUpstream @{
+                    'feature/PS-100-some-work' = 'infra/foo'
+                } -commitish 'new-commit'
+                Initialize-LocalActionCreateBranchSuccess `
+                    @('infra/foo') 'latest-foo' `
+                    -mergeMessageTemplate "Merge '{}' for creation of feature/PS-100-some-work"
+                Initialize-FinalizeActionSetBranches @{
+                    _upstream = 'new-commit'
+                    'feature/PS-100-some-work' = 'latest-foo'
+                } -track @('feature/PS-100-some-work')
+                Initialize-FinalizeActionCheckout 'feature/PS-100-some-work'
+            )
 
             & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -u 'infra/foo' -m 'some work'
-            Invoke-VerifyMock $verifySetRemoteTracking -Times 1
+            Invoke-VerifyMock $mocks -Times 1
+            $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
         }
 
         It 'creates a remote branch with simplified upstream dependencies' {
@@ -152,16 +187,27 @@ Describe 'git-new' {
             Initialize-AssertValidBranchName 'infra/foo'
             Initialize-AssertValidBranchName 'main'
             Initialize-AssertValidBranchName 'feature/homepage-redesign'
-            Initialize-SetMultipleUpstreamBranches @{
-                'feature/PS-100-some-work' = 'feature/homepage-redesign'
-            } -commitish 'new-commit'
-            Initialize-CreateBranch -branchName 'feature/PS-100-some-work' -source 'origin/feature/homepage-redesign'
-            Initialize-CheckoutBranch 'feature/PS-100-some-work'
-            $verifySetRemoteTracking = Initialize-SetRemoteTracking 'feature/PS-100-some-work'
-            Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin --atomic feature/PS-100-some-work:refs/heads/feature/PS-100-some-work new-commit:refs/heads/_upstream' } { $Global:LASTEXITCODE = 0 }
+            
+            $mocks = @(
+                Initialize-LocalActionSetUpstream @{
+                    'feature/PS-100-some-work' = @('feature/homepage-redesign')
+                } -commitish 'new-commit'
+                Initialize-LocalActionCreateBranchSuccess `
+                    @('feature/homepage-redesign') 'latest-redesign' `
+                    -mergeMessageTemplate "Merge '{}' for creation of feature/PS-100-some-work"
+                Initialize-FinalizeActionSetBranches @{
+                    _upstream = 'new-commit'
+                    'feature/PS-100-some-work' = 'latest-redesign'
+                } -track @('feature/PS-100-some-work')
+                Initialize-FinalizeActionCheckout 'feature/PS-100-some-work'
+            )
 
             & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -u 'infra/foo,main,feature/homepage-redesign' -m 'some work'
-            Invoke-VerifyMock $verifySetRemoteTracking -Times 1
+            Invoke-VerifyMock $mocks -Times 1
+            $fw.assertDiagnosticOutput | Should -Be @(
+                "WARN: Removing 'infra/foo' from branches; it is redundant via the following: feature/homepage-redesign"
+                "WARN: Removing 'main' from branches; it is redundant via the following: feature/homepage-redesign"
+            )
         }
 
         It 'creates a remote branch with simplified upstream dependencies but still multiple' {
@@ -170,31 +216,72 @@ Describe 'git-new' {
             Initialize-AssertValidBranchName 'main'
             Initialize-AssertValidBranchName 'feature/homepage-redesign'
             Initialize-AssertValidBranchName 'infra/update-dependencies'
-            Initialize-SetMultipleUpstreamBranches @{
-                'feature/PS-100-some-work' = @('feature/homepage-redesign', 'infra/update-dependencies')
-            } -commitish 'new-commit'
-            Initialize-CreateBranch -branchName 'feature/PS-100-some-work' -source 'origin/feature/homepage-redesign'
-            Initialize-InvokeMergeSuccess 'origin/infra/update-dependencies'
-            Initialize-CheckoutBranch 'feature/PS-100-some-work'
-            $verifySetRemoteTracking = Initialize-SetRemoteTracking 'feature/PS-100-some-work'
-            Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin --atomic feature/PS-100-some-work:refs/heads/feature/PS-100-some-work new-commit:refs/heads/_upstream' } { $Global:LASTEXITCODE = 0 }
+            
+            $mocks = @(
+                Initialize-LocalActionSetUpstream @{
+                    'feature/PS-100-some-work' = @('feature/homepage-redesign', 'infra/update-dependencies')
+                } -commitish 'new-commit'
+                Initialize-LocalActionCreateBranchSuccess `
+                    @('feature/homepage-redesign', 'infra/update-dependencies') 'merge-result' `
+                    -mergeMessageTemplate "Merge '{}' for creation of feature/PS-100-some-work"
+                Initialize-FinalizeActionSetBranches @{
+                    _upstream = 'new-commit'
+                    'feature/PS-100-some-work' = 'merge-result'
+                } -track @('feature/PS-100-some-work')
+                Initialize-FinalizeActionCheckout 'feature/PS-100-some-work'
+            )
 
             & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -u 'infra/foo,main,feature/homepage-redesign,infra/update-dependencies' -m 'some work'
-            Invoke-VerifyMock $verifySetRemoteTracking -Times 1
+            Invoke-VerifyMock $mocks -Times 1
+            $fw.assertDiagnosticOutput | Should -Be @(
+                "WARN: Removing 'infra/foo' from branches; it is redundant via the following: feature/homepage-redesign"
+                "WARN: Removing 'main' from branches; it is redundant via the following: feature/homepage-redesign"
+            )
         }
 
-        It 'reports failed merges and does not push' {
+        It 'reports failed merges and does not push if all fail' {
             Initialize-AssertValidBranchName 'feature/PS-100-some-work'
             Initialize-AssertValidBranchName 'feature/homepage-redesign'
             Initialize-AssertValidBranchName 'infra/update-dependencies'
-            Initialize-SetMultipleUpstreamBranches @{
-                'feature/PS-100-some-work' = @('feature/homepage-redesign', 'infra/update-dependencies')
-            } -commitish 'new-commit'
-            Initialize-CreateBranch -branchName 'feature/PS-100-some-work' -source 'origin/feature/homepage-redesign'
-            Initialize-CheckoutBranch 'feature/PS-100-some-work'
-            Initialize-InvokeMergeFailure 'origin/infra/update-dependencies'
+            
+            $mocks = @(
+                Initialize-LocalActionSetUpstream @{
+                    'feature/PS-100-some-work' = @('feature/homepage-redesign', 'infra/update-dependencies')
+                } -commitish 'new-commit'
+                Initialize-LocalActionCreateBranchSuccess `
+                    @('feature/homepage-redesign', 'infra/update-dependencies') 'merge-result' `
+                    -mergeMessageTemplate "Merge '{}' for creation of feature/PS-100-some-work" `
+                    -failAtMerge 0
+            )
 
-            { & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -u 'feature/homepage-redesign,infra/update-dependencies' -m 'some work' } | Should -Throw 'Could not complete the merge.'
+            { & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -u 'feature/homepage-redesign,infra/update-dependencies' -m 'some work' } | Should -Throw
+            $fw.assertDiagnosticOutput | Should -Contain 'ERR:  No branches could be resolved to merge'
+            Invoke-VerifyMock $mocks -Times 1
+        }
+
+        It 'reports failed merges but pushes anyway' {
+            Initialize-AssertValidBranchName 'feature/PS-100-some-work'
+            Initialize-AssertValidBranchName 'feature/homepage-redesign'
+            Initialize-AssertValidBranchName 'infra/update-dependencies'
+            
+            $mocks = @(
+                Initialize-LocalActionSetUpstream @{
+                    'feature/PS-100-some-work' = @('feature/homepage-redesign', 'infra/update-dependencies')
+                } -commitish 'new-commit'
+                Initialize-LocalActionCreateBranchSuccess `
+                    @('feature/homepage-redesign', 'infra/update-dependencies') 'merge-result' `
+                    -failAtMerge 1 `
+                    -mergeMessageTemplate "Merge '{}' for creation of feature/PS-100-some-work"
+                Initialize-FinalizeActionSetBranches @{
+                    _upstream = 'new-commit'
+                    'feature/PS-100-some-work' = 'merge-result'
+                } -track @('feature/PS-100-some-work')
+                Initialize-FinalizeActionCheckout 'feature/PS-100-some-work'
+            )
+
+            { & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -u 'feature/homepage-redesign,infra/update-dependencies' -m 'some work' } | Should -Not -Throw
+            $fw.assertDiagnosticOutput | Should -Contain 'WARN: Could not merge the following branches: origin/infra/update-dependencies'
+            Invoke-VerifyMock $mocks -Times 1
         }
     }
 

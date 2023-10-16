@@ -5,27 +5,34 @@ Import-Module -Scope Local "$PSScriptRoot/git/Invoke-WriteBlob.mocks.psm1"
 Import-Module -Scope Local "$PSScriptRoot/git/Invoke-WriteTree.mocks.psm1"
 
 function Register-Framework {
-    [OutputType([System.Collections.ArrayList])]
     Param (
         [switch] $throwInsteadOfExit
     )
 
-    . "$PSScriptRoot/../config/testing/Lock-Git.mocks.ps1"
+    . "$PSScriptRoot/testing.ps1"
 
     Register-ProcessLog
-    $diagnostics = Register-Diagnostics -throwInsteadOfExit:$throwInsteadOfExit
+    $diag = New-Diagnostics
+    Mock -CommandName New-Diagnostics -MockWith { $diag }
+    
+    $diagnostics = Register-Diagnostics -throwInsteadOfExit
     return @{
-        diagnostics = $diagnostics
+        assertDiagnosticOutput = $diagnostics
+        diagnostics = $diag
     }
 
     Lock-InvokeWriteBlob
     Lock-InvokeWriteTree
 }
 
-Export-ModuleMember -Function New-Diagnostics, Add-ErrorDiagnostic, Add-WarningDiagnostic, Assert-Diagnostics `
+function Invoke-FlushAssertDiagnostic(
+    [Parameter(Mandatory)][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
+) {
+    try { Assert-Diagnostics $diagnostics } catch { }
+}
+
+Export-ModuleMember -Function New-Diagnostics, Add-ErrorDiagnostic, Add-ErrorException, Add-WarningDiagnostic, Assert-Diagnostics, Get-HasErrorDiagnostic `
     , Invoke-ProcessLogs `
-    , Register-Framework `
+    , Register-Framework, Invoke-FlushAssertDiagnostic `
     , New-Diagnostics, Register-Diagnostics, Get-DiagnosticStrings `
-    , Clear-ProcessLogs, Get-ProcessLogs `
-    , Initialize-WriteBlob `
-    , Initialize-WriteTree
+    , Clear-ProcessLogs, Get-ProcessLogs

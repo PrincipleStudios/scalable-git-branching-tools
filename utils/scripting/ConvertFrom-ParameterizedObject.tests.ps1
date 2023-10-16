@@ -5,11 +5,17 @@ Describe 'ConvertFrom-ParameterizedObject' {
         Import-Module -Scope Local "$PSScriptRoot/ConvertFrom-ParameterizedString.psm1"
         Import-Module -Scope Local "$PSScriptRoot/ConvertFrom-ParameterizedObject.psm1"
     }
+    
+    BeforeEach {
+        $fw = Register-Framework
+        [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
+        $diag = $fw.diagnostics
+    }
 
     It 'ignores non-parameterized objects' {
         $target = @{ 'foo' = 'bar'; 'baz' = 'woot' }
         $params = @{ foo = 'bar' }
-        $result = ConvertFrom-ParameterizedObject $target -params $params -actions @{} -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
+        $result = ConvertFrom-ParameterizedObject $target -config @{} -params $params -actions @{} -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
         $result.result | Assert-ShouldBeObject @{ 'foo' = 'bar'; 'baz' = 'woot' }
         $result.fail | Should -Be $false
     }
@@ -17,7 +23,7 @@ Describe 'ConvertFrom-ParameterizedObject' {
     It 'can evaluate value parameters' {
         $params = @{ foo = @('bar', 'baz') }
         $target = @{ 'foo' = '$($params.foo)'; 'baz' = 'woot' }
-        $result = ConvertFrom-ParameterizedObject $target -params $params -actions @{} -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
+        $result = ConvertFrom-ParameterizedObject $target -config @{} -params $params -actions @{} -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
         $result.result | Assert-ShouldBeObject @{ 'foo' = 'bar baz'; 'baz' = 'woot' }
         $result.fail | Should -Be $false
     }
@@ -25,7 +31,7 @@ Describe 'ConvertFrom-ParameterizedObject' {
     It 'can evaluate key parameters' {
         $target = @{ 'foo' = 'bar baz'; '$($params.banter)' = 'woot' }
         $params = @{ banter = 'baz' }
-        $result = ConvertFrom-ParameterizedObject $target -params $params -actions @{} -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
+        $result = ConvertFrom-ParameterizedObject $target -config @{} -params $params -actions @{} -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
         $result.result | Assert-ShouldBeObject @{ 'foo' = 'bar baz'; 'baz' = 'woot' }
         $result.fail | Should -Be $false
     }
@@ -33,7 +39,7 @@ Describe 'ConvertFrom-ParameterizedObject' {
     It 'can evaluate key and value parameters' {
         $target = @{ 'foo' = '$($params.foo)'; '$($params.banter)' = 'woot' }
         $params = @{ foo = @('bar', 'baz'); banter = 'baz' }
-        $result = ConvertFrom-ParameterizedObject $target -params $params -actions @{} -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
+        $result = ConvertFrom-ParameterizedObject $target -config @{} -params $params -actions @{} -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
         $result.result | Assert-ShouldBeObject @{ 'foo' = 'bar baz'; 'baz' = 'woot' }
         $result.fail | Should -Be $false
     }
@@ -41,21 +47,20 @@ Describe 'ConvertFrom-ParameterizedObject' {
     It 'can evaluate key and value parameters when loaded from JSON' {
         $target = @{ 'foo' = '$($params.foo)'; '$($params.banter)' = 'woot' } | ConvertTo-Json | ConvertFrom-Json
         $params = @{ foo = @('bar', 'baz'); banter = 'baz' }
-        $result = ConvertFrom-ParameterizedObject $target -params $params -actions @{} -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
+        $result = ConvertFrom-ParameterizedObject $target -config @{} -params $params -actions @{} -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
         $result.result | Assert-ShouldBeObject @{ 'foo' = 'bar baz'; 'baz' = 'woot' }
         $result.fail | Should -Be $false
     }
 
     It 'reports errors' {
         $target = @{ 'foo' = '$($params.foo)'; 'baz' = '$($params.banter)' }
-        $result = ConvertFrom-ParameterizedObject $target -params @{} -actions @{} -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
+        $result = ConvertFrom-ParameterizedObject $target -config @{} -params @{} -actions @{} -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
         $result.fail | Should -Be $true
     }
     
     It 'reports warnings if diagnostics are provided' {
-        $diag = New-Diagnostics
         $target = @{ 'foo' = '$($params.foo)'; 'baz' = '$($params.banter)' }
-        $result = ConvertFrom-ParameterizedObject $target -params @{} -actions @{} -diagnostics $diag -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
+        $result = ConvertFrom-ParameterizedObject $target -config @{} -params @{} -actions @{} -diagnostics $diag -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
         $result.fail | Should -Be $true
 
         $output = Register-Diagnostics -throwInsteadOfExit
@@ -66,9 +71,8 @@ Describe 'ConvertFrom-ParameterizedObject' {
     }
 
     It 'reports errors if diagnostics are provided and flagged to fail on error' {
-        $diag = New-Diagnostics
         $target = @{ 'foo' = '$($params.foo)'; 'baz' = '$($params.banter)' }
-        $result = ConvertFrom-ParameterizedObject $target -params @{} -actions @{} -diagnostics $diag -failOnError -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
+        $result = ConvertFrom-ParameterizedObject $target -config @{} -params @{} -actions @{} -diagnostics $diag -failOnError -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
         $result.fail | Should -Be $true
 
         $output = Register-Diagnostics -throwInsteadOfExit

@@ -1,3 +1,4 @@
+Import-Module -Scope Local "$PSScriptRoot/processlog-framework.psm1"
 
 function New-Diagnostics {
     [OutputType([System.Collections.ArrayList])]
@@ -22,10 +23,11 @@ function Add-Diagnostic(
     [Parameter(Mandatory)][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics,
     [Parameter(Mandatory)][psobject] $diagnostic
 ) {
-    if ($nil -ne $diagnostics) {
+    if ($null -ne $diagnostics) {
         $diagnostics.Add($diagnostic) *> $null
     } else {
         if ($diagnostic.level -eq 'error') {
+            Show-ProcessLogs
             throw $diagnostic.message
         }
     }
@@ -38,6 +40,13 @@ function Add-ErrorDiagnostic(
     Add-Diagnostic $diagnostics (New-ErrorDiagnostic $message)
 }
 
+function Add-ErrorException(
+    [Parameter(Mandatory)][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics,
+    [Parameter(Mandatory)][System.Management.Automation.ErrorRecord] $exception
+) {
+    Add-Diagnostic $diagnostics (New-ErrorDiagnostic "$($exception.Exception.Message)`n$($exception.ScriptStackTrace)")
+}
+
 function Add-WarningDiagnostic(
     [Parameter(Mandatory)][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics,
     [Parameter(Mandatory)][string] $message
@@ -45,16 +54,27 @@ function Add-WarningDiagnostic(
     Add-Diagnostic $diagnostics (New-WarningDiagnostic $message)
 }
 
+function Get-HasErrorDiagnostic(
+    [Parameter(Mandatory)][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
+) {
+    return ($diagnostics | Where-Object { $_.level -eq 'error' }).Count -gt 0
+}
+
 function Assert-Diagnostics(
     [Parameter(Mandatory)][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
 ) {
-    if ($diagnostics -ne $nil) {
-        $shouldExit = $false
+    if ($null -ne $diagnostics) {
+        $shouldExit = Get-HasErrorDiagnostic $diagnostics
+        if ($shouldExit) {
+            Show-ProcessLogs
+            Clear-ProcessLogs
+        }
         foreach ($diagnostic in $diagnostics) {
+            if ($diagnostic.reported) { continue }
+            $diagnostic.reported = $true
             switch ($diagnostic.level) {
                 'error' {
                     Write-Host 'ERR:  ' -ForegroundColor Red -BackgroundColor Black -NoNewline
-                    $shouldExit = $true
                 }
                 'warning' {
                     Write-Host 'WARN: ' -ForegroundColor Yellow -BackgroundColor Black -NoNewline
@@ -74,4 +94,4 @@ function Exit-DueToAssert {
     exit 1
 }
 
-Export-ModuleMember -Function New-Diagnostics, Add-ErrorDiagnostic, Add-WarningDiagnostic, Assert-Diagnostics
+Export-ModuleMember -Function New-Diagnostics, Add-ErrorDiagnostic, Add-ErrorException, Add-WarningDiagnostic, Assert-Diagnostics, Get-HasErrorDiagnostic

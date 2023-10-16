@@ -3,6 +3,7 @@ Import-Module -Scope Local "$PSScriptRoot/../input.psm1"
 
 function ConvertFrom-ParameterizedArray(
     [Parameter(Mandatory)][object[]] $script,
+    [Parameter(Mandatory)][PSObject] $config,
     [Parameter(Mandatory)][PSObject] $params,
     [Parameter(Mandatory)][PSObject] $actions, 
     [Parameter(Mandatory)][scriptblock] $convertFromParameterized,
@@ -15,9 +16,13 @@ function ConvertFrom-ParameterizedArray(
         if ($null -eq $_) {
             $converted.Add($null) *> $null
         } else {
-            $entry = & $convertFromParameterized -script $_ -params $params -actions $actions -diagnostics $diagnostics -failOnError:$failOnError
+            $entry = & $convertFromParameterized -script $_ -config $config -params $params -actions $actions -diagnostics $diagnostics -failOnError:$failOnError
             $fail = $fail -or $entry.fail
-            if ($entry.result -is [string]) {
+            if ($entry.result -is [array]) {
+                foreach ($item in $entry.result) {
+                    $converted.Add($item) *> $null
+                }
+            } elseif ($entry.result -is [string]) {
                 $expanded = Expand-StringArray $entry.result
                 foreach ($item in $expanded) {
                     $converted.Add($item) *> $null

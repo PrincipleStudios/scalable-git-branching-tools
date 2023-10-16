@@ -1,5 +1,5 @@
 BeforeAll {
-    . "$PSScriptRoot/../../config/testing/Lock-Git.mocks.ps1"
+    . "$PSScriptRoot/../testing.ps1"
     Import-Module -Scope Local "$PSScriptRoot/../framework.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/Assert-CleanWorkingDirectory.psm1"
     Import-Module -Scope Local "$PSScriptRoot/Assert-CleanWorkingDirectory.mocks.psm1"
@@ -11,15 +11,18 @@ Describe 'Assert-CleanWorkingDirectory' {
     }
 
     It 'throws if exit code is non-zero' {
-        Initialize-DirtyWorkingDirectory
+        $mocks = Initialize-DirtyWorkingDirectory
         { Assert-CleanWorkingDirectory } | Should -Throw
+        Invoke-VerifyMock $mocks -Times 1
     }
     It 'throws if non-ignored files exist' {
-        Initialize-UntrackedFiles
+        $mocks = Initialize-UntrackedFiles
         { Assert-CleanWorkingDirectory } | Should -Throw
+        Invoke-VerifyMock $mocks -Times 1
     }
     It 'does not throw if exit code is 0 and no non-ignored files exist' {
-        Initialize-CleanWorkingDirectory
+        $mocks = Initialize-CleanWorkingDirectory
         Assert-CleanWorkingDirectory
+        Invoke-VerifyMock $mocks -Times 1
     }
 }

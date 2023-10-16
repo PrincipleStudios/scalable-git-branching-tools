@@ -6,33 +6,34 @@ Describe 'ConvertFrom-ParameterizedArray' {
         Import-Module -Scope Local "$PSScriptRoot/ConvertFrom-ParameterizedArray.psm1"
     }
     BeforeEach {
-        Register-Framework
+        $fw = Register-Framework
+        [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
+        $diag = $fw.diagnostics
     }
 
     It 'can evaluate single parameters' {
         $params = @{ foo = 'bar' }
-        $result = ConvertFrom-ParameterizedArray @('foo', '$($params.foo)', 'baz') -params $params -actions @{} -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
+        $result = ConvertFrom-ParameterizedArray @('foo', '$($params.foo)', 'baz') -config @{} -params $params -actions @{} -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
         $result.result | Should -Be @('foo', 'bar', 'baz')
         $result.fail | Should -Be $false
     }
 
     It 'can evaluate array parameters' {
         $params = @{ foo = @('bar', 'baz') }
-        $result = ConvertFrom-ParameterizedArray @('foo', '$($params.foo -join ",")') -params $params -actions @{} -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
+        $result = ConvertFrom-ParameterizedArray @('foo', '$($params.foo -join ",")') -config @{} -params $params -actions @{} -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
         $result.result | Should -Be @('foo', 'bar', 'baz')
         $result.fail | Should -Be $false
     }
 
     It 'reports errors' {
         $params = @{ foo = @('bar', 'baz') }
-        $result = ConvertFrom-ParameterizedArray @('foo', '$($config.upstreamBranch)') -params $params -actions @{} -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
+        $result = ConvertFrom-ParameterizedArray @('foo', '$($config.upstreamBranch)') -config @{} -params $params -actions @{} -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
         $result.fail | Should -Be $true
     }
 
     It 'reports warnings if diagnostics are provided' {
-        $diag = New-Diagnostics
         $params = @{ foo = @('bar', 'baz') }
-        $result = ConvertFrom-ParameterizedArray @('foo', '$($config.upstreamBranch)') -params $params -actions @{} -diagnostics $diag -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
+        $result = ConvertFrom-ParameterizedArray @('foo', '$($config.upstreamBranch)') -config @{} -params $params -actions @{} -diagnostics $diag -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
         $result.fail | Should -Be $true
 
         $output = Register-Diagnostics -throwInsteadOfExit
@@ -41,9 +42,8 @@ Describe 'ConvertFrom-ParameterizedArray' {
     }
 
     It 'reports errors if diagnostics are provided and flagged to fail on error' {
-        $diag = New-Diagnostics
         $params = @{ foo = @('bar', 'baz') }
-        $result = ConvertFrom-ParameterizedArray @('foo', '$($config.upstreamBranch)') -params $params -actions @{} -diagnostics $diag -failOnError -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
+        $result = ConvertFrom-ParameterizedArray @('foo', '$($config.upstreamBranch)') -config @{} -params $params -actions @{} -diagnostics $diag -failOnError -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
         $result.fail | Should -Be $true
 
         $output = Register-Diagnostics -throwInsteadOfExit

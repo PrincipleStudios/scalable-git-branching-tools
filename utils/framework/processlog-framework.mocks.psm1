@@ -2,8 +2,10 @@ Import-Module -Scope Local "$PSScriptRoot/processlog-framework.psm1"
 
 function Register-ProcessLog {
     Clear-ProcessLogs
-    Mock -ModuleName 'processlog-framework' Write-Host {
-        # Hide "Begin"/"End" messages
+    # Hide "Begin"/"End" messages
+    Mock -ModuleName 'processlog-framework' -CommandName 'Get-IsQuiet' { return $true }
+    Mock -ModuleName 'processlog-framework' -CommandName 'Write-Host' { 
+        # Hides output from Show-ProcessLog
     }
 }
 

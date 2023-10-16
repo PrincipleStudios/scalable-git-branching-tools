@@ -13,7 +13,7 @@ function Register-Diagnostics {
     New-Variable -Name "mockDiagnosticResult" -Value $result -Scope "script" -Force
 
     if ($throwInsteadOfExit) {
-        Mock -ModuleName 'diagnostic-framework' -CommandName 'Exit-DueToAssert' { throw 'Fake Exit-DueToAssert' }
+        Mock -ModuleName 'diagnostic-framework' -CommandName 'Exit-DueToAssert' { throw ($result -join "`n") }.GetNewClosure()
     }
     Mock -ModuleName 'diagnostic-framework' Write-Host {
         if ($mockPrevNewLine) {

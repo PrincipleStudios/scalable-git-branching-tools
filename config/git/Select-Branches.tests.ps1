@@ -1,9 +1,8 @@
 BeforeAll {
-    . "$PSScriptRoot/../testing/Lock-Git.mocks.ps1"
+    . "$PSScriptRoot/../../utils/testing.ps1"
     Import-Module -Scope Local "$PSScriptRoot/../../utils/query-state.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/Select-Branches.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/Select-Branches.psm1"
-    . $PSScriptRoot/../TestUtils.ps1
 }
 
 Describe 'Select-Branches' {
@@ -29,27 +28,27 @@ Describe 'Select-Branches' {
         }
         It 'includes feature FOO-123' {
             $branches | Where-Object { $_.branch -eq 'feature/FOO-123' }
-                | Should-BeObject @{ branch = 'feature/FOO-123'; remote = 'origin' }
+                | Assert-ShouldBeObject @{ branch = 'feature/FOO-123'; remote = 'origin' }
         }
         It 'includes feature FOO-124' {
             $branches | Where-Object { $_.branch -eq 'feature/FOO-124-comment' }
-                | Should-BeObject @{ branch = 'feature/FOO-124-comment'; remote = 'origin' }
+                | Assert-ShouldBeObject @{ branch = 'feature/FOO-124-comment'; remote = 'origin' }
         }
         It 'includes feature FOO-125' {
             $branches | Where-Object { $_.branch -eq 'feature/FOO-124_FOO-125' }
-                | Should-BeObject @{ branch = 'feature/FOO-124_FOO-125'; remote = 'origin' }
+                | Assert-ShouldBeObject @{ branch = 'feature/FOO-124_FOO-125'; remote = 'origin' }
         }
         It 'includes rc 2022-07-14' {
             $branches | Where-Object { $_.branch -eq 'rc/2022-07-14' }
-                | Should-BeObject @{ branch = 'rc/2022-07-14'; remote = 'origin' }
+                | Assert-ShouldBeObject @{ branch = 'rc/2022-07-14'; remote = 'origin' }
         }
         It 'includes main' {
             $branches | Where-Object { $_.branch -eq 'main' }
-                | Should-BeObject @{ branch = 'main'; remote = 'origin' }
+                | Assert-ShouldBeObject @{ branch = 'main'; remote = 'origin' }
         }
         It 'includes integrate/FOO-125_XYZ-1' {
             $branches | Where-Object { $_.branch -eq 'integrate/FOO-125_XYZ-1' }
-                | Should-BeObject @{ branch = 'integrate/FOO-125_XYZ-1'; remote = 'origin' }
+                | Assert-ShouldBeObject @{ branch = 'integrate/FOO-125_XYZ-1'; remote = 'origin' }
         }
     }
 
@@ -70,27 +69,27 @@ Describe 'Select-Branches' {
 
         It 'includes feature FOO-123' {
             $branches | Where-Object { $_.branch -eq 'feature/FOO-123' }
-                | Should-BeObject @{ branch = 'feature/FOO-123'; remote = $nil }
+                | Assert-ShouldBeObject @{ branch = 'feature/FOO-123'; remote = $nil }
         }
         It 'includes feature FOO-124' {
             $branches | Where-Object { $_.branch -eq 'feature/FOO-124-comment' }
-                | Should-BeObject @{ branch = 'feature/FOO-124-comment'; remote = $nil }
+                | Assert-ShouldBeObject @{ branch = 'feature/FOO-124-comment'; remote = $nil }
         }
         It 'includes feature FOO-125' {
             $branches | Where-Object { $_.branch -eq 'feature/FOO-124_FOO-125' }
-                | Should-BeObject @{ branch = 'feature/FOO-124_FOO-125'; remote = $nil }
+                | Assert-ShouldBeObject @{ branch = 'feature/FOO-124_FOO-125'; remote = $nil }
         }
         It 'includes rc 2022-07-14' {
             $branches | Where-Object { $_.branch -eq 'rc/2022-07-14' }
-                | Should-BeObject @{ branch = 'rc/2022-07-14'; remote = $nil }
+                | Assert-ShouldBeObject @{ branch = 'rc/2022-07-14'; remote = $nil }
         }
         It 'includes main' {
             $branches | Where-Object { $_.branch -eq 'main' }
-                | Should-BeObject @{ branch = 'main'; remote = $nil }
+                | Assert-ShouldBeObject @{ branch = 'main'; remote = $nil }
         }
         It 'includes integrate/FOO-125_XYZ-1' {
             $branches | Where-Object { $_.branch -eq 'integrate/FOO-125_XYZ-1' }
-                | Should-BeObject @{ branch = 'integrate/FOO-125_XYZ-1'; remote = $nil }
+                | Assert-ShouldBeObject @{ branch = 'integrate/FOO-125_XYZ-1'; remote = $nil }
         }
     }
 }
