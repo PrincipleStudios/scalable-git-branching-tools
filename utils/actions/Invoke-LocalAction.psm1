@@ -5,6 +5,7 @@ Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionSetUpstream.
 Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionCreateBranch.psm1"
 Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionSimplifyUpstreamBranches.psm1"
 Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionValidateBranchNames.psm1"
+Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionGetUpstream.psm1"
 
 $localActions = @{}
 Register-LocalActionAssertPushed $localActions
@@ -12,6 +13,7 @@ Register-LocalActionSetUpstream $localActions
 Register-LocalActionCreateBranch $localActions
 Register-LocalActionSimplifyUpstreamBranches $localActions
 Register-LocalActionValidateBranchNames $localActions
+Register-LocalActionGetUpstream $localActions
 
 function Invoke-LocalAction(
     [PSObject] $actionDefinition,
