@@ -43,3 +43,6 @@ git config alias.upstream-conflicts "!$dir/git-upstream-conflicts.ps1"
 
 # Show a list of downstreams 
 git config alias.show-downstream "!$dir/git-show-downstreams.ps1"
+
+# Make a dot file of the upstreams
+git config alias.dot-upstreams "!$dir/git-upstreams-as-dot.ps1"

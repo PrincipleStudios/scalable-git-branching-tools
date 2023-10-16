@@ -14,4 +14,4 @@ if ($target -eq $nil) {
 }
 
 $upstreamMap = Get-UpstreamBranchMap;
-$upstreamMap.Keys | Where-Object { $upstreamMap[$_] -contains $target} | Select-Object -Unique
+$upstreamMap.Keys | Where-Object { $upstreamMap[$_] -contains "origin/$target" } | Select-Object -Unique

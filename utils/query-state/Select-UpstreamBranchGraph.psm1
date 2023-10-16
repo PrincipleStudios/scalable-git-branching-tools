@@ -1,5 +1,5 @@
 Import-Module -Scope Local "$PSScriptRoot/Get-UpstreamBranch.psm1"
-Import-Module -Scope Local "$PSScriptRoot/../git/Get-GitFile.psm1"
+Import-Module -Scope Local "$PSScriptRoot/Get-GitFile.psm1"
 Import-Module -Scope Local "$PSScriptRoot/Configuration.psm1"
 
 function Get-GraphLayers($root) {
@@ -18,15 +18,19 @@ function Get-GraphLayers($root) {
 	return $output;
 }
 
-function Write-GraphLayers($layers) {
+function Write-GraphLayers($layers, [switch]$checkList) {
 	[array]::Reverse($layers);
 	$seen = New-Object 'System.Collections.Generic.HashSet[string]';
 
 	$layers | ForEach-Object {
 		$unseen = $_ | Where-Object { -not $seen.Contains($_) }
 		$to_write = $unseen -join ', ';
-		if ($to_write.Length -gt 180) {
+		if ($to_write.Length -gt 180 -and -not $checkList) {
 			Write-Host ($unseen -join "`r`n")
+		} elseif ($checkList) {
+			$unseen | ForEach-Object {
+				Write-Host "[ ] $_"
+			}
 		} else {
 			Write-Host $to_write
 		}
@@ -38,8 +42,13 @@ function Write-GraphLayers($layers) {
 	}
 }
 
-function Select-UpstreamBranchGraph([String]$branchName) {
-	# $config = Get-Configuration
+function Select-UpstreamBranchGraph([String]$branchName, [switch]$checkList=$false) {
+	$config = Get-Configuration;
+	if ($branchName -eq $config.defaultServiceLine) {
+		Write-Host "Cannot graph $($config.defaultServiceLine), it is the default service line and should not have upstreams";
+		return;
+	}
+
 	$upstreamBranch = Get-UpstreamBranch  # Usually _upstream
 
 	$nodes = New-Object 'System.Collections.Generic.Dictionary[string, object]';
@@ -75,7 +84,7 @@ function Select-UpstreamBranchGraph([String]$branchName) {
 	Write-Host
 	Write-Host
 	$layers = Get-GraphLayers $root
-	Write-GraphLayers $layers
+	Write-GraphLayers $layers -checkList $checkList
 }
 
 Export-ModuleMember -Function Select-UpstreamBranchGraph
