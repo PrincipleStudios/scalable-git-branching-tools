@@ -9,12 +9,24 @@ Describe 'local action "xxx"' {
     }
     
     BeforeEach {
+        [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
         $fw = Register-Framework
+
         [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
-        $output = $fw.assertDiagnosticOutput
-        [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
-        $diag = $fw.diagnostics
+        $standardScript = ('{ 
+            "type": "xxx", 
+            "parameters": {
+                /* implement me */
+            }
+        }' | ConvertFrom-Json)
     }
 
-    It 'will be implemented' -Pending {}
+    It 'will be implemented' -Pending {
+        Initialize-LocalActionXxxSuccess
+
+        Invoke-LocalAction $standardScript -diagnostics $fw.diagnostics
+
+        Invoke-FlushAssertDiagnostic $fw.diagnostics
+        $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
+    }
 }
