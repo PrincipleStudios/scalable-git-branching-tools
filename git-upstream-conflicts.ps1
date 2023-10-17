@@ -7,7 +7,7 @@ Param(
 
 Import-Module -Scope Local "$PSScriptRoot/utils/query-state.psm1"
 . $PSScriptRoot/config/core/coalesce.ps1
-Import-Module -Scope Local "$PSScriptRoot/config/git/Get-CurrentBranch.psm1"
+Import-Module -Scope Local "$PSScriptRoot/utils/query-state/Get-CurrentBranch.psm1"
 
 $base = ($base -eq $nil -OR $base -eq '') ? (Get-CurrentBranch) : $base
 if ($null -eq $base) {
