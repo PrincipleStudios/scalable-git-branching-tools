@@ -3,8 +3,8 @@ Import-Module -Scope Local "$PSScriptRoot/../../query-state.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../git.psm1"
 
 # TODO: this assumes all branches are remotes (if remote is specified)
-function Register-LocalActionCreateBranch([PSObject] $localActions) {
-    $localActions['create-branch'] = {
+function Register-LocalActionMergeBranches([PSObject] $localActions) {
+    $localActions['merge-branches'] = {
         param(
             [string[]] $upstreamBranches,
             [string] $mergeMessageTemplate,
@@ -26,4 +26,4 @@ function Register-LocalActionCreateBranch([PSObject] $localActions) {
     }
 }
 
-Export-ModuleMember -Function Register-LocalActionCreateBranch
+Export-ModuleMember -Function Register-LocalActionMergeBranches

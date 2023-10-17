@@ -25,7 +25,7 @@
         },
         {
             "id": "create-branch",
-            "type": "create-branch",
+            "type": "merge-branches",
             "parameters": {
                 "upstreamBranches": ["$actions['simplify-upstream'].outputs"],
                 "mergeMessageTemplate": "Merge '{}' for creation of $($params.branchName)"

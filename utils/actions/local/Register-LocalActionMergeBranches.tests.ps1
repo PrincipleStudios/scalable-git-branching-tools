@@ -1,10 +1,10 @@
-Describe 'local action "create-branch"' {
+Describe 'local action "merge-branches"' {
     BeforeAll {
         Import-Module -Scope Local "$PSScriptRoot/../../framework.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/../../query-state.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/../../git.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/../Invoke-LocalAction.psm1"
-        Import-Module -Scope Local "$PSScriptRoot/Register-LocalActionCreateBranch.mocks.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/Register-LocalActionMergeBranches.mocks.psm1"
         . "$PSScriptRoot/../../testing.ps1"
     }
 
@@ -18,10 +18,10 @@ Describe 'local action "create-branch"' {
 
     function AddStandardTests() {
         It 'creates from a single branch' {
-            Initialize-LocalActionCreateBranchSuccess @('baz') 'new-Commit' -mergeMessageTemplate "Merge {}"
+            Initialize-LocalActionMergeBranchesSuccess @('baz') 'new-Commit' -mergeMessageTemplate "Merge {}"
 
             $result = Invoke-LocalAction ('{ 
-                "type": "create-branch", 
+                "type": "merge-branches", 
                 "parameters": {
                     "upstreamBranches": [
                         "baz"
@@ -34,10 +34,10 @@ Describe 'local action "create-branch"' {
         }
 
         It 'handles standard functionality' {
-            $mocks = Initialize-LocalActionCreateBranchSuccess @('baz', 'barbaz') 'new-Commit' -mergeMessageTemplate "Merge {}"
+            $mocks = Initialize-LocalActionMergeBranchesSuccess @('baz', 'barbaz') 'new-Commit' -mergeMessageTemplate "Merge {}"
 
             $result = Invoke-LocalAction ('{ 
-                "type": "create-branch", 
+                "type": "merge-branches", 
                 "parameters": {
                     "upstreamBranches": [
                         "baz",
@@ -52,12 +52,12 @@ Describe 'local action "create-branch"' {
         }
 
         It 'fails if all branches could not be resolved' {
-            $mocks = Initialize-LocalActionCreateBranchSuccess @('baz', 'barbaz') 'new-Commit' `
+            $mocks = Initialize-LocalActionMergeBranchesSuccess @('baz', 'barbaz') 'new-Commit' `
                 -mergeMessageTemplate "Merge {}" `
                 -failAtMerge 0
 
             $result = Invoke-LocalAction ('{ 
-                "type": "create-branch", 
+                "type": "merge-branches", 
                 "parameters": {
                     "upstreamBranches": [
                         "baz",
@@ -86,12 +86,12 @@ Describe 'local action "create-branch"' {
         AddStandardTests
         
         It 'reports merge failures' {
-            $mocks = Initialize-LocalActionCreateBranchSuccess @('baz', 'barbaz') 'new-Commit' `
+            $mocks = Initialize-LocalActionMergeBranchesSuccess @('baz', 'barbaz') 'new-Commit' `
                 -mergeMessageTemplate "Merge {}" `
                 -failAtMerge 1
 
             $result = Invoke-LocalAction ('{ 
-                "type": "create-branch", 
+                "type": "merge-branches", 
                 "parameters": {
                     "upstreamBranches": [
                         "baz",
@@ -120,12 +120,12 @@ Describe 'local action "create-branch"' {
         AddStandardTests
         
         It 'reports merge failures' {
-            $mocks = Initialize-LocalActionCreateBranchSuccess @('baz', 'barbaz') 'new-Commit' `
+            $mocks = Initialize-LocalActionMergeBranchesSuccess @('baz', 'barbaz') 'new-Commit' `
                 -mergeMessageTemplate "Merge {}" `
                 -failAtMerge 1
 
             $result = Invoke-LocalAction ('{ 
-                "type": "create-branch", 
+                "type": "merge-branches", 
                 "parameters": {
                     "upstreamBranches": [
                         "baz",

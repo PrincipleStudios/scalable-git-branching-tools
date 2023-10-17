@@ -1,10 +1,10 @@
 Import-Module -Scope Local "$PSScriptRoot/../../query-state.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../query-state.mocks.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../git.mocks.psm1"
-Import-Module -Scope Local "$PSScriptRoot/Register-LocalActionCreateBranch.psm1"
+Import-Module -Scope Local "$PSScriptRoot/Register-LocalActionMergeBranches.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../testing.psm1"
 
-function Initialize-LocalActionCreateBranchSuccess(
+function Initialize-LocalActionMergeBranchesSuccess(
     [Parameter(Mandatory)][string[]] $upstreamBranches, 
     [Parameter(Mandatory)][string] $resultCommitish,
     [Parameter(Mandatory)][string] $mergeMessageTemplate,
@@ -24,4 +24,4 @@ function Initialize-LocalActionCreateBranchSuccess(
         -resultCommitish $resultCommitish
 }
 
-Export-ModuleMember -Function Initialize-LocalActionCreateBranchSuccess
+Export-ModuleMember -Function Initialize-LocalActionMergeBranchesSuccess
