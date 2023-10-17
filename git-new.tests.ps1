@@ -29,7 +29,7 @@ Describe 'git-new' {
                 Initialize-LocalActionSetUpstream @{
                     'feature/PS-100-some-work' = 'main'
                 } -commitish 'new-commit'
-                Initialize-LocalActionCreateBranchSuccess `
+                Initialize-LocalActionMergeBranchesSuccess `
                     @('main') 'latest-main' `
                     -mergeMessageTemplate "Merge '{}' for creation of feature/PS-100-some-work"
                 Initialize-FinalizeActionSetBranches @{
@@ -51,7 +51,7 @@ Describe 'git-new' {
                 Initialize-LocalActionSetUpstream @{
                     'feature/PS-100-some-work' = 'main'
                 } -commitish 'new-commit'
-                Initialize-LocalActionCreateBranchSuccess `
+                Initialize-LocalActionMergeBranchesSuccess `
                     @('main') 'latest-main' `
                     -mergeMessageTemplate "Merge '{}' for creation of feature/PS-100-some-work"
                 Initialize-FinalizeActionSetBranches @{
@@ -74,7 +74,7 @@ Describe 'git-new' {
                 Initialize-LocalActionSetUpstream @{
                     'feature/PS-600-some-work' = 'infra/foo'
                 } -commitish 'new-commit'
-                Initialize-LocalActionCreateBranchSuccess `
+                Initialize-LocalActionMergeBranchesSuccess `
                     @('infra/foo') 'latest-foo' `
                     -mergeMessageTemplate "Merge '{}' for creation of feature/PS-600-some-work"
                 Initialize-FinalizeActionSetBranches @{
@@ -98,7 +98,7 @@ Describe 'git-new' {
                 Initialize-LocalActionSetUpstream @{
                     'feature/PS-100-some-work' = 'main'
                 } -commitish 'new-commit'
-                Initialize-LocalActionCreateBranchSuccess `
+                Initialize-LocalActionMergeBranchesSuccess `
                     @('main') 'latest-main' `
                     -mergeMessageTemplate "Merge '{}' for creation of feature/PS-100-some-work"
                 Initialize-FinalizeActionSetBranches @{
@@ -144,7 +144,7 @@ Describe 'git-new' {
                 Initialize-LocalActionSetUpstream @{
                     'feature/PS-100-some-work' = 'main'
                 } -commitish 'new-commit'
-                Initialize-LocalActionCreateBranchSuccess `
+                Initialize-LocalActionMergeBranchesSuccess `
                     @('main') 'latest-main' `
                     -mergeMessageTemplate "Merge '{}' for creation of feature/PS-100-some-work"
                 Initialize-FinalizeActionSetBranches @{
@@ -167,7 +167,7 @@ Describe 'git-new' {
                 Initialize-LocalActionSetUpstream @{
                     'feature/PS-100-some-work' = 'infra/foo'
                 } -commitish 'new-commit'
-                Initialize-LocalActionCreateBranchSuccess `
+                Initialize-LocalActionMergeBranchesSuccess `
                     @('infra/foo') 'latest-foo' `
                     -mergeMessageTemplate "Merge '{}' for creation of feature/PS-100-some-work"
                 Initialize-FinalizeActionSetBranches @{
@@ -192,7 +192,7 @@ Describe 'git-new' {
                 Initialize-LocalActionSetUpstream @{
                     'feature/PS-100-some-work' = @('feature/homepage-redesign')
                 } -commitish 'new-commit'
-                Initialize-LocalActionCreateBranchSuccess `
+                Initialize-LocalActionMergeBranchesSuccess `
                     @('feature/homepage-redesign') 'latest-redesign' `
                     -mergeMessageTemplate "Merge '{}' for creation of feature/PS-100-some-work"
                 Initialize-FinalizeActionSetBranches @{
@@ -221,7 +221,7 @@ Describe 'git-new' {
                 Initialize-LocalActionSetUpstream @{
                     'feature/PS-100-some-work' = @('feature/homepage-redesign', 'infra/update-dependencies')
                 } -commitish 'new-commit'
-                Initialize-LocalActionCreateBranchSuccess `
+                Initialize-LocalActionMergeBranchesSuccess `
                     @('feature/homepage-redesign', 'infra/update-dependencies') 'merge-result' `
                     -mergeMessageTemplate "Merge '{}' for creation of feature/PS-100-some-work"
                 Initialize-FinalizeActionSetBranches @{
@@ -248,7 +248,7 @@ Describe 'git-new' {
                 Initialize-LocalActionSetUpstream @{
                     'feature/PS-100-some-work' = @('feature/homepage-redesign', 'infra/update-dependencies')
                 } -commitish 'new-commit'
-                Initialize-LocalActionCreateBranchSuccess `
+                Initialize-LocalActionMergeBranchesSuccess `
                     @('feature/homepage-redesign', 'infra/update-dependencies') 'merge-result' `
                     -mergeMessageTemplate "Merge '{}' for creation of feature/PS-100-some-work" `
                     -failAtMerge 0
@@ -268,7 +268,7 @@ Describe 'git-new' {
                 Initialize-LocalActionSetUpstream @{
                     'feature/PS-100-some-work' = @('feature/homepage-redesign', 'infra/update-dependencies')
                 } -commitish 'new-commit'
-                Initialize-LocalActionCreateBranchSuccess `
+                Initialize-LocalActionMergeBranchesSuccess `
                     @('feature/homepage-redesign', 'infra/update-dependencies') 'merge-result' `
                     -failAtMerge 1 `
                     -mergeMessageTemplate "Merge '{}' for creation of feature/PS-100-some-work"
