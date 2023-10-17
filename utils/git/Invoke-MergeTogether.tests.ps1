@@ -58,6 +58,36 @@ Describe 'Invoke-MergeTogether' {
         Get-HasErrorDiagnostic $fw.diagnostics | Should -Be $false
         Invoke-VerifyMock $mocks -Times 1
     }
+
+    It 'starts with the source' {
+        $mocks = Initialize-MergeTogether `
+            -allBranches @('feature/FOO-1', 'feature/FOO-2', 'feature/FOO-3') `
+            -successfulBranches @('feature/FOO-1', 'feature/FOO-3') `
+            -source 'main' `
+            -resultCommitish 'result-commitish' `
+            -messageTemplate 'Merge {}'
+
+        $result = Invoke-MergeTogether @('feature/FOO-1', 'feature/FOO-2', 'feature/FOO-3') -source 'main' -diagnostics $fw.diagnostics
+        $result.result | Should -Be 'result-commitish'
+        $result.failed | Should -Be @('feature/FOO-2')
+        $result.successful | Should -Be @('feature/FOO-1', 'feature/FOO-3')
+        $fw.diagnostics | Should -Not -BeNullOrEmpty
+        Get-HasErrorDiagnostic $fw.diagnostics | Should -Be $true
+        Invoke-VerifyMock $mocks -Times 1
+    }
+    
+    It "fails if the source can't resolve" {
+        $mocks = Initialize-MergeTogetherAllFailed 'main'
+
+        $result = Invoke-MergeTogether @('feature/FOO-1', 'feature/FOO-2', 'feature/FOO-3') -source 'main' -diagnostics $fw.diagnostics
+        $result.result | Should -Be $null
+        # ONly checked the source, so that's all that will be relayed in the failure
+        $result.failed | Should -Be @('main')
+        $result.successful | Should -BeNullOrEmpty
+        $fw.diagnostics | Should -Not -BeNullOrEmpty
+        Get-HasErrorDiagnostic $fw.diagnostics | Should -Be $true
+        Invoke-VerifyMock $mocks -Times 1
+    }
     
     It 'does not throw or abort if exit code is zero' {
         $mocks = Initialize-MergeTogether @('feature/FOO-1', 'feature/FOO-2', 'feature/FOO-3') -successfulBranches @('feature/FOO-1', 'feature/FOO-2', 'feature/FOO-3') -resultCommitish 'result-commitish'

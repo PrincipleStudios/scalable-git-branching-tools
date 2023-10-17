@@ -3,6 +3,7 @@ Import-Module -Scope Local "$PSScriptRoot/../query-state.psm1"
 
 function Invoke-MergeTogether(
     [Parameter(Mandatory)][String[]] $commitishes, 
+    [Parameter()][AllowNull()][string] $source = $null,
     [Parameter()][string] $messageTemplate = "Merge {}",
     [Parameter(Mandatory)][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics,
     [switch] $asWarnings
@@ -13,6 +14,24 @@ function Invoke-MergeTogether(
     [String[]]$successful = @()
 
     $currentCommit = $null
+    if ($null -ne $source -AND '' -ne $source) {
+        $target = $source
+
+        $currentCommit = Invoke-ProcessLogs "git rev-parse --verify $target" {
+            git rev-parse --verify $target
+        } -allowSuccessOutput
+        if ($global:LASTEXITCODE -ne 0) {
+            $remaining = $remaining | Where-Object { $_ -ne $target }
+            $failed += $target
+            Add-ErrorDiagnostic $diagnostics "Could not resolve '$($target)' for source of merge"
+            
+            return @{
+                result = $null
+                successful = @()
+                failed = @($target)
+            }
+        }
+    }
     while ($remaining.Count -gt 0) {
         $target = $remaining[0]
         if ($null -eq $currentCommit) {

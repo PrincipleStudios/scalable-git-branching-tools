@@ -6,6 +6,7 @@ Import-Module -Scope Local "$PSScriptRoot/../../git.psm1"
 function Register-LocalActionMergeBranches([PSObject] $localActions) {
     $localActions['merge-branches'] = {
         param(
+            [string] $source,
             [string[]] $upstreamBranches,
             [string] $mergeMessageTemplate,
             [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
@@ -14,12 +15,17 @@ function Register-LocalActionMergeBranches([PSObject] $localActions) {
         $config = Get-Configuration
         if ($null -ne $config.remote) {
             $upstreamBranches = [string[]]$upstreamBranches | Foreach-Object { "$($config.remote)/$_" }
+            if ($null -ne $source -AND '' -ne $source) {
+                $source = "$($config.remote)/$source"
+            }
         }
 
-        $mergeResult = Invoke-MergeTogether $upstreamBranches -messageTemplate $mergeMessageTemplate -diagnostics $diagnostics -asWarnings
+        $mergeResult = Invoke-MergeTogether -source $source -commitishes $upstreamBranches -messageTemplate $mergeMessageTemplate -diagnostics $diagnostics -asWarnings
         $commit = $mergeResult.result
         if ($null -eq $commit) {
-            Add-ErrorDiagnostic $diagnostics "No branches could be resolved to merge"
+            if ($source -notin $mergeResult.failed) {
+                Add-ErrorDiagnostic $diagnostics "No branches could be resolved to merge"
+            }
         }
         # TODO - output successfully merged branches
         return @{ commit = $commit }
