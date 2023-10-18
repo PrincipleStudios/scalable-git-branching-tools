@@ -71,6 +71,53 @@ Describe 'local action "merge-branches"' {
             $result | Assert-ShouldBeObject @{ commit = $null }
             Invoke-VerifyMock $mocks -Times 1
         }
+
+        It 'can specify an additional source' {
+            $mocks = Initialize-LocalActionMergeBranchesSuccess @('baz', 'barbaz') 'new-Commit' `
+                -source 'foo' `
+                -mergeMessageTemplate "Merge {}"
+
+            $result = Invoke-LocalAction ('{ 
+                "type": "merge-branches", 
+                "parameters": {
+                    "source": "foo",
+                    "upstreamBranches": [
+                        "baz",
+                        "barbaz"
+                    ],
+                    "mergeMessageTemplate": "Merge {}"
+                }
+            }' | ConvertFrom-Json) -diagnostics $diag
+            $diag | Should -BeNullOrEmpty
+            $result | Assert-ShouldBeObject @{ commit = 'new-COMMIT' }
+            Invoke-VerifyMock $mocks -Times 1
+        }
+
+        It 'fails early if the source fails' {
+            $mocks = Initialize-LocalActionMergeBranchesFailure @('baz', 'barbaz') -failures @('foo') -resultCommitish 'new-Commit' `
+                -source 'foo' `
+                -mergeMessageTemplate "Merge {}"
+
+            $result = Invoke-LocalAction ('{ 
+                "type": "merge-branches", 
+                "parameters": {
+                    "source": "foo",
+                    "upstreamBranches": [
+                        "baz",
+                        "barbaz"
+                    ],
+                    "mergeMessageTemplate": "Merge {}"
+                }
+            }' | ConvertFrom-Json) -diagnostics $diag
+            Invoke-FlushAssertDiagnostic $diag
+            if ($null -ne (Get-Configuration).remote) {
+                $output | Should -be @("ERR:  Could not resolve 'origin/foo' for source of merge")
+            } else {
+                $output | Should -be @("ERR:  Could not resolve 'foo' for source of merge")
+            }
+            $result | Assert-ShouldBeObject @{ commit = $null }
+            Invoke-VerifyMock $mocks -Times 1
+        }
     }
     
     Context 'without remote' {

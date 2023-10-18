@@ -1,11 +1,11 @@
 Import-Module -Scope Local "$PSScriptRoot/actions/local/Register-LocalActionAssertPushed.mocks.psm1"
 Export-ModuleMember -Function Initialize-LocalActionAssertPushedNotTracked, Initialize-LocalActionAssertPushedSuccess, Initialize-LocalActionAssertPushedAhead
 
-Import-Module -Scope Local "$PSScriptRoot/actions/local/Register-LocalActionMergeBranches.mocks.psm1"
-Export-ModuleMember -Function Initialize-LocalActionMergeBranchesSuccess
-
 Import-Module -Scope Local "$PSScriptRoot/actions/local/Register-LocalActionGetUpstream.mocks.psm1"
 Export-ModuleMember -Function Initialize-AnyUpstreamBranches,Initialize-UpstreamBranches
+
+Import-Module -Scope Local "$PSScriptRoot/actions/local/Register-LocalActionMergeBranches.mocks.psm1"
+Export-ModuleMember -Function Initialize-LocalActionMergeBranchesFailure,Initialize-LocalActionMergeBranchesSuccess
 
 Import-Module -Scope Local "$PSScriptRoot/actions/local/Register-LocalActionSetUpstream.mocks.psm1"
 Export-ModuleMember -Function Lock-LocalActionSetUpstream, Initialize-LocalActionSetUpstream

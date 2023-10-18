@@ -1,21 +1,21 @@
 Import-Module -Scope Local "$PSScriptRoot/../core.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../framework.psm1"
 Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionAssertPushed.psm1"
-Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionSetUpstream.psm1"
-Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionMergeBranches.psm1"
-Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionSimplifyUpstreamBranches.psm1"
-Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionValidateBranchNames.psm1"
 Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionGetUpstream.psm1"
 Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionFilterBranches.psm1"
+Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionMergeBranches.psm1"
+Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionSetUpstream.psm1"
+Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionSimplifyUpstreamBranches.psm1"
+Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionValidateBranchNames.psm1"
 
 $localActions = @{}
 Register-LocalActionAssertPushed $localActions
-Register-LocalActionSetUpstream $localActions
-Register-LocalActionMergeBranches $localActions
-Register-LocalActionSimplifyUpstreamBranches $localActions
-Register-LocalActionValidateBranchNames $localActions
 Register-LocalActionGetUpstream $localActions
 Register-LocalActionFilterBranches $localActions
+Register-LocalActionMergeBranches $localActions
+Register-LocalActionSetUpstream $localActions
+Register-LocalActionSimplifyUpstreamBranches $localActions
+Register-LocalActionValidateBranchNames $localActions
 
 function Invoke-LocalAction(
     [PSObject] $actionDefinition,
