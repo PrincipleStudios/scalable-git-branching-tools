@@ -18,7 +18,6 @@ function Register-FinalizeActionSetBranches([PSObject] $finalizeActions) {
     $finalizeActions['set-branches'] = {
         param(
             [Parameter()] $branches,
-            [Parameter()][AllowEmptyCollection()][string[]] $track,
             [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
         )
 
@@ -36,20 +35,20 @@ function Register-FinalizeActionSetBranches([PSObject] $finalizeActions) {
             if ($global:LASTEXITCODE -ne 0) {
                 Add-ErrorDiagnostic $diagnostics "Unable to push updates to $($config.remote)"
             }
-            
-
-            foreach ($key in $track) {
-                Invoke-ProcessLogs "git branch $key $($branches[$key])" {
-                    git branch $key $($branches[$key]) -f
-                }
-                Invoke-ProcessLogs "git branch $key --set-upstream-to $($config.remote)/$key" {
-                    git branch $key --set-upstream-to "$($config.remote)/$key"
-                }
-            }
         } else {
+            $currentBranch = Get-CurrentBranch
+
             foreach ($key in $branches.Keys) {
-                Invoke-ProcessLogs "git branch $key $($branches[$key])" {
-                    git branch $key $($branches[$key]) -f
+                if ($currentBranch -eq $key) {
+                    # update head, since it matches the branch to be "pushed"
+                    Invoke-ProcessLogs "git reset --hard $($branches[$key])" {
+                        git reset --hard "$($branches[$key])"
+                    }
+                } else {
+                    # just update the branch
+                    Invoke-ProcessLogs "git branch $key $($branches[$key])" {
+                        git branch $key $($branches[$key]) -f
+                    }
                 }
                 if ($global:LASTEXITCODE -ne 0) {
                     Add-ErrorDiagnostic $diagnostics "Unable to update local branches"

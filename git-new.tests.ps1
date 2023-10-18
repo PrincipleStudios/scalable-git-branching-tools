@@ -20,6 +20,7 @@ Describe 'git-new' {
             Lock-LocalActionSetUpstream
 
             Initialize-AnyUpstreamBranches
+            Initialize-NoCurrentBranch
         }
 
         It 'handles standard functionality' {
@@ -37,6 +38,7 @@ Describe 'git-new' {
                     'feature/PS-100-some-work' = 'latest-main'
                 }
                 Initialize-FinalizeActionCheckout 'feature/PS-100-some-work'
+                Initialize-FinalizeActionTrackSuccess @('feature/PS-100-some-work') -untracked @('feature/PS-100-some-work')
             )
 
             & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -m 'some work'
@@ -59,6 +61,7 @@ Describe 'git-new' {
                     'feature/PS-100-some-work' = 'latest-main'
                 }
                 Initialize-FinalizeActionCheckout 'feature/PS-100-some-work'
+                Initialize-FinalizeActionTrackSuccess @('feature/PS-100-some-work') -untracked @('feature/PS-100-some-work')
             )
 
             & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -m 'some work'
@@ -82,6 +85,7 @@ Describe 'git-new' {
                     'feature/PS-600-some-work' = 'latest-foo'
                 }
                 Initialize-FinalizeActionCheckout 'feature/PS-600-some-work'
+                Initialize-FinalizeActionTrackSuccess @('feature/PS-600-some-work') -untracked @('feature/PS-600-some-work')
             )
 
             & $PSScriptRoot/git-new.ps1 feature/PS-600-some-work -u 'infra/foo' -m 'some work'
@@ -118,6 +122,7 @@ Describe 'git-new' {
             Initialize-ToolConfiguration
             Initialize-UpdateGitRemote
             Initialize-CleanWorkingDirectory
+            Initialize-NoCurrentBranch
 
             Initialize-AnyUpstreamBranches
             Initialize-UpstreamBranches @{
@@ -152,6 +157,7 @@ Describe 'git-new' {
                     'feature/PS-100-some-work' = 'latest-main'
                 } -track @('feature/PS-100-some-work')
                 Initialize-FinalizeActionCheckout 'feature/PS-100-some-work'
+                Initialize-FinalizeActionTrackSuccess @('feature/PS-100-some-work') -untracked @('feature/PS-100-some-work')
             )
 
             & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -m 'some work'
@@ -175,6 +181,7 @@ Describe 'git-new' {
                     'feature/PS-100-some-work' = 'latest-foo'
                 } -track @('feature/PS-100-some-work')
                 Initialize-FinalizeActionCheckout 'feature/PS-100-some-work'
+                Initialize-FinalizeActionTrackSuccess @('feature/PS-100-some-work') -untracked @('feature/PS-100-some-work')
             )
 
             & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -u 'infra/foo' -m 'some work'
@@ -200,6 +207,7 @@ Describe 'git-new' {
                     'feature/PS-100-some-work' = 'latest-redesign'
                 } -track @('feature/PS-100-some-work')
                 Initialize-FinalizeActionCheckout 'feature/PS-100-some-work'
+                Initialize-FinalizeActionTrackSuccess @('feature/PS-100-some-work') -untracked @('feature/PS-100-some-work')
             )
 
             & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -u 'infra/foo,main,feature/homepage-redesign' -m 'some work'
@@ -229,6 +237,7 @@ Describe 'git-new' {
                     'feature/PS-100-some-work' = 'merge-result'
                 } -track @('feature/PS-100-some-work')
                 Initialize-FinalizeActionCheckout 'feature/PS-100-some-work'
+                Initialize-FinalizeActionTrackSuccess @('feature/PS-100-some-work') -untracked @('feature/PS-100-some-work')
             )
 
             & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -u 'infra/foo,main,feature/homepage-redesign,infra/update-dependencies' -m 'some work'
@@ -277,6 +286,7 @@ Describe 'git-new' {
                     'feature/PS-100-some-work' = 'merge-result'
                 } -track @('feature/PS-100-some-work')
                 Initialize-FinalizeActionCheckout 'feature/PS-100-some-work'
+                Initialize-FinalizeActionTrackSuccess @('feature/PS-100-some-work') -untracked @('feature/PS-100-some-work')
             )
 
             { & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -u 'feature/homepage-redesign,infra/update-dependencies' -m 'some work' } | Should -Not -Throw

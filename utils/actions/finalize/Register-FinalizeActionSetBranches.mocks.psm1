@@ -7,7 +7,7 @@ function Invoke-MockGit([string] $gitCli, [object] $MockWith) {
     return Invoke-MockGitModule -ModuleName 'Register-FinalizeActionSetBranches' @PSBoundParameters
 }
 
-function Initialize-FinalizeActionSetBranches([Hashtable] $branches, [string[]] $track, [switch] $fail) {
+function Initialize-FinalizeActionSetBranches([Hashtable] $branches, [switch] $fail) {
     $config = Get-Configuration
     
     foreach ($branch in $branches.Keys) {
@@ -19,18 +19,18 @@ function Initialize-FinalizeActionSetBranches([Hashtable] $branches, [string[]] 
         $branchList = ConvertTo-PushBranchList $branches
         Invoke-MockGit -gitCli "push $($config.remote) $atomicPart$branchList" `
             -MockWith $($fail ? { $Global:LASTEXITCODE = 1 } : {})
-
-        foreach ($branch in $track) {
-            Invoke-MockGit `
-                -gitCli "branch $($branch) $($branches[$branch]) -f" `
-                -MockWith $($fail ? { $Global:LASTEXITCODE = 1 } : {})
-            Invoke-MockGit -gitCli "branch $branch --set-upstream-to $($config.remote)/$branch"
-        }
     } else {
+        $currentBranch = Get-CurrentBranch
         foreach ($key in $branches.Keys) {
-            Invoke-MockGit `
-                -gitCli "branch $($key) $($branches[$key]) -f" `
-                -MockWith $($fail ? { $Global:LASTEXITCODE = 1 } : {})
+            if ($currentBranch -eq $key) {
+                Invoke-MockGit `
+                    -gitCli "reset --hard $($branches[$key])" `
+                    -MockWith $($fail ? { $Global:LASTEXITCODE = 1 } : {})
+            } else {
+                Invoke-MockGit `
+                    -gitCli "branch $($key) $($branches[$key]) -f" `
+                    -MockWith $($fail ? { $Global:LASTEXITCODE = 1 } : {})
+            }
         }
     }
 }

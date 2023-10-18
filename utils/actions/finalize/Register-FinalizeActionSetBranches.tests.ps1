@@ -41,6 +41,7 @@ Describe 'finalize action "set-branches"' {
         }
 
         It 'handles standard functionality' {
+            Initialize-NoCurrentBranch
             $mocks = @(
                 Initialize-AssertValidBranchName '_upstream'
                 Initialize-AssertValidBranchName 'other'
@@ -59,6 +60,7 @@ Describe 'finalize action "set-branches"' {
         }
 
         It 'handles standard functionality using mocks' {
+            Initialize-NoCurrentBranch
             $mocks = Initialize-FinalizeActionSetBranches $standardBranches
             Invoke-FinalizeAction $standardScript -diagnostics $diag
             $diag | Should -BeNullOrEmpty
@@ -66,9 +68,18 @@ Describe 'finalize action "set-branches"' {
         }
 
         It 'reports failures' {
+            Initialize-NoCurrentBranch
             Initialize-FinalizeActionSetBranches $standardBranches -fail
             Invoke-FinalizeAction $standardScript -diagnostics $diag
             Get-HasErrorDiagnostic $diag | Should -Be $true
+        }
+
+        It 'can update the current branch' {
+            Initialize-CurrentBranch 'another'
+            $mocks = Initialize-FinalizeActionSetBranches $standardBranches
+            Invoke-FinalizeAction $standardScript -diagnostics $diag
+            $diag | Should -BeNullOrEmpty
+            Invoke-VerifyMock $mocks -Times 1
         }
     }
 
