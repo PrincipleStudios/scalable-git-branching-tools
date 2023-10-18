@@ -21,3 +21,6 @@ Export-ModuleMember -Function Initialize-FinalizeActionCheckout
 
 Import-Module -Scope Local "$PSScriptRoot/actions/finalize/Register-FinalizeActionSetBranches.mocks.psm1"
 Export-ModuleMember -Function Initialize-FinalizeActionSetBranches
+
+Import-Module -Scope Local "$PSScriptRoot/actions/finalize/Register-FinalizeActionTrack.mocks.psm1"
+Export-ModuleMember -Function Initialize-FinalizeActionTrackSuccess

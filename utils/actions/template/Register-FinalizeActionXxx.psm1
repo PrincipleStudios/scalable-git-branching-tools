@@ -15,4 +15,4 @@ function Register-FinalizeActionXxx([PSObject] $finalizeActions) {
     }
 }
 
-Export-ModuleMember -Function Register-FinalizeActionSetBranches
+Export-ModuleMember -Function Register-FinalizeActionXxx
