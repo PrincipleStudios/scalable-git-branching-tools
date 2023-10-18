@@ -103,4 +103,12 @@ Describe 'ConvertFrom-ParameterizedAnything' {
         $result.result | Assert-ShouldBeObject @{ 'foo' = @('bar', 'baz', 'woot'); 'baz' = 'woot' }
     }
     
+    It 'preserve boolean JSON types' {
+        $target = @{ 'foo' = $true; 'bar' = $false }
+        $target = $target | ConvertTo-Json | ConvertFrom-Json
+        $params = @{ }
+        $result = ConvertFrom-ParameterizedAnything $target -config @{} -params $params -actions @{} -failOnError
+        $result.result | Assert-ShouldBeObject @{ 'foo' = $true; 'bar' = $false }
+    }
+    
 }
