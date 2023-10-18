@@ -24,9 +24,9 @@ Describe 'finalize action "xxx"' {
 
     function AddStandardTests() {
         It 'will be implemented' -Pending {
-            Initialize-LocalActionXxxSuccess
+            Initialize-FinalizeActionXxxSuccess
 
-            Invoke-LocalAction $standardScript -diagnostics $fw.diagnostics
+            Invoke-FinalizeAction $standardScript -diagnostics $fw.diagnostics
 
             Invoke-FlushAssertDiagnostic $fw.diagnostics
             $fw.assertDiagnosticOutput | Should -BeNullOrEmpty

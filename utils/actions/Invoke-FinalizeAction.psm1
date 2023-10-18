@@ -2,10 +2,12 @@ Import-Module -Scope Local "$PSScriptRoot/../core.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../framework.psm1"
 Import-Module -Scope Local "$PSScriptRoot/finalize/Register-FinalizeActionCheckout.psm1"
 Import-Module -Scope Local "$PSScriptRoot/finalize/Register-FinalizeActionSetBranches.psm1"
+Import-Module -Scope Local "$PSScriptRoot/finalize/Register-FinalizeActionTrack.psm1"
 
 $finalizeActions = @{}
 Register-FinalizeActionCheckout $finalizeActions
 Register-FinalizeActionSetBranches $finalizeActions
+Register-FinalizeActionTrack $finalizeActions
 
 function Invoke-FinalizeAction(
     [PSObject] $actionDefinition,
