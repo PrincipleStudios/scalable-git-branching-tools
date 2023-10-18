@@ -10,16 +10,14 @@ function Invoke-MockGit([string] $gitCli, [object] $MockWith) {
 
 function Initialize-FinalizeActionTrackSuccess(
     [Parameter()][AllowEmptyCollection()][string[]] $branches,
-    [Parameter()][AllowEmptyCollection()][string[]] $untracked,
-    [Parameter()][string] $currentBranch
+    [Parameter()][AllowEmptyCollection()][string[]] $untracked
 ) {
     $config = Get-Configuration
-
-    if ($currentBranch) {
-        Initialize-CurrentBranch $currentBranch
-    } else {
-        Initialize-NoCurrentBranch
+    if ($null -eq $config.remote) {
+        return
     }
+
+    $currentBranch = Get-CurrentBranch
 
     foreach ($branch in $untracked) {
         Initialize-GetLocalBranchForRemote $branch $null

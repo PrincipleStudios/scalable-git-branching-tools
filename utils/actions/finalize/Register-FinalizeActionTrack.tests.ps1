@@ -33,7 +33,6 @@ Describe 'finalize action "track"' {
             $result | Should -BeNullOrEmpty
             Invoke-FlushAssertDiagnostic $fw.diagnostics
             $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
-
         }
     }
 
@@ -51,6 +50,7 @@ Describe 'finalize action "track"' {
                 }
             }' | ConvertFrom-Json)
 
+            Initialize-NoCurrentBranch
             $mocks = Initialize-FinalizeActionTrackSuccess @('foo', 'bar') -untracked @('foo', 'bar')
 
             Invoke-FinalizeAction $standardScript -diagnostics $fw.diagnostics
@@ -62,6 +62,7 @@ Describe 'finalize action "track"' {
         }
         
         It 'ensures local branches are updated' {
+            Initialize-NoCurrentBranch
             $mocks = Initialize-FinalizeActionTrackSuccess @('foo', 'bar')
 
             Invoke-FinalizeAction $standardScript -diagnostics $fw.diagnostics
@@ -73,7 +74,8 @@ Describe 'finalize action "track"' {
         }
         
         It 'updates the current branch' {
-            $mocks = Initialize-FinalizeActionTrackSuccess @('foo', 'bar') -currentBranch 'foo'
+            Initialize-CurrentBranch 'foo'
+            $mocks = Initialize-FinalizeActionTrackSuccess @('foo', 'bar')
 
             Invoke-FinalizeAction $standardScript -diagnostics $fw.diagnostics
 
@@ -84,25 +86,25 @@ Describe 'finalize action "track"' {
         }
         
         It 'updates no branches if they are untracked' {
-            $mocks = Initialize-FinalizeActionTrackSuccess @('foo', 'bar') -currentBranch 'foo'
+            Initialize-CurrentBranch 'foo'
+            $mocks = Initialize-FinalizeActionTrackSuccess @('foo', 'bar')
 
             Invoke-FinalizeAction $standardScript -diagnostics $fw.diagnostics
 
             Invoke-FlushAssertDiagnostic $fw.diagnostics
             $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
             Invoke-VerifyMock $mocks -Times 1
-
         }
         
         It 'updates the current branch even if it is untracked' {
-            $mocks = Initialize-FinalizeActionTrackSuccess @('foo', 'bar') -untracked @('foo') -currentBranch 'foo'
+            Initialize-CurrentBranch 'foo'
+            $mocks = Initialize-FinalizeActionTrackSuccess @('foo', 'bar') -untracked @('foo')
 
             Invoke-FinalizeAction $standardScript -diagnostics $fw.diagnostics
 
             Invoke-FlushAssertDiagnostic $fw.diagnostics
             $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
             Invoke-VerifyMock $mocks -Times 1
-
         }
     }
 }
