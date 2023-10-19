@@ -21,7 +21,7 @@ function Invoke-Script(
             if ($local.fail) {
                 Add-ErrorDiagnostic $diagnostics "Could not apply parameters to local action $name; see above errors. Evaluation below:"
                 Add-ErrorDiagnostic $diagnostics "$(ConvertTo-Json $local.result -Depth 10)"
-                continue;
+                break
             }
             try {
                 $outputs = Invoke-LocalAction $local.result -diagnostics $diagnostics
@@ -32,6 +32,10 @@ function Invoke-Script(
                 Add-ErrorDiagnostic $diagnostics "Encountered error while running local action $($name), evaluated below, with the error following."
                 Add-ErrorDiagnostic $diagnostics "$(ConvertTo-Json $local.result -Depth 10)"
                 Add-ErrorException $diagnostics $_
+            }
+            if (Get-HasErrorDiagnostic $diagnostics) {
+                # Don't bother continuing if anything failed; this leads to lots of noise in failed applied parameters
+                break
             }
         }
 
