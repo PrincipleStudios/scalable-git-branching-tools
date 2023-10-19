@@ -7,7 +7,7 @@ function Get-BranchSyncState(
     $config = Get-Configuration
     if ($config.remote -ne $nil) {
         # Will give empty string for not tracked, `<` for behind, `>` for commits that aren't pushed, `=` for same, and `<>` for both remote and local have extra commits
-        $syncState = Invoke-ProcessLogs "get local branch for $($config.remote)/$branchName" {
+        $syncState = Invoke-ProcessLogs "get sync state for $($config.remote)/$branchName" {
             git for-each-ref "--format=%(if:equals=$($config.remote)/$branchName)%(upstream:short)%(then)%(upstream:trackshort)%(else)%(end)" refs/heads --omit-empty
         } -allowSuccessOutput
 
