@@ -18,7 +18,7 @@ RUN echo "\$ErrorActionPreference = 'Stop'" > profile.ps1
 ADD . /git-tools
 
 WORKDIR /git-tools
-RUN pwsh -c 'Install-Module Pester -Force; Import-Module Pester -PassThru; Invoke-Pester'
+RUN pwsh -c 'Install-Module Pester -Force; Import-Module Pester -PassThru; Invoke-Pester; exit $lastExitCode'
 
 WORKDIR /repos/
 

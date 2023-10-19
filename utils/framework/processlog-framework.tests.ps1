@@ -9,40 +9,37 @@ Describe 'processlog-framework' {
         Register-ProcessLog
     }
 
-    It 'can handle errors' {
-        # This is an unmocked command. Git explicitly disallows `.lock` branch names
-        Invoke-ProcessLogs 'check-ref-format with invalid branch' {
-            git check-ref-format --branch "test.lock"
+    It 'can handle errors as "exceptions"' {
+        Invoke-ProcessLogs 'sample error' {
+            Write-Error "full error message"
         }
         $logs = Get-ProcessLogs
-        $logs[0].name | Should -Be 'check-ref-format with invalid branch'
+        $logs[0].name | Should -Be 'sample error'
         $logs[0].logs[0] | Should -BeOfType System.Management.Automation.ErrorRecord
-        $logs[0].logs[0].Exception.Message | Should -Be "fatal: 'test.lock' is not a valid branch name"
+        $logs[0].logs[0].Exception.Message | Should -Be "full error message"
         $logs.Count | Should -Be 1
     }
 
     It 'can handle logs' {
-        # This is an unmocked command that will always output a success when inside a git repository
-        Invoke-ProcessLogs 'name-rev HEAD' {
-            git name-rev HEAD
+        Invoke-ProcessLogs 'script with output' {
+            Write-Output "sample output"
         }
         $logs = Get-ProcessLogs
-        $logs[0].name | Should -Be 'name-rev HEAD'
+        $logs[0].name | Should -Be 'script with output'
         $logs[0].logs[0] | Should -BeOfType String
-        $logs[0].logs[0] | Should -Not -BeNullOrEmpty
+        $logs[0].logs[0] | Should -Be "sample output"
         $logs.Count | Should -Be 1
         $logs[0].logs.Count | Should -Be 1
     }
 
     It 'can capture string output' {
-        # This is an unmocked command that will always output a success when inside a git repository
-        $nameRev = Invoke-ProcessLogs 'name-rev HEAD with output' {
-            git name-rev HEAD
+        $nameRev = Invoke-ProcessLogs 'script with output' {
+            Write-Output "sample output"
         } -allowSuccessOutput
         $logs = Get-ProcessLogs
-        $logs[0].name | Should -Be 'name-rev HEAD with output'
+        $logs[0].name | Should -Be 'script with output'
         $logs[0].logs | Should -BeNullOrEmpty
-        $nameRev | Should -Not -BeNullOrEmpty
+        $nameRev | Should -Be "sample output"
         $logs.Count | Should -Be 1
     }
 
@@ -52,7 +49,7 @@ Describe 'processlog-framework' {
         } -allowSuccessOutput
         $logs = Get-ProcessLogs
         $logs[0].name | Should -Be 'object'
-        $logs[0].logs | Should -Not -BeNullOrEmpty
+        $logs[0].logs | Assert-ShouldBeObject @{ foo = 'bar' }
         $output | Should -BeNullOrEmpty
         $logs.Count | Should -Be 1
         $logs[0].logs.Count | Should -Be 1
