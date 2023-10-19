@@ -52,9 +52,13 @@ function Invoke-ProcessLogs {
     } else {
         $job = $null
     }
+    $tempErrorActionPreference = $global:ErrorActionPreference
     try {
+        # Since we want to capture error output inside this, don't just stop...
+        $global:ErrorActionPreference = 'Continue'
         & $process *>&1 | Write-ProcessLogs $processDescription -allowSuccessOutput:$allowSuccessOutput
     } finally {
+        $global:ErrorActionPreference = $tempErrorActionPreference
         $state.isRunning = $false
         $timer.Stop()
         if ($null -ne $job -AND $job.jobstateinfo.state -ne 'Completed') {
