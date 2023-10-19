@@ -20,8 +20,8 @@ function Initialize-LocalActionSimplifyUpstreamBranchesSuccess(
     }
 
     $contents = (@(
-         "`$originalUpstream.Count -eq $($from.Count)"
-        "(`$originalUpstream -join ',') -eq '$($from  -join ',')'"
+        "`$originalUpstream.Count -eq $($from.Count)"
+        $from | ForEach-Object { "`$originalUpstream -contains '$_'" }
      ) | ForEach-Object { $_ } | Where-Object { $_ -ne $null }) -join ' -AND '
 
     $result = New-VerifiableMock `
@@ -35,4 +35,13 @@ function Initialize-LocalActionSimplifyUpstreamBranchesSuccess(
     return $result
 }
 
-Export-ModuleMember -Function Initialize-LocalActionSimplifyUpstreamBranchesSuccess
+# Uses expected upstream branches to determine simplification
+function Initialize-LocalActionSimplifyUpstreamBranches(
+    [string[]] $from
+) {
+    foreach ($branch in $from) {
+        Initialize-AssertValidBranchName $branch
+    }
+}
+
+Export-ModuleMember -Function Initialize-LocalActionSimplifyUpstreamBranchesSuccess,Initialize-LocalActionSimplifyUpstreamBranches

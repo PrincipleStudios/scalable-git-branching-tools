@@ -18,7 +18,10 @@ function Initialize-LocalActionSetUpstream([PSObject] $upstreamBranches, [string
                 if ($null -eq $upstreamBranches[$_]) {
                     "`$files['$_'] -eq `$null"
                 } else {
-                    "`$files['$_'] -eq ('$($upstreamBranches[$_] -join "`n")' + `n`"``n`")"
+                    "`$files['$_'].split(`"``n`").Count -eq $($upstreamBranches[$_].Count + 1)"
+                    foreach ($branch in $upstreamBranches[$_]) {
+                        "`$files['$_'].split(`"``n`") -contains '$branch'"
+                    }
                 }
             })
         ) : $null
