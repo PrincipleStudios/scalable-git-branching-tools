@@ -1,5 +1,6 @@
 Import-Module -Scope Local "$PSScriptRoot/../core.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../framework.psm1"
+Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionAddDiagnostic.psm1"
 Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionAssertPushed.psm1"
 Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionGetUpstream.psm1"
 Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionFilterBranches.psm1"
@@ -9,6 +10,7 @@ Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionSimplifyUpst
 Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionValidateBranchNames.psm1"
 
 $localActions = @{}
+Register-LocalActionAddDiagnostic $localActions
 Register-LocalActionAssertPushed $localActions
 Register-LocalActionGetUpstream $localActions
 Register-LocalActionFilterBranches $localActions
