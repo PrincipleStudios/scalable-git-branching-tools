@@ -39,8 +39,14 @@
                 "branches": {
                     "$config.upstreamBranch": "$actions['set-upstream'].outputs['commit']",
                     "$params.branchName": "$actions['create-branch'].outputs['commit']"
-                },
-                "track": ["$params.branchName"]
+                }
+            }
+        },
+        {
+            "type": "track",
+            "parameters": {
+                "branches": ["$params.branchName"],
+                "createIfNotTracked": true
             }
         },
         {
