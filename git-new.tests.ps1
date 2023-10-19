@@ -1,14 +1,13 @@
-BeforeAll {
-    . "$PSScriptRoot/utils/testing.ps1"
-    Import-Module -Scope Local "$PSScriptRoot/utils/framework.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/utils/input/Assert-ValidBranchName.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/utils/query-state.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/utils/git.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/utils/actions.mocks.psm1"
-    Initialize-QuietMergeBranches
-}
-
 Describe 'git-new' {
+    BeforeAll {
+        . "$PSScriptRoot/utils/testing.ps1"
+        Import-Module -Scope Local "$PSScriptRoot/utils/framework.mocks.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/utils/input.mocks.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/utils/query-state.mocks.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/utils/git.mocks.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/utils/actions.mocks.psm1"
+    }
+    
     BeforeEach {
         [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
         $fw = Register-Framework -throwInsteadOfExit
