@@ -20,6 +20,11 @@ function Invoke-FinalizeAction(
         return $null
     }
 
+    # if a condition is specified, ensure it is truthy
+    if ($actionDefinition.PSObject.Properties.name -contains 'condition' -AND -not $actionDefinition.condition) {
+        return $null
+    }
+
     # run
     $parameters = ConvertTo-Hashtable $actionDefinition.parameters
     try {
