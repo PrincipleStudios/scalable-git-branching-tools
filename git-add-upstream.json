@@ -17,7 +17,7 @@
             "id": "simplify-upstream",
             "type": "simplify-upstream",
             "parameters": {
-                "upstreamBranches": ["$actions['get-upstream'].outputs", "$params.upstreamBranches"]
+                "upstreamBranches": ["$actions['get-upstream'].outputs ?? @()", "$params.upstreamBranches"]
             }
         },
         {

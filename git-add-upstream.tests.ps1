@@ -44,6 +44,33 @@ Describe 'git-add-upstream' {
             Invoke-VerifyMock $mocks -Times 1
         }
 
+        It 'works if there are no upstream branches' {
+            $mocks = @(
+                Initialize-CurrentBranch 'rc/2022-07-14'
+                Initialize-AnyUpstreamBranches
+                Initialize-UpstreamBranches @{ }
+                Initialize-LocalActionSimplifyUpstreamBranchesSuccess `
+                    -from @("feature/FOO-76") `
+                    -to @("feature/FOO-76")
+                Initialize-LocalActionSetUpstream @{
+                    'rc/2022-07-14' = @("feature/FOO-76")
+                } -commitish 'new-commit'
+                Initialize-LocalActionMergeBranchesSuccess `
+                    -upstreamBranches @('feature/FOO-76') -resultCommitish 'result-commitish' `
+                    -source 'rc/2022-07-14' `
+                    -mergeMessageTemplate "Merge '{}' to rc/2022-07-14"
+                Initialize-FinalizeActionSetBranches @{
+                    _upstream = 'new-commit'
+                    'rc/2022-07-14' = 'result-commitish'
+                }
+                Initialize-FinalizeActionTrackSuccess @('rc/2022-07-14')
+            )
+
+            & ./git-add-upstream.ps1 'feature/FOO-76'
+            $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
+            Invoke-VerifyMock $mocks -Times 1
+        }
+
         It 'works locally with multiple branches' {
             $mocks = @(
                 Initialize-CurrentBranch 'rc/2022-07-14'
@@ -152,6 +179,34 @@ Describe 'git-add-upstream' {
             )
 
             & ./git-add-upstream.ps1 @('feature/FOO-76') -m ""
+            $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
+            Invoke-VerifyMock $mocks -Times 1
+        }
+
+        It 'works if there are no upstream branches' {
+            $mocks = @(
+                Initialize-CurrentBranch 'rc/2022-07-14'
+                Initialize-LocalActionAssertPushedSuccess 'rc/2022-07-14'
+                Initialize-AnyUpstreamBranches
+                Initialize-UpstreamBranches @{ }
+                Initialize-LocalActionSimplifyUpstreamBranchesSuccess `
+                    -from @("feature/FOO-76") `
+                    -to @("feature/FOO-76")
+                Initialize-LocalActionSetUpstream @{
+                    'rc/2022-07-14' = @("feature/FOO-76")
+                } -commitish 'new-commit'
+                Initialize-LocalActionMergeBranchesSuccess `
+                    -upstreamBranches @('feature/FOO-76') -resultCommitish 'result-commitish' `
+                    -source 'rc/2022-07-14' `
+                    -mergeMessageTemplate "Merge '{}' to rc/2022-07-14"
+                Initialize-FinalizeActionSetBranches @{
+                    _upstream = 'new-commit'
+                    'rc/2022-07-14' = 'result-commitish'
+                }
+                Initialize-FinalizeActionTrackSuccess @('rc/2022-07-14')
+            )
+
+            & ./git-add-upstream.ps1 'feature/FOO-76'
             $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
             Invoke-VerifyMock $mocks -Times 1
         }
