@@ -25,7 +25,7 @@ function Invoke-Script(
             }
             try {
                 $outputs = Invoke-LocalAction $local.result -diagnostics $diagnostics
-                if ($null -ne $local.result.id -AND $null -ne $outputs) {
+                if ($null -ne $local.result.id) {
                     $actions += @{ $local.result.id = @{ outputs = $outputs } }
                 }
             } catch {
@@ -59,7 +59,7 @@ function Invoke-Script(
             $finalize = $allFinalizeScripts[$i]
             try {
                 $outputs = Invoke-FinalizeAction $finalize -diagnostics $diagnostics
-                if ($null -ne $finalize.id -AND $null -ne $outputs) {
+                if ($null -ne $finalize.id) {
                     $actions += @{ $finalize.id = @{ outputs = $outputs } }
                 }
             } catch {

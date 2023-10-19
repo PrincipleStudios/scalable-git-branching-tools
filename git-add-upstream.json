@@ -1,0 +1,78 @@
+{
+    "local": [
+        {
+            "type": "assert-pushed",
+            "parameters": {
+                "target": "$params.target"
+            }
+        },
+        {
+            "id": "get-upstream",
+            "type": "get-upstream",
+            "parameters": {
+                "target": "$params.target"
+            }
+        },
+        {
+            "id": "simplify-upstream",
+            "type": "simplify-upstream",
+            "parameters": {
+                "upstreamBranches": ["$actions['get-upstream'].outputs", "$params.upstreamBranches"]
+            }
+        },
+        {
+            "id": "filtered-upstream",
+            "type": "filter-branches",
+            "parameters": {
+                "include": ["$actions['simplify-upstream'].outputs"],
+                "exclude": ["$actions['get-upstream'].outputs"]
+            }
+        },
+        { 
+            "type": "add-diagnostic",
+            "condition": "$actions['filtered-upstream'].outputs ? $false : $true",
+            "parameters": {
+                "message": "No branches would be added."
+            }
+        },
+        {
+            "id": "set-upstream",
+            "type": "set-upstream",
+            "parameters": {
+                "upstreamBranches": {
+                    "$params.target": ["$actions['simplify-upstream'].outputs"]
+                },
+                "message": "Add branches $($actions['filtered-upstream'].outputs) to $($params.target)$($params.comment -eq '' ? '' : \" for $($params.comment)\")"
+            }
+        },
+        {
+            "id": "merge-branches",
+            "type": "merge-branches",
+            "parameters": {
+                "source": "$($params.target)",
+                "upstreamBranches": ["$actions['filtered-upstream'].outputs"],
+                "mergeMessageTemplate": "Merge '{}' to $($params.target)"
+            }
+        }
+    ],
+    "finalize": [
+        {
+            "type": "set-branches",
+            "parameters": {
+                "branches": {
+                    "$config.upstreamBranch": "$actions['set-upstream'].outputs['commit']",
+                    "$params.target": "$actions['merge-branches'].outputs['commit']"
+                }
+            }
+        },
+        {
+            "type": "track",
+            "parameters": {
+                "branches": ["$params.target"]
+            }
+        }
+    ],
+    "output": [
+        "$($params.target) has the following branches added upstream: $($actions['filtered-upstream'].outputs)"
+    ]
+}

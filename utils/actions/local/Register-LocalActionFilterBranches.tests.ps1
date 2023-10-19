@@ -28,6 +28,22 @@ Describe 'local action "filter-branches"' {
         $outputs | Should -Be @('foo', 'bar')
     }
 
+    It 'can filter to a single branch and return an array' {
+        $standardScript = ('{ 
+            "type": "filter-branches", 
+            "parameters": {
+                "include": ["foo","bar","baz"],
+                "exclude": ["bar", "baz"]
+            }
+        }' | ConvertFrom-Json)
+
+        $outputs = Invoke-LocalAction $standardScript -diagnostics $fw.diagnostics
+
+        Invoke-FlushAssertDiagnostic $fw.diagnostics
+        $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
+        Should -ActualValue $outputs -Be @('foo')
+    }
+
     It 'allows for no branches to remove' {
         $standardScript = ('{ 
             "type": "filter-branches", 
@@ -73,6 +89,7 @@ Describe 'local action "filter-branches"' {
 
         Invoke-FlushAssertDiagnostic $fw.diagnostics
         $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
-        $outputs | Should -Be @()
+        # Powershell really doesn't like empty arrays, tends to convert them to $null
+        Should -ActualValue $outputs -Be $null
     }
 }

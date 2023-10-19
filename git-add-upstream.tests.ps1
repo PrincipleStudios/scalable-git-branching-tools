@@ -1,264 +1,272 @@
-BeforeAll {
-    . "$PSScriptRoot/utils/testing.ps1"
-    Import-Module -Scope Local "$PSScriptRoot/config/git/Set-MultipleUpstreamBranches.mocks.psm1"
-
-    # User-interface commands are a bit noisy; TODO: add quiet option and test it by making this throw
-    Mock -CommandName Write-Host {}
-
-    Lock-SetMultipleUpstreamBranches
-}
-
 Describe 'git-add-upstream' {
     BeforeAll {
+        . "$PSScriptRoot/utils/testing.ps1"
         Import-Module -Scope Local "$PSScriptRoot/utils/framework.mocks.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/utils/input.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/utils/query-state.mocks.psm1"
         Import-Module -Scope Local "$PSScriptRoot/utils/git.mocks.psm1"
-        Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-BranchPushed.mocks.psm1"
-        Initialize-QuietMergeBranches
+        Import-Module -Scope Local "$PSScriptRoot/utils/actions.mocks.psm1"
     }
 
     BeforeEach {
-        Register-Framework
+        [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
+        $fw = Register-Framework
     }
 
-    It 'works on the current branch' {
-        { git branch -a } | Should -Throw -Because 'we should have locked git down'
-
-        Initialize-ToolConfiguration -noRemote
-
-        Initialize-CleanWorkingDirectory
-        Initialize-CurrentBranch 'rc/2022-07-14'
-        Initialize-AnyUpstreamBranches
-        Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
-
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify rc/2022-07-14 -q' } { 'rc-old-commit' }
-        Initialize-CheckoutBranch 'rc-old-commit'
-        Initialize-InvokeMergeSuccess 'feature/FOO-76'
-        Initialize-PreserveBranchCleanup
-
-        Initialize-SetMultipleUpstreamBranches @{
-            'rc/2022-07-14' = @("feature/FOO-76", "feature/FOO-123", "feature/XYZ-1-services")
-        } 'Add feature/FOO-76 to rc/2022-07-14' -commitish 'new-upstream-commit'
-
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f _upstream new-upstream-commit' } { $Global:LASTEXITCODE = 0 }
-
-        & ./git-add-upstream.ps1 'feature/FOO-76'
-    }
-
-    It 'works locally with multiple branches' {
-        Initialize-ToolConfiguration -noRemote
-        Initialize-CleanWorkingDirectory
-        Initialize-CurrentBranch 'rc/2022-07-14'
-        Initialize-AnyUpstreamBranches
-        Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
-
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify rc/2022-07-14 -q' } { 'rc-old-commit' }
-        Initialize-CheckoutBranch 'rc-old-commit'
-        $merge1Filter = Initialize-InvokeMergeSuccess 'feature/FOO-76'
-        $merge2Filter = Initialize-InvokeMergeSuccess 'feature/FOO-84'
-        Initialize-PreserveBranchCleanup
-
-        Initialize-SetMultipleUpstreamBranches @{
-            'rc/2022-07-14' = @("feature/FOO-76", "feature/FOO-84", "feature/FOO-123", "feature/XYZ-1-services")
-        } 'Add feature/FOO-76, feature/FOO-84 to rc/2022-07-14' -commitish 'new-upstream-commit'
-
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f _upstream new-upstream-commit' } { $Global:LASTEXITCODE = 0 }
-
-        & ./git-add-upstream.ps1 'feature/FOO-76','feature/FOO-84' -m ""
-
-        Invoke-VerifyMock $merge1Filter -Times 1
-        Invoke-VerifyMock $merge2Filter -Times 1
-    }
-
-    It 'works locally against a target branch' {
-        Initialize-ToolConfiguration -noRemote
-        Initialize-CleanWorkingDirectory
-        Initialize-CurrentBranch 'my-branch'
-        Initialize-AnyUpstreamBranches
-        Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
-
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify rc/2022-07-14 -q' } { 'rc-old-commit' }
-        Initialize-CheckoutBranch 'rc-old-commit'
-        Initialize-InvokeMergeSuccess 'feature/FOO-76'
-        Initialize-PreserveBranchCleanup
-
-        Initialize-SetMultipleUpstreamBranches @{
-            'rc/2022-07-14' = @("feature/FOO-76", "feature/FOO-123", "feature/XYZ-1-services")
-        } 'Add feature/FOO-76 to rc/2022-07-14' -commitish 'new-upstream-commit'
-
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f _upstream new-upstream-commit' } { $Global:LASTEXITCODE = 0 }
-
-        & ./git-add-upstream.ps1 -upstream 'feature/FOO-76' -target 'rc/2022-07-14' -m ""
-    }
-
-    It 'works locally with multiple branches against a target branch' {
-        Initialize-ToolConfiguration -noRemote
-        Initialize-CleanWorkingDirectory
-        Initialize-CurrentBranch 'my-branch'
-        Initialize-AnyUpstreamBranches
-        Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
-
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify rc/2022-07-14 -q' } { 'rc-old-commit' }
-        Initialize-CheckoutBranch 'rc-old-commit'
-        $merge1Filter = Initialize-InvokeMergeSuccess 'feature/FOO-76'
-        $merge2Filter = Initialize-InvokeMergeSuccess 'feature/FOO-84'
-        Initialize-PreserveBranchCleanup
-
-        Initialize-SetMultipleUpstreamBranches @{
-            'rc/2022-07-14' = @("feature/FOO-76", "feature/FOO-84", "feature/FOO-123", "feature/XYZ-1-services")
-        } 'Add feature/FOO-76, feature/FOO-84 to rc/2022-07-14' -commitish 'new-upstream-commit'
-
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f _upstream new-upstream-commit' } { $Global:LASTEXITCODE = 0 }
-
-        & ./git-add-upstream.ps1 'feature/FOO-76','feature/FOO-84' -target 'rc/2022-07-14' -m ""
-
-        Invoke-VerifyMock $merge1Filter -Times 1
-        Invoke-VerifyMock $merge2Filter -Times 1
-    }
-
-    It 'works with a remote' {
-        Initialize-ToolConfiguration
-        Initialize-UpdateGitRemote
-        Initialize-CleanWorkingDirectory
-        Initialize-CurrentBranch 'my-branch'
-        Initialize-AnyUpstreamBranches
-        Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
-        Initialize-BranchPushed 'rc/2022-07-14'
-
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify origin/rc/2022-07-14 -q' } { 'rc-old-commit' }
-        Initialize-CheckoutBranch 'rc-old-commit'
-        Initialize-InvokeMergeSuccess 'origin/feature/FOO-76'
-        Initialize-PreserveBranchCleanup
-
-        Initialize-SetMultipleUpstreamBranches @{
-            'rc/2022-07-14' = @("feature/FOO-76", "feature/FOO-123", "feature/XYZ-1-services")
-        } 'Add feature/FOO-76 to rc/2022-07-14' -commitish 'new-upstream-commit'
-        Initialize-SetRemoteTracking 'rc/2022-07-14'
-
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin --atomic HEAD:rc/2022-07-14 new-upstream-commit:refs/heads/_upstream' } { $Global:LASTEXITCODE = 0 }
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
-
-        & ./git-add-upstream.ps1 @('feature/FOO-76') -target 'rc/2022-07-14' -m ""
-    }
-
-    It 'does nothing if the added branch is already included' {
-        Initialize-ToolConfiguration
-        Initialize-UpdateGitRemote
-        Initialize-CleanWorkingDirectory
-        Initialize-CurrentBranch 'my-branch'
-        Initialize-AnyUpstreamBranches
-        Initialize-UpstreamBranches @{
-            'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services")
-            'feature/FOO-123' = @('infra/shared')
-            'feature/XYZ-1-services' = @('infra/shared')
+    Context 'without a remote' {
+        BeforeEach {
+            Initialize-ToolConfiguration -noRemote
         }
-        Initialize-BranchPushed 'rc/2022-07-14'
 
-        { & ./git-add-upstream.ps1 @('infra/shared') -target 'rc/2022-07-14' } | Should -Throw 'All branches already upstream of target branch'
-    }
+        It 'works on the current branch' {
+            $mocks = @(
+                Initialize-CurrentBranch 'rc/2022-07-14'
+                Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
+                Initialize-LocalActionSimplifyUpstreamBranchesSuccess `
+                    -from @("feature/FOO-76", "feature/FOO-123", "feature/XYZ-1-services") `
+                    -to @("feature/FOO-76", "feature/FOO-123", "feature/XYZ-1-services")
+                Initialize-LocalActionSetUpstream @{
+                    'rc/2022-07-14' = @("feature/FOO-76", "feature/FOO-123", "feature/XYZ-1-services")
+                } -commitish 'new-commit'
+                Initialize-LocalActionMergeBranchesSuccess `
+                    -upstreamBranches @('feature/FOO-76') -resultCommitish 'result-commitish' `
+                    -source 'rc/2022-07-14' `
+                    -mergeMessageTemplate "Merge '{}' to rc/2022-07-14"
+                Initialize-FinalizeActionSetBranches @{
+                    _upstream = 'new-commit'
+                    'rc/2022-07-14' = 'result-commitish'
+                }
+                Initialize-FinalizeActionTrackSuccess @('rc/2022-07-14')
+            )
 
-    It 'simplifies if the added branch makes another redundant' {
-        Initialize-ToolConfiguration
-        Initialize-UpdateGitRemote
-        Initialize-CleanWorkingDirectory
-        Initialize-CurrentBranch 'my-branch'
-        Initialize-AnyUpstreamBranches
-        Initialize-UpstreamBranches @{
-            'rc/2022-07-14' = @("infra/shared","feature/XYZ-1-services")
-            'feature/FOO-123' = @('infra/shared')
+            & ./git-add-upstream.ps1 'feature/FOO-76'
+            $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
+            Invoke-VerifyMock $mocks -Times 1
         }
-        Initialize-BranchPushed 'rc/2022-07-14'
 
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify origin/rc/2022-07-14 -q' } { 'rc-old-commit' }
-        Initialize-CheckoutBranch 'rc-old-commit'
-        Initialize-InvokeMergeSuccess 'origin/feature/FOO-123'
-        Initialize-PreserveBranchCleanup
+        It 'works locally with multiple branches' {
+            $mocks = @(
+                Initialize-CurrentBranch 'rc/2022-07-14'
+                Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
+                Initialize-LocalActionSimplifyUpstreamBranchesSuccess `
+                    -from @("feature/FOO-76", 'feature/FOO-84', "feature/FOO-123", "feature/XYZ-1-services") `
+                    -to @("feature/FOO-76", 'feature/FOO-84', "feature/FOO-123", "feature/XYZ-1-services")
+                Initialize-LocalActionSetUpstream @{
+                    'rc/2022-07-14' = @("feature/FOO-76", 'feature/FOO-84', "feature/FOO-123", "feature/XYZ-1-services")
+                } -commitish 'new-commit'
+                Initialize-LocalActionMergeBranchesSuccess `
+                    -upstreamBranches @('feature/FOO-76', 'feature/FOO-84') -resultCommitish 'result-commitish' `
+                    -source 'rc/2022-07-14' `
+                    -mergeMessageTemplate "Merge '{}' to rc/2022-07-14"
+                Initialize-FinalizeActionSetBranches @{
+                    _upstream = 'new-commit'
+                    'rc/2022-07-14' = 'result-commitish'
+                }
+                Initialize-FinalizeActionTrackSuccess @('rc/2022-07-14')
+            )
 
-        Initialize-SetMultipleUpstreamBranches @{
-            'rc/2022-07-14' = @("feature/FOO-123", "feature/XYZ-1-services")
-        } -commitish 'new-upstream-commit'
-        Initialize-SetRemoteTracking 'rc/2022-07-14'
+            & ./git-add-upstream.ps1 'feature/FOO-76','feature/FOO-84' -m ""
+            $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
+            Invoke-VerifyMock $mocks -Times 1
+        }
 
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin --atomic HEAD:rc/2022-07-14 new-upstream-commit:refs/heads/_upstream' } { $Global:LASTEXITCODE = 0 }
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
+        It 'works locally against a target branch' {
+            $mocks = @(
+                Initialize-NoCurrentBranch
+                Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
+                Initialize-LocalActionSimplifyUpstreamBranchesSuccess `
+                    -from @("feature/FOO-76", "feature/FOO-123", "feature/XYZ-1-services") `
+                    -to @("feature/FOO-76", "feature/FOO-123", "feature/XYZ-1-services")
+                Initialize-LocalActionSetUpstream @{
+                    'rc/2022-07-14' = @("feature/FOO-76", "feature/FOO-123", "feature/XYZ-1-services")
+                } -commitish 'new-commit'
+                Initialize-LocalActionMergeBranchesSuccess `
+                    -upstreamBranches @('feature/FOO-76') -resultCommitish 'result-commitish' `
+                    -source 'rc/2022-07-14' `
+                    -mergeMessageTemplate "Merge '{}' to rc/2022-07-14"
+                Initialize-FinalizeActionSetBranches @{
+                    _upstream = 'new-commit'
+                    'rc/2022-07-14' = 'result-commitish'
+                }
+                Initialize-FinalizeActionTrackSuccess @('rc/2022-07-14')
+            )
 
-        & ./git-add-upstream.ps1 @('feature/FOO-123') -target 'rc/2022-07-14' -m ""
+            & ./git-add-upstream.ps1 -upstream 'feature/FOO-76' -target 'rc/2022-07-14' -m ""
+            $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
+            Invoke-VerifyMock $mocks -Times 1
+        }
+
+        It 'works locally with multiple branches against a target branch' {
+            $mocks = @(
+                Initialize-NoCurrentBranch
+                Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
+                Initialize-LocalActionSimplifyUpstreamBranchesSuccess `
+                    -from @("feature/FOO-76", 'feature/FOO-84', "feature/FOO-123", "feature/XYZ-1-services") `
+                    -to @("feature/FOO-76", 'feature/FOO-84', "feature/FOO-123", "feature/XYZ-1-services")
+                Initialize-LocalActionSetUpstream @{
+                    'rc/2022-07-14' = @("feature/FOO-76", 'feature/FOO-84', "feature/FOO-123", "feature/XYZ-1-services")
+                } -commitish 'new-commit'
+                Initialize-LocalActionMergeBranchesSuccess `
+                    -upstreamBranches @('feature/FOO-76', 'feature/FOO-84') -resultCommitish 'result-commitish' `
+                    -source 'rc/2022-07-14' `
+                    -mergeMessageTemplate "Merge '{}' to rc/2022-07-14"
+                Initialize-FinalizeActionSetBranches @{
+                    _upstream = 'new-commit'
+                    'rc/2022-07-14' = 'result-commitish'
+                }
+                Initialize-FinalizeActionTrackSuccess @('rc/2022-07-14')
+            )
+
+            & ./git-add-upstream.ps1 'feature/FOO-76','feature/FOO-84' -target 'rc/2022-07-14' -m ""
+            $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
+            Invoke-VerifyMock $mocks -Times 1
+        }
     }
 
-    It 'works with a remote when the target branch doesn''t exist locally' {
-        Initialize-ToolConfiguration
-        Initialize-UpdateGitRemote
-        Initialize-CleanWorkingDirectory
-        Initialize-CurrentBranch 'my-branch'
-        Initialize-AnyUpstreamBranches
-        Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
-        Initialize-BranchDoesNotExist 'rc/2022-07-14'
+    Context 'with a remote' {
+        BeforeEach {
+            Initialize-ToolConfiguration
+            Initialize-UpdateGitRemote
+        }
 
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify origin/rc/2022-07-14 -q' } { 'rc-old-commit' }
-        Initialize-CheckoutBranch 'rc-old-commit'
-        Initialize-InvokeMergeSuccess 'origin/feature/FOO-76'
-        Initialize-PreserveBranchCleanup
+        It 'works on the current branch' {
+            $mocks = @(
+                Initialize-CurrentBranch 'rc/2022-07-14'
+                Initialize-LocalActionAssertPushedSuccess 'rc/2022-07-14'
+                Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
+                Initialize-LocalActionSimplifyUpstreamBranchesSuccess `
+                    -from @("feature/FOO-76", "feature/FOO-123", "feature/XYZ-1-services") `
+                    -to @("feature/FOO-76", "feature/FOO-123", "feature/XYZ-1-services")
+                Initialize-LocalActionSetUpstream @{
+                    'rc/2022-07-14' = @("feature/FOO-76", "feature/FOO-123", "feature/XYZ-1-services")
+                } -commitish 'new-commit'
+                Initialize-LocalActionMergeBranchesSuccess `
+                    -upstreamBranches @('feature/FOO-76') -resultCommitish 'result-commitish' `
+                    -source 'rc/2022-07-14' `
+                    -mergeMessageTemplate "Merge '{}' to rc/2022-07-14"
+                Initialize-FinalizeActionSetBranches @{
+                    _upstream = 'new-commit'
+                    'rc/2022-07-14' = 'result-commitish'
+                }
+                Initialize-FinalizeActionTrackSuccess @('rc/2022-07-14')
+            )
 
-        Initialize-SetMultipleUpstreamBranches @{
-            'rc/2022-07-14' = @("feature/FOO-76", "feature/FOO-123", "feature/XYZ-1-services")
-        } -commitish 'new-upstream-commit'
-        Initialize-SetRemoteTracking 'rc/2022-07-14'
+            & ./git-add-upstream.ps1 @('feature/FOO-76') -m ""
+            $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
+            Invoke-VerifyMock $mocks -Times 1
+        }
 
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin --atomic HEAD:rc/2022-07-14 new-upstream-commit:refs/heads/_upstream' } { $Global:LASTEXITCODE = 0 }
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'branch -f rc/2022-07-14 HEAD' } { $Global:LASTEXITCODE = 0 }
+        It 'does nothing if the added branch is already included' {
+            $mocks = @(
+                Initialize-LocalActionAssertPushedSuccess 'rc/2022-07-14'
+                Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services","infra/shared") }
+                Initialize-LocalActionSimplifyUpstreamBranchesSuccess `
+                    -from @("infra/shared", "infra/shared", "feature/FOO-123", "feature/XYZ-1-services") `
+                    -to @("infra/shared", "feature/FOO-123", "feature/XYZ-1-services")
+            )
 
-        & ./git-add-upstream.ps1 @('feature/FOO-76') -target 'rc/2022-07-14' -m ""
-    }
+            { & ./git-add-upstream.ps1 @('infra/shared') -target 'rc/2022-07-14' } | Should -Throw
+            $fw.assertDiagnosticOutput | Should -Be @('ERR:  No branches would be added.')
+            Invoke-VerifyMock $mocks -Times 1
+        }
 
-    It 'outputs a helpful message if it fails' {
-        Initialize-ToolConfiguration -noRemote
-        Initialize-CleanWorkingDirectory
-        Initialize-CurrentBranch 'rc/2022-07-14'
-        Initialize-AnyUpstreamBranches
-        Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
-        Initialize-BranchPushed 'rc/2022-07-14'
+        It 'simplifies if the added branch makes another redundant' {
+            $mocks = @(
+                Initialize-CurrentBranch 'my-branch'
+                Initialize-LocalActionAssertPushedSuccess 'rc/2022-07-14'
+                Initialize-UpstreamBranches @{
+                    'rc/2022-07-14' = @("infra/shared","feature/XYZ-1-services")
+                    'feature/FOO-123' = @('infra/shared')
+                    'infra/shared' = @('main')
+                    'feature/XYZ-1-services' = @()
+                    'main' = @()
+                }
+                Initialize-LocalActionSimplifyUpstreamBranches `
+                    -from @("feature/FOO-123", "infra/shared", "feature/XYZ-1-services")
+                Initialize-LocalActionSetUpstream @{
+                    'rc/2022-07-14' = @("feature/FOO-123", "feature/XYZ-1-services")
+                } -commitish 'new-commit'
+                Initialize-LocalActionMergeBranchesSuccess `
+                    -upstreamBranches @('feature/FOO-123') -resultCommitish 'result-commitish' `
+                    -source 'rc/2022-07-14' `
+                    -mergeMessageTemplate "Merge '{}' to rc/2022-07-14"
+                Initialize-FinalizeActionSetBranches @{
+                    _upstream = 'new-commit'
+                    'rc/2022-07-14' = 'result-commitish'
+                }
+                Initialize-FinalizeActionTrackSuccess @('rc/2022-07-14')
+            )
 
-        Mock git -ParameterFilter { ($args -join ' ') -eq 'rev-parse --verify rc/2022-07-14 -q' } { 'rc-old-commit' }
-        Initialize-CheckoutBranch 'rc-old-commit'
-        Initialize-InvokeMergeFailure 'feature/FOO-76'
-        $mocks = Initialize-PreserveBranchCleanup
+            & ./git-add-upstream.ps1 @('feature/FOO-123') -target 'rc/2022-07-14' -m ""
+            $fw.assertDiagnosticOutput | Should -Be @("WARN: Removing 'infra/shared' from branches; it is redundant via the following: feature/FOO-123")
+            Invoke-VerifyMock $mocks -Times 1
+        }
 
-        & ./git-add-upstream.ps1 'feature/FOO-76' -m ""
+        It 'handles when the target branch doesn''t exist locally' {
+            $mocks = @(
+                Initialize-CurrentBranch 'rc/2022-07-14'
+                Initialize-LocalActionAssertPushedNotTracked 'rc/2022-07-14'
+                Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
+                Initialize-LocalActionSimplifyUpstreamBranchesSuccess `
+                    -from @("feature/FOO-76", "feature/FOO-123", "feature/XYZ-1-services") `
+                    -to @("feature/FOO-76", "feature/FOO-123", "feature/XYZ-1-services")
+                Initialize-LocalActionSetUpstream @{
+                    'rc/2022-07-14' = @("feature/FOO-76", "feature/FOO-123", "feature/XYZ-1-services")
+                } -commitish 'new-commit'
+                Initialize-LocalActionMergeBranchesSuccess `
+                    -upstreamBranches @('feature/FOO-76') -resultCommitish 'result-commitish' `
+                    -source 'rc/2022-07-14' `
+                    -mergeMessageTemplate "Merge '{}' to rc/2022-07-14"
+                Initialize-FinalizeActionSetBranches @{
+                    _upstream = 'new-commit'
+                    'rc/2022-07-14' = 'result-commitish'
+                }
+                Initialize-FinalizeActionTrackSuccess @('rc/2022-07-14')
+            )
 
-        $LASTEXITCODE | Should -Be 1
+            & ./git-add-upstream.ps1 @('feature/FOO-76') -target 'rc/2022-07-14' -m ""
+            $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
+            Invoke-VerifyMock $mocks -Times 1
+        }
 
-        Should -Invoke -CommandName Write-Host -Times 1 -ParameterFilter { $Object -ne $nil -and $Object[0] -match 'git merge feature/FOO-76' }
-        Invoke-VerifyMock $mocks -Times 1
-    }
+        It 'outputs a helpful message if it fails' {
+            $mocks = @(
+                Initialize-CurrentBranch 'rc/2022-07-14'
+                Initialize-LocalActionAssertPushedSuccess 'rc/2022-07-14'
+                Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
+                Initialize-LocalActionSimplifyUpstreamBranchesSuccess `
+                    -from @("feature/FOO-76", "feature/FOO-123", "feature/XYZ-1-services") `
+                    -to @("feature/FOO-76", "feature/FOO-123", "feature/XYZ-1-services")
+                Initialize-LocalActionSetUpstream @{
+                    'rc/2022-07-14' = @("feature/FOO-76", "feature/FOO-123", "feature/XYZ-1-services")
+                } -commitish 'new-commit'
+                Initialize-LocalActionMergeBranchesFailure `
+                    -upstreamBranches @('feature/FOO-76') `
+                    -failures @('feature/FOO-76') `
+                    -resultCommitish 'result-commitish' `
+                    -source 'rc/2022-07-14' `
+                    -mergeMessageTemplate "Merge '{}' to rc/2022-07-14"
+                Initialize-FinalizeActionSetBranches @{
+                    _upstream = 'new-commit'
+                    'rc/2022-07-14' = 'result-commitish'
+                }
+                Initialize-FinalizeActionTrackSuccess @('rc/2022-07-14')
+            )
 
-    It 'ensures the remote is up-to-date' {
-        Initialize-ToolConfiguration
-        Initialize-UpdateGitRemote
-        Initialize-CleanWorkingDirectory
-        Initialize-CurrentBranch 'my-branch'
-        Initialize-AnyUpstreamBranches
-        Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
-        Initialize-BranchNotPushed 'rc/2022-07-14'
+            & ./git-add-upstream.ps1 'feature/FOO-76' -m ""
+            $fw.assertDiagnosticOutput | Should -Be @('WARN: Could not merge the following branches: origin/feature/FOO-76')
+            Invoke-VerifyMock $mocks -Times 1
+        }
 
-        { & ./git-add-upstream.ps1 @('feature/FOO-76') -target 'rc/2022-07-14' -m "" }
-            | Should -Throw "Branch rc/2022-07-14 has changes not pushed to origin/rc/2022-07-14. Please ensure changes are pushed (or reset) and try again."
-    }
+        It 'ensures the remote is up-to-date' {
+            $mocks = @(
+                Initialize-LocalActionAssertPushedAhead 'rc/2022-07-14'
+            )
 
-    It 'ensures the remote is tracked' {
-        Initialize-ToolConfiguration
-        Initialize-UpdateGitRemote
-        Initialize-CleanWorkingDirectory
-        Initialize-CurrentBranch 'my-branch'
-        Initialize-AnyUpstreamBranches
-        Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
-        Initialize-BranchNoUpstream 'rc/2022-07-14'
-
-        { & ./git-add-upstream.ps1 @('feature/FOO-76') -target 'rc/2022-07-14' -m "" }
-            | Should -Throw "Branch rc/2022-07-14 does not have a remote tracking branch. Please ensure changes are pushed (or reset) and try again."
+            { & ./git-add-upstream.ps1 @('feature/FOO-76') -target 'rc/2022-07-14' -m "" } | Should -Throw
+            $fw.assertDiagnosticOutput | Should -Be @('ERR:  The local branch for rc/2022-07-14 has changes that are not pushed to the remote')
+            Invoke-VerifyMock $mocks -Times 1
+        }
     }
 
 }
