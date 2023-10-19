@@ -59,4 +59,20 @@ Describe 'local action "filter-branches"' {
         $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
         $outputs | Should -Be @('foo', 'bar')
     }
+
+    It 'can remove all branches' {
+        $standardScript = ('{ 
+            "type": "filter-branches", 
+            "parameters": {
+                "include": ["foo","bar"],
+                "exclude": ["foo","bar"]
+            }
+        }' | ConvertFrom-Json)
+
+        $outputs = Invoke-LocalAction $standardScript -diagnostics $fw.diagnostics
+
+        Invoke-FlushAssertDiagnostic $fw.diagnostics
+        $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
+        $outputs | Should -Be @()
+    }
 }
