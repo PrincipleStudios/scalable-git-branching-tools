@@ -9,11 +9,15 @@ function Register-FinalizeActionTrack([PSObject] $finalizeActions) {
         param(
             [Parameter()][AllowEmptyCollection()][string[]] $branches,
             [Parameter()][bool] $createIfNotTracked,
-            [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
+            [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics,
+            [switch] $dryRun
         )
         [string[]] $tracked = @()
         $config = Get-Configuration
         if ($null -eq $config.remote) {
+            if ($dryRun) {
+                return
+            }
             return $tracked
         }
 
@@ -23,21 +27,33 @@ function Register-FinalizeActionTrack([PSObject] $finalizeActions) {
             if (-not $localBranch -AND $currentBranch -eq $branch) {
                 # current branch matches tracked one, but doesn't currently track the remote
                 $localBranch = $currentBranch
-                Invoke-ProcessLogs "git branch $localBranch --set-upstream-to refs/remotes/$($config.remote)/$branch" {
-                    git branch $localBranch --set-upstream-to "refs/remotes/$($config.remote)/$branch"
+                if ($dryRun) {
+                    "git branch $localBranch --set-upstream-to `"refs/remotes/$($config.remote)/$branch`""
+                } else {
+                    Invoke-ProcessLogs "git branch $localBranch --set-upstream-to refs/remotes/$($config.remote)/$branch" {
+                        git branch $localBranch --set-upstream-to "refs/remotes/$($config.remote)/$branch"
+                    }
                 }
             }
             
             if ($currentBranch -eq $localBranch) {
                 # update head
-                Invoke-ProcessLogs "git reset --hard refs/remotes/$($config.remote)/$branch" {
-                    git reset --hard "refs/remotes/$($config.remote)/$branch"
+                if ($dryRun) {
+                    "git reset --hard `"refs/remotes/$($config.remote)/$branch`""
+                } else {
+                    Invoke-ProcessLogs "git reset --hard refs/remotes/$($config.remote)/$branch" {
+                        git reset --hard "refs/remotes/$($config.remote)/$branch"
+                    }
                 }
             } elseif ($localBranch -OR $createIfNotTracked) {
                 $localBranch = $localBranch ? $localBranch : $branch
                 # update
-                Invoke-ProcessLogs "git branch $localBranch refs/remotes/$($config.remote)/$branch -f" {
-                    git branch $localBranch "refs/remotes/$($config.remote)/$branch" -f
+                if ($dryRun) {
+                    "git branch $localBranch `"refs/remotes/$($config.remote)/$branch`" -f"
+                } else {
+                    Invoke-ProcessLogs "git branch $localBranch refs/remotes/$($config.remote)/$branch -f" {
+                        git branch $localBranch "refs/remotes/$($config.remote)/$branch" -f
+                    }
                 }
             } else {
                 continue
@@ -45,7 +61,9 @@ function Register-FinalizeActionTrack([PSObject] $finalizeActions) {
             $tracked += $branch
         }
 
-        return $tracked
+        if (-not $dryRun) {
+            return $tracked
+        }
     }
 }
 

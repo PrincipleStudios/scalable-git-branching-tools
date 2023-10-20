@@ -59,6 +59,23 @@ Describe 'finalize action "set-branches"' {
             Invoke-VerifyMock $mocks -Times 1
         }
 
+        It 'can execute a dry run' {
+            Initialize-NoCurrentBranch
+            $mocks = @(
+                Initialize-AssertValidBranchName '_upstream'
+                Initialize-AssertValidBranchName 'other'
+                Initialize-AssertValidBranchName 'another'
+            )
+            
+            $dryRunCommands = Invoke-FinalizeAction $standardScript -diagnostics $diag -dryRun
+            $diag | Should -BeNullOrEmpty
+            Invoke-VerifyMock $mocks -Times 1
+
+            $dryRunCommands | Should -Contain 'git branch _upstream "new-upstream-commitish" -f'
+            $dryRunCommands | Should -Contain 'git branch other "other-commitish" -f'
+            $dryRunCommands | Should -Contain 'git branch another "another-commitish" -f'
+        }
+
         It 'handles standard functionality using mocks' {
             Initialize-NoCurrentBranch
             $mocks = Initialize-FinalizeActionSetBranches $standardBranches

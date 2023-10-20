@@ -70,7 +70,22 @@ Describe 'finalize action "track"' {
             Invoke-FlushAssertDiagnostic $fw.diagnostics
             $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
             Invoke-VerifyMock $mocks -Times 1
+        }
 
+        It 'can execute a dry run' {
+            Initialize-NoCurrentBranch
+            $mocks = Initialize-FinalizeActionTrackDryRun @('foo', 'bar')
+
+            $dryRunCommands = Invoke-FinalizeAction $standardScript -diagnostics $fw.diagnostics -dryRun
+
+            Invoke-FlushAssertDiagnostic $fw.diagnostics
+            $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
+            Invoke-VerifyMock $mocks -Times 1
+            
+            $dryRunCommands | Should -Be @(
+                'git branch foo "refs/remotes/origin/foo" -f'
+                'git branch bar "refs/remotes/origin/bar" -f'
+            )
         }
         
         It 'updates the current branch' {
