@@ -8,6 +8,26 @@ function Invoke-MockGit([string] $gitCli, [object] $MockWith) {
     return Invoke-MockGitModule -ModuleName 'Register-FinalizeActionTrack' @PSBoundParameters
 }
 
+function Initialize-FinalizeActionTrackDryRun(
+    [Parameter()][AllowEmptyCollection()][string[]] $branches,
+    [Parameter()][AllowEmptyCollection()][string[]] $untracked
+) {
+    $config = Get-Configuration
+    if ($null -eq $config.remote) {
+        return
+    }
+
+    foreach ($branch in $untracked) {
+        Initialize-GetLocalBranchForRemote $branch $null
+    }
+
+    foreach ($branch in $branches) {
+        if ($untracked -notcontains $branch) {
+            Initialize-GetLocalBranchForRemote $branch $branch
+        }
+    }
+}
+
 function Initialize-FinalizeActionTrackSuccess(
     [Parameter()][AllowEmptyCollection()][string[]] $branches,
     [Parameter()][AllowEmptyCollection()][string[]] $untracked
@@ -39,4 +59,4 @@ function Initialize-FinalizeActionTrackSuccess(
     }
 }
 
-Export-ModuleMember -Function Initialize-FinalizeActionTrackSuccess
+Export-ModuleMember -Function Initialize-FinalizeActionTrackDryRun, Initialize-FinalizeActionTrackSuccess

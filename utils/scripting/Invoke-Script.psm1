@@ -48,17 +48,16 @@ function Invoke-Script(
         }
 
         $allFinalizeScripts = $allFinalize.result
-        if ($dryRun) {
-            # TODO: describe this rather than dumping JSON
-            Write-Host (ConvertTo-Json $allFinalizeScripts)
-            return
-        }
+        Write-Host -ForegroundColor Yellow "Executing dry run; would run the following commands:"
 
         for ($i = 0; $i -lt $allFinalizeScripts.Count; $i++) {
             $name = $allFinalizeScripts[$i].id ?? "#$($i + 1) (1-based)";
             $finalize = $allFinalizeScripts[$i]
             try {
-                $outputs = Invoke-FinalizeAction $finalize -diagnostics $diagnostics
+                $outputs = Invoke-FinalizeAction $finalize -diagnostics $diagnostics -dryRun:$dryRun
+                if ($dryRun) {
+                    $outputs | Write-Host
+                }
                 if ($null -ne $finalize.id) {
                     $actions += @{ $finalize.id = @{ outputs = $outputs } }
                 }

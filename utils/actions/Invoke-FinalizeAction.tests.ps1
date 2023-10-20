@@ -16,7 +16,7 @@ Describe 'finalize action scripting' {
         Initialize-NoCurrentBranch
     }
 
-    It 'ensures local branches are updated' {
+    It 'runs the script normally' {
         $standardScript = ('{ 
             "type": "track", 
             "parameters": {
@@ -30,7 +30,24 @@ Describe 'finalize action scripting' {
         Invoke-FlushAssertDiagnostic $fw.diagnostics
         $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
         Invoke-VerifyMock $mocks -Times 1
+    }
 
+    It 'can execute a dry run' {
+        $standardScript = ('{ 
+            "type": "track", 
+            "parameters": {
+                "branches": ["foo"]
+            }
+        }' | ConvertFrom-Json)
+        $mocks = Initialize-FinalizeActionTrackDryRun @('foo')
+
+        $dryRunCommands = Invoke-FinalizeAction $standardScript -diagnostics $fw.diagnostics -dryRun
+
+        $dryRunCommands | Should -Be @('git branch foo "refs/remotes/origin/foo" -f')
+
+        Invoke-FlushAssertDiagnostic $fw.diagnostics
+        $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
+        Invoke-VerifyMock $mocks -Times 1
     }
     
     It 'will run the script if a condition is specified that evaluates to true' {

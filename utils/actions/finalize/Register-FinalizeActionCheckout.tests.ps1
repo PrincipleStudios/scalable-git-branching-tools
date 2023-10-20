@@ -35,6 +35,13 @@ Describe 'finalize action "checkout"' {
         Invoke-VerifyMock $mocks -Times 1
     }
 
+    It 'handles dry-run functionality' {
+        $dryRunCommands = Invoke-FinalizeAction $standardScript -diagnostics $diag -dryRun
+        $diag | Should -BeNullOrEmpty
+        
+        $dryRunCommands | Should -Contain 'git checkout new-branch'
+    }
+
     It 'fails if the working directory is not clean' {
         $mocks = @(
             Initialize-DirtyWorkingDirectory

@@ -11,7 +11,8 @@ Register-FinalizeActionTrack $finalizeActions
 
 function Invoke-FinalizeAction(
     [PSObject] $actionDefinition,
-    [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
+    [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics,
+    [switch] $dryRun
 ) {
     $actionDefinition = ConvertTo-Hashtable $actionDefinition
 
@@ -30,7 +31,7 @@ function Invoke-FinalizeAction(
     # run
     $parameters = ConvertTo-Hashtable $actionDefinition.parameters
     try {
-        $outputs = & $targetAction @parameters -diagnostics $diagnostics
+        $outputs = & $targetAction @parameters -diagnostics $diagnostics -dryRun:$dryRun
     } catch {
         Add-ErrorDiagnostic $diagnostics "Unhandled exception occurred while running '$(ConvertTo-Json $actionDefinition -Depth 10)':"
         Add-ErrorException $diagnostics $_

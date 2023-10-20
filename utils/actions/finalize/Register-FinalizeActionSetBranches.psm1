@@ -18,7 +18,8 @@ function Register-FinalizeActionSetBranches([PSObject] $finalizeActions) {
     $finalizeActions['set-branches'] = {
         param(
             [Parameter()] $branches,
-            [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
+            [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics,
+            [switch] $dryRun
         )
 
         $branches = ConvertTo-Hashtable $branches
@@ -29,6 +30,10 @@ function Register-FinalizeActionSetBranches([PSObject] $finalizeActions) {
         if ($null -ne $config.remote) {
             $atomicPart = $config.atomicPushEnabled ? @("--atomic") : @()
             $branchList = ConvertTo-PushBranchList $branches
+            if ($dryRun) {
+                "git push $($config.remote) $atomicPart $branchList"
+                return
+            }
             Invoke-ProcessLogs "git push $($config.remote)" {
                 git push $config.remote @atomicPart @branchList
             }
@@ -41,13 +46,21 @@ function Register-FinalizeActionSetBranches([PSObject] $finalizeActions) {
             foreach ($key in $branches.Keys) {
                 if ($currentBranch -eq $key) {
                     # update head, since it matches the branch to be "pushed"
+                    if ($dryRun) {
+                        "git reset --hard `"$($branches[$key])`""
+                        continue
+                    }
                     Invoke-ProcessLogs "git reset --hard $($branches[$key])" {
                         git reset --hard "$($branches[$key])"
                     }
                 } else {
                     # just update the branch
+                    if ($dryRun) {
+                        "git branch $key `"$($branches[$key])`" -f"
+                        continue
+                    }
                     Invoke-ProcessLogs "git branch $key $($branches[$key])" {
-                        git branch $key $($branches[$key]) -f
+                        git branch $key "$($branches[$key])" -f
                     }
                 }
                 if ($global:LASTEXITCODE -ne 0) {

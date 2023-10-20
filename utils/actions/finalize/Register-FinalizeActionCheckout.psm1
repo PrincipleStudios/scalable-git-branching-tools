@@ -7,9 +7,14 @@ function Register-FinalizeActionCheckout([PSObject] $finalizeActions) {
     $finalizeActions['checkout'] = {
         param(
             [string] $HEAD,
-            [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
+            [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics,
+            [switch] $dryRun
         )
 
+        if ($dryRun) {
+            "git checkout $HEAD"
+            return
+        }
         Assert-CleanWorkingDirectory -diagnostics $diagnostics
         if (-not (Get-HasErrorDiagnostic $diagnostics)) {
             Invoke-CheckoutBranch $HEAD -diagnostics $diagnostics
