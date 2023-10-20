@@ -23,6 +23,8 @@ function Invoke-LocalAction(
     [PSObject] $actionDefinition,
     [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
 ) {
+    $actionDefinition = ConvertTo-Hashtable $actionDefinition
+
     # look up type
     $targetAction = $localActions[$actionDefinition.type]
     if ($null -eq $targetAction) {
@@ -31,7 +33,7 @@ function Invoke-LocalAction(
     }
 
     # if a condition is specified, ensure it is truthy
-    if ($actionDefinition.PSObject.Properties.name -contains 'condition' -AND -not $actionDefinition.condition) {
+    if ($actionDefinition.Keys -contains 'condition' -AND -not $actionDefinition.condition) {
         return $null
     }
 

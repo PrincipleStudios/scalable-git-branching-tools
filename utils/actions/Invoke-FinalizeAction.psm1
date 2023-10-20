@@ -13,6 +13,8 @@ function Invoke-FinalizeAction(
     [PSObject] $actionDefinition,
     [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
 ) {
+    $actionDefinition = ConvertTo-Hashtable $actionDefinition
+
     # look up type
     $targetAction = $finalizeActions[$actionDefinition.type]
     if ($null -eq $targetAction) {
@@ -21,7 +23,7 @@ function Invoke-FinalizeAction(
     }
 
     # if a condition is specified, ensure it is truthy
-    if ($actionDefinition.PSObject.Properties.name -contains 'condition' -AND -not $actionDefinition.condition) {
+    if ($actionDefinition.Keys -contains 'condition' -AND -not $actionDefinition.condition) {
         return $null
     }
 
