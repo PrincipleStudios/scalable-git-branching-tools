@@ -48,7 +48,9 @@ function Invoke-Script(
         }
 
         $allFinalizeScripts = $allFinalize.result
-        Write-Host -ForegroundColor Yellow "Executing dry run; would run the following commands:"
+        if ($dryRun) {
+            Write-Host -ForegroundColor Yellow "Executing dry run; would run the following commands:"
+        }
 
         for ($i = 0; $i -lt $allFinalizeScripts.Count; $i++) {
             $name = $allFinalizeScripts[$i].id ?? "#$($i + 1) (1-based)";
