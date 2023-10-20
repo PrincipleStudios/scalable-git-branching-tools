@@ -59,6 +59,7 @@ function Initialize-MergeTogether(
 
         $currentCommit = $commitish[$initialSuccessfulBranch]
         Invoke-MockGit "rev-parse --verify $initialSuccessfulBranch" -MockWith { $commitish[$initialSuccessfulBranch] }.GetNewClosure()
+        Invoke-MockGit "rev-parse --verify $($commitish[$initialSuccessfulBranch])^{tree}" -MockWith { "$initialSuccessfulBranch-tree" }.GetNewClosure()
     }
 
     for ($i = 0; $i -lt $allBranches.Count; $i++) {
