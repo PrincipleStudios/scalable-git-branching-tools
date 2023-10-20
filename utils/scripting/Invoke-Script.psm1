@@ -68,7 +68,7 @@ function Invoke-Script(
             Assert-Diagnostics $diagnostics
         }
         
-        if ($null -ne $script.output) {
+        if ($null -ne $script.output -AND -not $dryRun) {
             $allOutput = ConvertFrom-ParameterizedAnything -script $script.output -config $config -params $params -actions $actions -diagnostics $diagnostics
             $allOutput.result | Write-Output
         }
