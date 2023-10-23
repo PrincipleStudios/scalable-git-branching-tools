@@ -14,6 +14,7 @@ function Invoke-MergeTogether(
     [String[]]$successful = @()
 
     $currentCommit = $null
+    $currentTree = $null
     if ($null -ne $source -AND '' -ne $source) {
         $target = $source
 
@@ -31,6 +32,9 @@ function Invoke-MergeTogether(
                 failed = @($target)
             }
         }
+        $currentTree = Invoke-ProcessLogs "git rev-parse --verify $currentCommit^{tree}" {
+            git rev-parse --verify "$currentCommit^{tree}"
+        } -allowSuccessOutput
     }
     while ($remaining.Count -gt 0) {
         $target = $remaining[0]
@@ -42,6 +46,10 @@ function Invoke-MergeTogether(
                 $currentCommit = $parsedCommitish
                 $remaining = $remaining | Where-Object { $_ -ne $target }
                 $successful += $target
+                
+                $currentTree = Invoke-ProcessLogs "git rev-parse --verify $currentCommit^{tree}" {
+                    git rev-parse --verify "$currentCommit^{tree}"
+                } -allowSuccessOutput
             } else {
                 $remaining = $remaining | Where-Object { $_ -ne $target }
                 $failed += $target
@@ -75,13 +83,18 @@ function Invoke-MergeTogether(
                 if (-not $mergeTreeResult.isSuccess) { continue }
                 $nextTree = $mergeTreeResult.treeish
 
-                $commitMessage = $messageTemplate.Replace('{}', $target)
-                $resultCommit = Invoke-ProcessLogs "git commit-tree $nextTree -m $commitMessage -p $currentCommit -p $targetCommit" {
-                    git commit-tree $nextTree -m $commitMessage -p $currentCommit -p $targetCommit
-                } -allowSuccessOutput
-                if ($global:LASTEXITCODE -ne 0) { continue }
+                if ($nextTree -ne $currentTree) {
+                    # Successful merge
+                    $commitMessage = $messageTemplate.Replace('{}', $target)
+                    $resultCommit = Invoke-ProcessLogs "git commit-tree $nextTree -m $commitMessage -p $currentCommit -p $targetCommit" {
+                        git commit-tree $nextTree -m $commitMessage -p $currentCommit -p $targetCommit
+                    } -allowSuccessOutput
+                    if ($global:LASTEXITCODE -ne 0) { continue }
 
-                $currentCommit = $resultCommit
+                    $currentCommit = $resultCommit
+                } else {
+                    # Successful merge, but no changes - don't make a new commit
+                }
                 $allFailed = $false
                 $i--
                 $remaining = $remaining | Where-Object { $_ -ne $target }
