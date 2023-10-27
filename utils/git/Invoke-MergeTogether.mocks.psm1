@@ -45,7 +45,7 @@ function Initialize-MergeTogether(
         $allBranches = @($source) + $allBranches
     }
     if ($null -ne $source -AND '' -ne $source -AND $successfulBranches -notcontains $source) {
-        $successfulBranches = @($source) + $successfulBranches
+        $successfulBranches = @($source) + ($successfulBranches | Where-Object { $_ })
     }
     $initialSuccessfulBranch = ($allBranches | Where-Object { $successfulBranches -contains $_ } | Select-Object -First 1)
     
