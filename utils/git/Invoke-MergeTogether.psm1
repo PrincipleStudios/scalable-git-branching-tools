@@ -14,6 +14,7 @@ function Invoke-MergeTogether(
     [String[]]$successful = @()
 
     $currentCommit = $null
+    $parentCommits = @()
     if ($null -ne $source -AND '' -ne $source) {
         $target = $source
 
@@ -30,6 +31,8 @@ function Invoke-MergeTogether(
                 successful = @()
                 failed = @($target)
             }
+        } else {
+            $parentCommits += $currentCommit
         }
     }
     while ($remaining.Count -gt 0) {
@@ -41,6 +44,7 @@ function Invoke-MergeTogether(
             if ($global:LASTEXITCODE -eq 0) {
                 $currentCommit = $parsedCommitish
                 $remaining = $remaining | Where-Object { $_ -ne $target }
+                $parentCommits += $currentCommit
                 $successful += $target
             } else {
                 $remaining = $remaining | Where-Object { $_ -ne $target }
@@ -89,6 +93,7 @@ function Invoke-MergeTogether(
                     if ($global:LASTEXITCODE -ne 0) { continue }
 
                     $currentCommit = $resultCommit
+                    $parentCommits += $targetCommit
                 }
                 $allFailed = $false
                 $i--
@@ -107,6 +112,14 @@ function Invoke-MergeTogether(
                 $remaining = @()
             }
         }
+    }
+
+    if ($parentCommits.Count -gt 1) {
+        $commitMessage = $messageTemplate.Replace('{}', $successful -join ', ')
+        $parents = $parentCommits | ForEach-Object { @("-p", $_) }
+        $currentCommit = Invoke-ProcessLogs "git commit-tree $nextTree -m $commitMessage $parents" {
+            git commit-tree $nextTree -m $commitMessage @parents
+        } -allowSuccessOutput
     }
 
     return @{
