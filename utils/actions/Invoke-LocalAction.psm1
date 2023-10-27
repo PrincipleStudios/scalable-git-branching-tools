@@ -8,6 +8,7 @@ Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionMergeBranche
 Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionSetUpstream.psm1"
 Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionSimplifyUpstreamBranches.psm1"
 Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionValidateBranchNames.psm1"
+Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionAssertExistence.psm1"
 
 $localActions = @{}
 Register-LocalActionAddDiagnostic $localActions
@@ -18,6 +19,7 @@ Register-LocalActionMergeBranches $localActions
 Register-LocalActionSetUpstream $localActions
 Register-LocalActionSimplifyUpstreamBranches $localActions
 Register-LocalActionValidateBranchNames $localActions
+Register-LocalActionAssertExistence $localActions
 
 function Invoke-LocalAction(
     [PSObject] $actionDefinition,

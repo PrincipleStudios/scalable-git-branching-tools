@@ -1,3 +1,6 @@
+Import-Module -Scope Local "$PSScriptRoot/actions/local/Register-LocalActionAssertExistence.mocks.psm1"
+Export-ModuleMember -Function Initialize-LocalActionAssertExistence
+
 Import-Module -Scope Local "$PSScriptRoot/actions/local/Register-LocalActionAssertPushed.mocks.psm1"
 Export-ModuleMember -Function Initialize-LocalActionAssertPushedNotTracked, Initialize-LocalActionAssertPushedSuccess, Initialize-LocalActionAssertPushedAhead
 
