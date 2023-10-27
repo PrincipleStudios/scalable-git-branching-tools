@@ -53,7 +53,9 @@ function Initialize-MergeTogether(
     if ($null -ne $initialSuccessfulBranch) {
         $lastBranch = ($allBranches | Where-Object { $successfulBranches -contains $_ } | Select-Object -Last 1)
         $resultCommitishes = $successfulBranches | Where-Object { $successfulBranches -contains $_ } | ConvertTo-HashMap -getValue { "$_-result-commitish" }
-        $resultCommitishes[$lastBranch] = $resultCommitish
+        if ($lastBranch -eq $initialSuccessfulBranch) {
+            $resultCommitishes[$lastBranch] = $resultCommitish
+        }
         $commitish[$initialSuccessfulBranch] = $resultCommitishes[$initialSuccessfulBranch]
         if ($null -eq $resultCommitish) {
             throw 'Invalid Initialize-MergeTogether; -resultCommitish must be provided if any branches are successful'
@@ -96,6 +98,12 @@ function Initialize-MergeTogether(
             }
             $failed += $current
         }
+    }
+
+    if ($successfulBranches.Count -gt 1) {
+        $message = $messageTemplate.Replace('{}', ($successfulBranches | Where-Object { $_ -ne $source }) -join ', ')
+        $parents = $allBranches | Where-Object { $successfulBranches -contains $_ } | ForEach-Object { @("-p", $commitish[$_]) }
+        Invoke-MockGit "commit-tree $treeish -m $message $parents" -MockWith "$($resultCommitish)"
     }
 }
 
