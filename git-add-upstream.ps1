@@ -12,7 +12,7 @@ Import-Module -Scope Local "$PSScriptRoot/utils/scripting.psm1"
 Import-Module -Scope Local "$PSScriptRoot/utils/query-state.psm1"
 
 Invoke-JsonScript -scriptPath "$PSScriptRoot/git-add-upstream.json" -params @{
-    target = ($target ? $target : (Get-CurrentBranch));
+    target = ($target ? $target : (Get-CurrentBranch ?? ''));
     upstreamBranches = Expand-StringArray $upstreamBranches;
     comment = $comment ?? '';
 } -dryRun:$dryRun

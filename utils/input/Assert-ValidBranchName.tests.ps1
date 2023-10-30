@@ -25,6 +25,12 @@ Describe 'Assert-ValidBranchName' {
             $diag[0].message | Should -Be "Invalid branch name specified: 'bad-branch'"
             $diag[0].level | Should -Be 'error'
         }
+        It 'disallows a blank branch name' {
+            Assert-ValidBranchName -branchName '' -diagnostics $diag
+            Should -ActualValue $diag.Count -BeExactly 1
+            $diag[0].message | Should -Be "No branch name was provided"
+            $diag[0].level | Should -Be 'error'
+        }
         It 'can accept multiple via a pipeline' {
             Initialize-AssertValidBranchName 'branch-a'
             Initialize-AssertValidBranchName 'branch-b'

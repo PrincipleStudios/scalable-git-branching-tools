@@ -1,6 +1,12 @@
 {
     "local": [
         {
+            "type": "validate-branch-names",
+            "parameters": {
+                "branches": ["$params.target"]
+            }
+        },
+        {
             "type": "assert-existence",
             "parameters": {
                 "branches": ["$params.target", "$params.upstreamBranches"],
