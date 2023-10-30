@@ -129,7 +129,6 @@ Describe 'Invoke-PruneAudit' {
     Context 'with no remote' {
         BeforeAll {
             Initialize-ToolConfiguration -noRemote
-            Initialize-AnyUpstreamBranches
             Initialize-SelectBranches @(
                 'rc/2022-07-14',
                 'feature/FOO-123',
@@ -145,7 +144,6 @@ Describe 'Invoke-PruneAudit' {
     Context 'with remote' {
         BeforeAll {
             Initialize-ToolConfiguration
-            Initialize-AnyUpstreamBranches
             Initialize-SelectBranches @(
                 'origin/rc/2022-07-14',
                 'origin/feature/FOO-123',

@@ -35,6 +35,7 @@ Describe 'git-release' {
 
             Initialize-GitFileNames '_upstream' $($noRemoteBranches | ForEach-Object { $_.branch })
             Initialize-UpstreamBranches @{
+                'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services")
                 'feature/FOO-123' = @('main')
                 'feature/XYZ-1-services' = @('main')
                 'feature/FOO-124-comment' = @('main')
@@ -49,7 +50,6 @@ Describe 'git-release' {
             Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list main ^rc/2022-07-14 --count'} {
                 "0"
             }
-            Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services")}
             Initialize-SetMultipleUpstreamBranches @{
                 'feature/FOO-123' = $nil;
                 'integrate/FOO-125_XYZ-1' = @("feature/FOO-124_FOO-125", "main");
@@ -96,6 +96,7 @@ Describe 'git-release' {
                 'feature/FOO-76' = @('main')
                 'integrate/FOO-125_XYZ-1' = @("feature/FOO-124_FOO-125","feature/XYZ-1-services")
                 'main' = {}
+                'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services")
             }
         }
 
@@ -105,7 +106,6 @@ Describe 'git-release' {
             Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list origin/main ^origin/rc/2022-07-14 --count'} {
                 "0"
             }
-            Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
 
             Initialize-SetMultipleUpstreamBranches @{
                 'feature/FOO-123' = $nil
@@ -129,8 +129,6 @@ Describe 'git-release' {
                 "0"
             }
 
-            Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
-
             Initialize-SetMultipleUpstreamBranches @{
                 'feature/FOO-123' = $nil
                 'integrate/FOO-125_XYZ-1' = @("feature/FOO-124_FOO-125", "main")
@@ -150,8 +148,16 @@ Describe 'git-release' {
             Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list origin/main ^origin/rc/2022-07-14 --count'} {
                 "0"
             }
-
-            Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123", "integrate/FOO-125_XYZ-1") }
+            Initialize-UpstreamBranches @{
+                'feature/FOO-123' = @('main')
+                'feature/XYZ-1-services' = @('main')
+                'feature/FOO-124-comment' = @('main')
+                'feature/FOO-124_FOO-125' = @("feature/FOO-124-comment")
+                'feature/FOO-76' = @('main')
+                'integrate/FOO-125_XYZ-1' = @("feature/FOO-124_FOO-125","feature/XYZ-1-services")
+                'main' = {}
+                'rc/2022-07-14' = @("feature/FOO-123", "integrate/FOO-125_XYZ-1")
+            }
 
             Initialize-SetMultipleUpstreamBranches @{
                 'feature/FOO-123' = $nil
@@ -178,7 +184,13 @@ Describe 'git-release' {
             }
             Initialize-UpstreamBranches @{
                 'feature/FOO-123' = @('main')
-                'rc/2022-07-14' = @("integrate/FOO-125_XYZ-1")
+                'feature/XYZ-1-services' = @('main')
+                'feature/FOO-124-comment' = @('main')
+                'feature/FOO-124_FOO-125' = @("feature/FOO-124-comment")
+                'feature/FOO-76' = @('main')
+                'integrate/FOO-125_XYZ-1' = @("feature/FOO-124_FOO-125","feature/XYZ-1-services")
+                'main' = {}
+                'rc/2022-07-14' = @("feature/XYZ-1-services")
             }
 
             Initialize-SetMultipleUpstreamBranches @{
@@ -208,8 +220,6 @@ Describe 'git-release' {
             Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list origin/rc/2022-07-14 ^origin/main --count'} {
                 "0"
             }
-
-            Initialize-UpstreamBranches @{ 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services") }
 
             Initialize-SetMultipleUpstreamBranches @{
                 'feature/FOO-123' = $nil

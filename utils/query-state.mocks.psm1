@@ -11,7 +11,7 @@ Export-ModuleMember -Function `
     Initialize-CleanWorkingDirectory, Initialize-DirtyWorkingDirectory, Initialize-UntrackedFiles `
     , Initialize-ToolConfiguration `
     , Initialize-FetchUpstreamBranch `
-    , Initialize-AnyUpstreamBranches, Initialize-UpstreamBranches `
+    , Initialize-UpstreamBranches `
     , Initialize-UpdateGitRemote `
     , Initialize-CurrentBranch, Initialize-NoCurrentBranch `
     , Initialize-OtherGitFilesAsBlank, Initialize-GitFile `
@@ -22,3 +22,6 @@ Export-ModuleMember -Function Initialize-RemoteBranchBehind, Initialize-RemoteBr
 
 Import-Module -Scope Local "$PSScriptRoot/query-state/Get-LocalBranchForRemote.mocks.psm1"
 Export-ModuleMember -Function Initialize-GetLocalBranchForRemote
+
+Import-Module -Scope Local "$PSScriptRoot/query-state/Select-AllUpstreamBranches.mocks.psm1"
+Export-ModuleMember -Function Initialize-AllUpstreamBranches

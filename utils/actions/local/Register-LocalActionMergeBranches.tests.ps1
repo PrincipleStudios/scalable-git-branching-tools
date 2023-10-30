@@ -124,7 +124,6 @@ Describe 'local action "merge-branches"' {
         BeforeEach {
             Initialize-ToolConfiguration -noRemote
 
-            Initialize-AnyUpstreamBranches
             Initialize-UpstreamBranches @{
                 'feature/homepage-redesign' = @('infra/upgrade-dependencies')
             }
@@ -158,7 +157,6 @@ Describe 'local action "merge-branches"' {
         BeforeEach {
             Initialize-ToolConfiguration
 
-            Initialize-AnyUpstreamBranches
             Initialize-UpstreamBranches @{
                 'feature/homepage-redesign' = @('infra/upgrade-dependencies')
             }

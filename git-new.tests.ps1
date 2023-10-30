@@ -18,7 +18,7 @@ Describe 'git-new' {
             Initialize-ToolConfiguration -noRemote
             Lock-LocalActionSetUpstream
 
-            Initialize-AnyUpstreamBranches
+            Initialize-UpstreamBranches @{}
             Initialize-NoCurrentBranch
         }
 
@@ -128,7 +128,6 @@ Describe 'git-new' {
             Initialize-CleanWorkingDirectory
             Initialize-NoCurrentBranch
 
-            Initialize-AnyUpstreamBranches
             Initialize-UpstreamBranches @{
                 'feature/homepage-redesign' = @('infra/foo')
                 'infra/foo' = @('main')

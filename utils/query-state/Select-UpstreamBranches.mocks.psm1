@@ -1,15 +1,8 @@
 Import-Module -Scope Local "$PSScriptRoot/Get-UpstreamBranch.psm1"
 Import-Module -Scope Local "$PSScriptRoot/Get-GitFile.mocks.psm1"
-
-function Initialize-AnyUpstreamBranches() {
-    $upstream = Get-UpstreamBranch
-    Initialize-OtherGitFilesAsBlank $upstream
-}
+Import-Module -Scope Local "$PSScriptRoot/Select-AllUpstreamBranches.mocks.psm1"
 
 function Initialize-UpstreamBranches([PSObject] $upstreamConfiguration) {
-    $upstream = Get-UpstreamBranch
-    $upstreamConfiguration.Keys | Foreach-Object {
-        Initialize-GitFile $upstream $_ $upstreamConfiguration[$_]
-    }
+    Initialize-AllUpstreamBranches $upstreamConfiguration
 }
-Export-ModuleMember -Function Initialize-AnyUpstreamBranches,Initialize-UpstreamBranches
+Export-ModuleMember -Function Initialize-UpstreamBranches
