@@ -26,6 +26,7 @@ Describe 'git-new' {
             Initialize-AssertValidBranchName 'feature/PS-100-some-work'
 
             $mocks = @(
+                Initialize-LocalActionAssertExistence -branches @('feature/PS-100-some-work') -shouldExist $false
                 Initialize-LocalActionSetUpstream @{
                     'feature/PS-100-some-work' = 'main'
                 } -commitish 'new-commit'
@@ -49,6 +50,7 @@ Describe 'git-new' {
             Initialize-AssertValidBranchName 'feature/PS-100-some-work'
             
             $mocks = @(
+                Initialize-LocalActionAssertExistence -branches @('feature/PS-100-some-work') -shouldExist $false
                 Initialize-LocalActionSetUpstream @{
                     'feature/PS-100-some-work' = 'main'
                 } -commitish 'new-commit'
@@ -73,6 +75,8 @@ Describe 'git-new' {
             Initialize-AssertValidBranchName 'infra/foo'
 
             $mocks = @(
+                Initialize-LocalActionAssertExistence -branches @('feature/PS-600-some-work') -shouldExist $false
+                Initialize-LocalActionAssertExistence -branches @('infra/foo') -shouldExist $true
                 Initialize-LocalActionSetUpstream @{
                     'feature/PS-600-some-work' = 'infra/foo'
                 } -commitish 'new-commit'
@@ -98,6 +102,7 @@ Describe 'git-new' {
             Initialize-AssertValidBranchName 'feature/PS-100-some-work'
             
             $mocks = @(
+                Initialize-LocalActionAssertExistence -branches @('feature/PS-100-some-work') -shouldExist $false
                 Initialize-LocalActionSetUpstream @{
                     'feature/PS-100-some-work' = 'main'
                 } -commitish 'new-commit'
@@ -145,6 +150,7 @@ Describe 'git-new' {
             Initialize-AssertValidBranchName 'feature/PS-100-some-work'
 
             $mocks = @(
+                Initialize-LocalActionAssertExistence -branches @('feature/PS-100-some-work') -shouldExist $false
                 Initialize-LocalActionSetUpstream @{
                     'feature/PS-100-some-work' = 'main'
                 } -commitish 'new-commit'
@@ -169,6 +175,8 @@ Describe 'git-new' {
             Initialize-AssertValidBranchName 'infra/foo'
 
             $mocks = @(
+                Initialize-LocalActionAssertExistence -branches @('feature/PS-100-some-work') -shouldExist $false
+                Initialize-LocalActionAssertExistence -branches @('infra/foo') -shouldExist $true
                 Initialize-LocalActionSetUpstream @{
                     'feature/PS-100-some-work' = 'infra/foo'
                 } -commitish 'new-commit'
@@ -195,6 +203,8 @@ Describe 'git-new' {
             Initialize-AssertValidBranchName 'feature/homepage-redesign'
             
             $mocks = @(
+                Initialize-LocalActionAssertExistence -branches @('feature/PS-100-some-work') -shouldExist $false
+                Initialize-LocalActionAssertExistence -branches @('infra/foo', 'main', 'feature/homepage-redesign') -shouldExist $true
                 Initialize-LocalActionSetUpstream @{
                     'feature/PS-100-some-work' = @('feature/homepage-redesign')
                 } -commitish 'new-commit'
@@ -225,6 +235,8 @@ Describe 'git-new' {
             Initialize-AssertValidBranchName 'infra/update-dependencies'
             
             $mocks = @(
+                Initialize-LocalActionAssertExistence -branches @('feature/PS-100-some-work') -shouldExist $false
+                Initialize-LocalActionAssertExistence -branches @('infra/foo', 'main', 'feature/homepage-redesign', 'infra/update-dependencies') -shouldExist $true
                 Initialize-LocalActionSetUpstream @{
                     'feature/PS-100-some-work' = @('feature/homepage-redesign', 'infra/update-dependencies')
                 } -commitish 'new-commit'
@@ -253,6 +265,8 @@ Describe 'git-new' {
             Initialize-AssertValidBranchName 'infra/update-dependencies'
             
             $mocks = @(
+                Initialize-LocalActionAssertExistence -branches @('feature/PS-100-some-work') -shouldExist $false
+                Initialize-LocalActionAssertExistence -branches @('feature/homepage-redesign', 'infra/update-dependencies') -shouldExist $true
                 Initialize-LocalActionSetUpstream @{
                     'feature/PS-100-some-work' = @('feature/homepage-redesign', 'infra/update-dependencies')
                 } -commitish 'new-commit'
@@ -273,6 +287,8 @@ Describe 'git-new' {
             Initialize-AssertValidBranchName 'infra/update-dependencies'
             
             $mocks = @(
+                Initialize-LocalActionAssertExistence -branches @('feature/PS-100-some-work') -shouldExist $false
+                Initialize-LocalActionAssertExistence -branches @('feature/homepage-redesign', 'infra/update-dependencies') -shouldExist $true
                 Initialize-LocalActionSetUpstream @{
                     'feature/PS-100-some-work' = @('feature/homepage-redesign', 'infra/update-dependencies')
                 } -commitish 'new-commit'

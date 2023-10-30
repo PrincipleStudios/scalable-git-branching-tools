@@ -1,6 +1,13 @@
 {
     "local": [
         {
+            "type": "assert-existence",
+            "parameters": {
+                "branches": ["$params.target", "$params.upstreamBranches"],
+                "shouldExist": true
+            }
+        },
+        {
             "type": "assert-pushed",
             "parameters": {
                 "target": "$params.target"
