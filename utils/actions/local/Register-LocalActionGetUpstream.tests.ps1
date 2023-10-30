@@ -62,7 +62,6 @@ Describe 'local action "get-upstream"' {
     Context 'with remote' {
         BeforeEach {
             Initialize-ToolConfiguration
-            Initialize-AnyUpstreamBranches
         }
 
         Initialize-StandardTests
@@ -71,7 +70,6 @@ Describe 'local action "get-upstream"' {
     Context 'without remote' {
         BeforeEach {
             Initialize-ToolConfiguration -noRemote
-            Initialize-AnyUpstreamBranches
         }
 
         Initialize-StandardTests

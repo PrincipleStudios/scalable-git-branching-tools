@@ -4,4 +4,4 @@ Import-Module -Scope Local "$PSScriptRoot/../../git.mocks.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../testing.psm1"
 Import-Module -Scope Local "$PSScriptRoot/Register-LocalActionGetUpstream.psm1"
 
-Export-ModuleMember -Function Initialize-AnyUpstreamBranches,Initialize-UpstreamBranches
+Export-ModuleMember -Function Initialize-UpstreamBranches

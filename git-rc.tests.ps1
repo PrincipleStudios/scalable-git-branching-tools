@@ -41,7 +41,6 @@ Describe 'git-rc' {
     Context 'without remote' {
         BeforeAll {
             Initialize-ToolConfiguration -noRemote
-            Initialize-AnyUpstreamBranches
             Initialize-UpstreamBranches @{}
         }
 
@@ -64,7 +63,7 @@ Describe 'git-rc' {
         BeforeAll {
             Initialize-ToolConfiguration
             Initialize-UpdateGitRemote
-            Initialize-AnyUpstreamBranches
+            Initialize-UpstreamBranches @{}
         }
 
         It 'handles standard functionality' {

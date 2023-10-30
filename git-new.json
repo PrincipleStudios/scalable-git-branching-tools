@@ -34,7 +34,7 @@
                 "upstreamBranches": {
                     "$params.branchName": ["$actions['simplify-upstream'].outputs"]
                 },
-                "message": "Add branch $($params.branchName)$($params.comment ? '' : \" for $($params.comment)\")"
+                "message": "Add branch $($params.branchName)$($params.comment ? \" for $($params.comment)\" : '')"
             }
         },
         {

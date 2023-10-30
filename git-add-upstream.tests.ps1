@@ -49,7 +49,6 @@ Describe 'git-add-upstream' {
             $mocks = @(
                 Initialize-LocalActionAssertExistence -branches @('rc/2022-07-14', 'feature/FOO-76') -shouldExist $true
                 Initialize-CurrentBranch 'rc/2022-07-14'
-                Initialize-AnyUpstreamBranches
                 Initialize-UpstreamBranches @{ }
                 Initialize-LocalActionSimplifyUpstreamBranchesSuccess `
                     -from @("feature/FOO-76") `
@@ -194,7 +193,6 @@ Describe 'git-add-upstream' {
                 Initialize-LocalActionAssertExistence -branches @('rc/2022-07-14', 'feature/FOO-76') -shouldExist $true
                 Initialize-CurrentBranch 'rc/2022-07-14'
                 Initialize-LocalActionAssertPushedSuccess 'rc/2022-07-14'
-                Initialize-AnyUpstreamBranches
                 Initialize-UpstreamBranches @{ }
                 Initialize-LocalActionSimplifyUpstreamBranchesSuccess `
                     -from @("feature/FOO-76") `
