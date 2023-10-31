@@ -19,12 +19,20 @@ function Select-AllUpstreamBranches([switch]$refresh) {
 
 	$upstreamBranch = Get-UpstreamBranch
 
-	$treeEntries = Invoke-ProcessLogs "git ls-tree -r $upstreamBranch --format=`"%(objectname)`t%(path)`"" {
-		git ls-tree -r $upstreamBranch "--format=%(objectname)`t%(path)"
-	} -allowSuccessOutput
+	# --format would be nice to use, but it was introduced in git version 2.36, which isn't the default installed yet.
+	# Rather than adding a version check, I figured parsing it would be fine.
+	# The default format is: permission ' blob ' hash '`t' branchName
+	$treeEntries = (Invoke-ProcessLogs "git ls-tree -r $upstreamBranch" {
+		git ls-tree -r $upstreamBranch
+	} -allowSuccessOutput) | ForEach-Object {
+		$record, $name = $_.Split("`t")
+		$permission, $type, $hash = $record.Split(' ')
+		@{ hash = $hash; name = $name }
+	}
 
 	# build "$blobs", a Dictionary<hash, contents-split-by-line>
-	$hashes = $treeEntries | ForEach-Object { $_.Split("`t")[0] }
+	# TODO: there may be a way to make this more efficient yet.
+	$hashes = $treeEntries | ForEach-Object { $_.hash }
 	if ($hashes) {
 		$hashEntries = (Invoke-ProcessLogs "git cat-file '--batch=`t%(objectname)'" {
 			# --batch gives a header, in this case:"`t<blobhash>", followed by a new line,
@@ -40,9 +48,7 @@ function Select-AllUpstreamBranches([switch]$refresh) {
 		}
 
 		foreach ($entry in $treeEntries) {
-			# entry is (hash '`t' name)
-			$hash, $name = $entry.Split("`t")
-			[string[]]$nodes[$name] = $blobs[$hash]
+			[string[]]$nodes[$entry.name] = $blobs[$entry.hash]
 		}
 	}
 
@@ -57,4 +63,6 @@ function Clear-AllUpstreamBranchCache([string] $workDir) {
 	}
 }
 
+# This module is intentionally kept internal to the query-state folder in case of breaking changes.
+# Use `Select-UpstreamBranches` or other query-state utility instead.
 Export-ModuleMember -Function Select-AllUpstreamBranches, Clear-AllUpstreamBranchCache

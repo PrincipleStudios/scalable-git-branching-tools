@@ -11,8 +11,8 @@ function Initialize-AllUpstreamBranches([PSObject] $upstreamConfiguration) {
 	$workDir = [System.IO.Path]::GetRandomFileName()
 	Invoke-MockGit "rev-parse --show-toplevel" -MockWith $workDir
 
-	$treeEntries = $upstreamConfiguration.Keys | ForEach-Object { "$_-blob`t$_" } | Sort-Object
-	Invoke-MockGit "ls-tree -r $upstream --format=%(objectname)`t%(path)" -MockWith $treeEntries
+	$treeEntries = $upstreamConfiguration.Keys | ForEach-Object { "100644 blob $_-blob`t$_" } | Sort-Object
+	Invoke-MockGit "ls-tree -r $upstream" -MockWith $treeEntries
 
 	if ($upstreamConfiguration.Count -gt 0) {
 		$result = ($upstreamConfiguration.Keys | ForEach-Object {
