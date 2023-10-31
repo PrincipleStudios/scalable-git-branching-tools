@@ -1,6 +1,5 @@
 Import-Module -Scope Local "$PSScriptRoot/../../utils/testing.psm1"
 Import-Module -Scope Local "$PSScriptRoot/Get-UpstreamBranch.psm1"
-Import-Module -Scope Local "$PSScriptRoot/Get-GitFile.mocks.psm1"
 Import-Module -Scope Local "$PSScriptRoot/Select-AllUpstreamBranches.psm1"
 
 function Invoke-MockGit([string] $gitCli, [object] $MockWith) {
@@ -12,12 +11,14 @@ function Initialize-AllUpstreamBranches([PSObject] $upstreamConfiguration) {
 	$workDir = [System.IO.Path]::GetRandomFileName()
 	Invoke-MockGit "rev-parse --show-toplevel" -MockWith $workDir
 
-	$treeEntries = $upstreamConfiguration.Keys | Sort-Object
-	Invoke-MockGit "ls-tree -r $upstream --format=%(path)" -MockWith $treeEntries
+	$treeEntries = $upstreamConfiguration.Keys | ForEach-Object { "$_-blob`t$_" } | Sort-Object
+	Invoke-MockGit "ls-tree -r $upstream --format=%(objectname)`t%(path)" -MockWith $treeEntries
 
-	foreach ($branch in $upstreamConfiguration.Keys) {
-		$branchFile = $upstreamConfiguration[$branch]
-		Initialize-GitFile $upstream $fullPath $branchFile
+	if ($upstreamConfiguration.Count -gt 0) {
+		$result = ($upstreamConfiguration.Keys | ForEach-Object {
+			"`t$_-blob`n$($upstreamConfiguration[$_] -join "`n")"
+		}) -join "`n`n"
+		Invoke-MockGit "cat-file --batch=`t%(objectname)" -MockWith $result
 	}
 }
 Export-ModuleMember -Function Initialize-AllUpstreamBranches

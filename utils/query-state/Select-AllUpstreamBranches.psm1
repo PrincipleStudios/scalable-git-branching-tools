@@ -19,14 +19,33 @@ function Select-AllUpstreamBranches([switch]$refresh) {
 
 	$upstreamBranch = Get-UpstreamBranch
 
-	$treeEntries = Invoke-ProcessLogs "git ls-tree -r $upstreamBranch --format=`"%(path)`"" {
-		git ls-tree -r $upstreamBranch '--format=%(path)'
+	$treeEntries = Invoke-ProcessLogs "git ls-tree -r $upstreamBranch --format=`"%(objectname)`t%(path)`"" {
+		git ls-tree -r $upstreamBranch "--format=%(objectname)`t%(path)"
 	} -allowSuccessOutput
 
-	foreach ($name in $treeEntries) {
-		# TODO - make the Get-GitFile lazy
-		$nodes[$name] = Get-GitFile $name $upstreamBranch
+	# build "$blobs", a Dictionary<hash, contents-split-by-line>
+	$hashes = $treeEntries | ForEach-Object { $_.Split("`t")[0] }
+	if ($hashes) {
+		$hashEntries = (Invoke-ProcessLogs "git cat-file '--batch=`t%(objectname)'" {
+			# --batch gives a header, in this case:"`t<blobhash>", followed by a new line,
+			# followed by the contents of the file, followed by two line breaks.
+			# Empty files, therefore, would have three subsequent line breaks and make the whole result messy
+			# I hope that no one adds files with "`t" in them.
+			$hashes | git cat-file "--batch=`t%(objectname)"
+		} -allowSuccessOutput) -join "`n" -split "`t" | Where-Object { $_ } | ForEach-Object { $_.Trim() }
+		$blobs = @{}
+		foreach ($entry in $hashEntries) {
+			$lines = $entry.Split("`n")
+			$blobs[$lines[0]] = $lines | Select-Object -Skip 1
+		}
+
+		foreach ($entry in $treeEntries) {
+			# entry is (hash '`t' name)
+			$hash, $name = $entry.Split("`t")
+			[string[]]$nodes[$name] = $blobs[$hash]
+		}
 	}
+
 	return $nodes
 }
 
