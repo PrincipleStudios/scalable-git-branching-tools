@@ -39,4 +39,18 @@ Describe 'local action "validate-branch-names"' {
         Invoke-FlushAssertDiagnostic $fw.diagnostics
         $fw.assertDiagnosticOutput | Should -contain "ERR:  Invalid branch name specified: 'baz'"
     }
+
+    It 'prevents blank branch names' {
+        $standardScript = ('{ 
+            "type": "validate-branch-names", 
+            "parameters": {
+                "branches": [""]
+            }
+        }' | ConvertFrom-Json)
+
+        Invoke-LocalAction $standardScript -diagnostics $fw.diagnostics
+        Get-HasErrorDiagnostic $fw.diagnostics | Should -Be $true
+        Invoke-FlushAssertDiagnostic $fw.diagnostics
+        $fw.assertDiagnosticOutput | Should -contain "ERR:  No branch name was provided"
+    }
 }
