@@ -77,10 +77,10 @@ function Invoke-MergeTogether(
 
                 $commitsDiff = Invoke-ProcessLogs "git rev-list --count ^$currentCommit $targetCommit" {
                     # Check to see if there are any new commits in the $currentCommit history from $target's history
-                    git ref-list --count "^$currentCommit" $targetCommit
+                    git rev-list --count "^$currentCommit" $targetCommit
                 } -allowSuccessOutput
                 if ($commitsDiff -ne 0) {
-                    # New commits on $currentCommit; do the merge
+                    # New commits on $targetCommit compared to $currentCommit; do the merge
                     $mergeTreeResult = Get-MergeTree $currentCommit $targetCommit
                     if (-not $mergeTreeResult.isSuccess) { continue }
                     $nextTree = $mergeTreeResult.treeish

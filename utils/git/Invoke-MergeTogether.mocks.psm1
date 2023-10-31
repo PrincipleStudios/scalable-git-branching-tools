@@ -73,7 +73,7 @@ function Initialize-MergeTogether(
             if ($current -eq $initialSuccessfulBranch) { continue }
             Invoke-MockGit "rev-parse --verify $current" -MockWith $commitish[$current]
 
-            Invoke-MockGit "ref-list --count ^$currentCommit $($commitish[$current])" -MockWith "1"
+            Invoke-MockGit "rev-list --count ^$currentCommit $($commitish[$current])" -MockWith "1"
 
             $treeish = "$current-tree"
             $message = $messageTemplate.Replace('{}', $current)
@@ -83,7 +83,7 @@ function Initialize-MergeTogether(
 
             foreach ($failedBranch in $failed) {
                 # Each failed branch will retry merging, so needs to be re-set-up for each success
-                Invoke-MockGit "ref-list --count ^$currentCommit $($commitish[$failedBranch])" -MockWith "1"
+                Invoke-MockGit "rev-list --count ^$currentCommit $($commitish[$failedBranch])" -MockWith "1"
                 Initialize-MergeTree $currentCommit $commitish[$failedBranch] $treeish -fail
             }
         } else {
@@ -92,7 +92,7 @@ function Initialize-MergeTogether(
                 Invoke-MockGit "rev-parse --verify $current" -MockWith { $global:LASTEXITCODE = 1 }
             } else {
                 Invoke-MockGit "rev-parse --verify $current" -MockWith $commitish[$current]
-                Invoke-MockGit "ref-list --count ^$currentCommit $($commitish[$current])" -MockWith "1"
+                Invoke-MockGit "rev-list --count ^$currentCommit $($commitish[$current])" -MockWith "1"
                 $treeish = "$current-tree"
                 Initialize-MergeTree $currentCommit $commitish[$current] $treeish -fail
             }
