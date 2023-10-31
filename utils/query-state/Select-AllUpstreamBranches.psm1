@@ -6,7 +6,6 @@ Import-Module -Scope Local "$PSScriptRoot/Configuration.psm1"
 
 # allUpstreams is a hashmap where the key is the git working directory and 
 $allUpstreams = @{}
-$treeSuffix = '^{tree}'
 
 function Select-AllUpstreamBranches([switch]$refresh) {
 	$workDir = Invoke-ProcessLogs "git rev-parse --show-toplevel" {
@@ -20,27 +19,13 @@ function Select-AllUpstreamBranches([switch]$refresh) {
 
 	$upstreamBranch = Get-UpstreamBranch
 
-	$queue = New-Object 'System.Collections.Generic.Queue[object]';
+	$treeEntries = Invoke-ProcessLogs "git ls-tree -r $upstreamBranch --format=`"%(path)`"" {
+		git ls-tree -r $upstreamBranch '--format=%(path)'
+	} -allowSuccessOutput
 
-	# Load all upstream branch configurations to the hashmap
-	$queue.Enqueue($null)
-	while ($queue.Count -gt 0) {
-		$baseName = $queue.Dequeue()
-		$treeish = "$upstreamBranch$($baseName ? ":$baseName" : $treeSuffix)"
-		$treeEntries = Invoke-ProcessLogs "git ls-tree $treeish" {
-			git ls-tree $treeish
-		} -allowSuccessOutput
-		foreach ($entry in $treeEntries) {
-			# entry is (permission ' ' ('tree' | 'blob') ' ' hash '`t' name)
-			$record, $name = $entry.Split("`t")
-			$permission, $type, $hash = $record.Split(' ')
-			$name = $baseName ? "$baseName/$name" : $name
-			if ($type -eq 'tree') {
-				$queue.Enqueue($name)
-			} else {
-				$nodes[$name] = Get-GitFile $name $upstreamBranch
-			}
-		}
+	foreach ($name in $treeEntries) {
+		# TODO - make the Get-GitFile lazy
+		$nodes[$name] = Get-GitFile $name $upstreamBranch
 	}
 	return $nodes
 }
