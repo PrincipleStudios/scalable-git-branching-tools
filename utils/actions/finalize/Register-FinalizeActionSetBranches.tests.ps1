@@ -119,6 +119,15 @@ Describe 'finalize action "set-branches"' {
             $diag | Should -BeNullOrEmpty
             Invoke-VerifyMock $mocks -Times 1
         }
+        
+        It 'ensures the current branch, if updated, is clean' {
+            Initialize-CurrentBranch 'another'
+            $mocks = Initialize-FinalizeActionSetBranches $standardBranches -currentBranchDirty
+            Invoke-FinalizeAction $standardScript -diagnostics $diag
+            Invoke-FlushAssertDiagnostic $fw.diagnostics
+            $fw.assertDiagnosticOutput | Should -Be @('ERR:  Git working directory is not clean.')
+            Invoke-VerifyMock $mocks -Times 1
+        }
     }
 
     Context 'with remote' {

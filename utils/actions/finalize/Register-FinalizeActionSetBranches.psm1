@@ -45,6 +45,9 @@ function Register-FinalizeActionSetBranches([PSObject] $finalizeActions) {
 
             foreach ($key in $branches.Keys) {
                 if ($currentBranch -eq $key) {
+                    Assert-CleanWorkingDirectory -diagnostics $diagnostics
+                    if (Get-HasErrorDiagnostic $diagnostics) { continue }
+
                     # update head, since it matches the branch to be "pushed"
                     if ($dryRun) {
                         "git reset --hard `"$($branches[$key])`""
