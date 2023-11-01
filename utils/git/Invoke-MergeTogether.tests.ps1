@@ -62,6 +62,23 @@ Describe 'Invoke-MergeTogether' {
         Invoke-VerifyMock $mocks -Times 1
     }
 
+    It 'can handle the last branch failing' {
+        $mocks = Initialize-MergeTogether `
+            -allBranches @('feature/FOO-1', 'feature/FOO-2', 'feature/FOO-3') `
+            -successfulBranches @('feature/FOO-1', 'feature/FOO-2') `
+            -resultCommitish 'result-commitish' `
+            -messageTemplate 'Merge {}'
+
+        $result = Invoke-MergeTogether @('feature/FOO-1', 'feature/FOO-2', 'feature/FOO-3') -diagnostics $fw.diagnostics -asWarnings
+        $result.result | Should -Be 'result-commitish'
+        $result.failed | Should -Be @('feature/FOO-3')
+        $result.successful | Should -Be @('feature/FOO-1', 'feature/FOO-2')
+        $result.hasChanges | Should -Be $true
+        $fw.diagnostics | Should -Not -BeNullOrEmpty
+        Get-HasErrorDiagnostic $fw.diagnostics | Should -Be $false
+        Invoke-VerifyMock $mocks -Times 1
+    }
+
     It 'starts with the source' {
         $mocks = Initialize-MergeTogether `
             -allBranches @('feature/FOO-1', 'feature/FOO-2', 'feature/FOO-3') `

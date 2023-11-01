@@ -103,6 +103,7 @@ function Initialize-MergeTogether(
     if ($successfulBranches.Count -gt 1) {
         $message = $messageTemplate.Replace('{}', ($successfulBranches | Where-Object { $_ -ne $source }) -join ', ')
         $parents = $allBranches | Where-Object { $successfulBranches -contains $_ } | ForEach-Object { @("-p", $commitish[$_]) }
+        $treeish = "$lastBranch-tree"
         Invoke-MockGit "commit-tree $treeish -m $message $parents" -MockWith "$($resultCommitish)"
     }
 }
