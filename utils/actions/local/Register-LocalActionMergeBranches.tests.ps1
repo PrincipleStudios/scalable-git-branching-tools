@@ -30,7 +30,12 @@ Describe 'local action "merge-branches"' {
                 }
             }' | ConvertFrom-Json) -diagnostics $diag
             $diag | Should -BeNullOrEmpty
-            $result | Assert-ShouldBeObject @{ commit = 'new-COMMIT' }
+            $result | Assert-ShouldBeObject @{
+                commit = 'new-COMMIT'
+                hasChanges = $false
+                successful = @('baz')
+                failed = @()
+            }
         }
 
         It 'handles standard functionality' {
@@ -47,7 +52,12 @@ Describe 'local action "merge-branches"' {
                 }
             }' | ConvertFrom-Json) -diagnostics $diag
             $diag | Should -Be $null
-            $result | Assert-ShouldBeObject @{ commit = 'new-COMMIT' }
+            $result | Assert-ShouldBeObject @{
+                commit = 'new-COMMIT'
+                hasChanges = $true
+                successful = @('baz', 'barbaz')
+                failed = @()
+            }
             Invoke-VerifyMock $mocks -Times 1
         }
 
@@ -68,7 +78,12 @@ Describe 'local action "merge-branches"' {
             }' | ConvertFrom-Json) -diagnostics $diag
             { Assert-Diagnostics $diag } | Should -Throw
             $output | Should -contain 'ERR:  No branches could be resolved to merge'
-            $result | Assert-ShouldBeObject @{ commit = $null }
+            $result | Assert-ShouldBeObject @{
+                commit = $null
+                hasChanges = $false
+                successful = $null
+                failed = @('baz', 'barbaz')
+            }
             Invoke-VerifyMock $mocks -Times 1
         }
 
@@ -89,7 +104,12 @@ Describe 'local action "merge-branches"' {
                 }
             }' | ConvertFrom-Json) -diagnostics $diag
             $diag | Should -BeNullOrEmpty
-            $result | Assert-ShouldBeObject @{ commit = 'new-COMMIT' }
+            $result | Assert-ShouldBeObject @{
+                commit = 'new-COMMIT'
+                hasChanges = $true
+                successful = @('baz', 'barbaz')
+                failed = @()
+            }
             Invoke-VerifyMock $mocks -Times 1
         }
 
@@ -115,7 +135,12 @@ Describe 'local action "merge-branches"' {
             } else {
                 $output | Should -be @("ERR:  Could not resolve 'foo' for source of merge")
             }
-            $result | Assert-ShouldBeObject @{ commit = $null }
+            $result | Assert-ShouldBeObject @{
+                commit = $null
+                hasChanges = $false
+                successful = @()
+                failed = @('foo')
+            }
             Invoke-VerifyMock $mocks -Times 1
         }
     }
@@ -148,7 +173,12 @@ Describe 'local action "merge-branches"' {
             }' | ConvertFrom-Json) -diagnostics $diag
             { Assert-Diagnostics $diag } | Should -Not -Throw
             $output | Should -contain 'WARN: Could not merge the following branches: barbaz'
-            $result | Assert-ShouldBeObject @{ commit = 'new-COMMIT' }
+            $result | Assert-ShouldBeObject @{
+                commit = 'new-COMMIT'
+                hasChanges = $false
+                successful = @('baz')
+                failed = @('barbaz')
+            }
             Invoke-VerifyMock $mocks -Times 1
         }
     }
@@ -181,7 +211,12 @@ Describe 'local action "merge-branches"' {
             }' | ConvertFrom-Json) -diagnostics $diag
             { Assert-Diagnostics $diag } | Should -Not -Throw
             $output | Should -contain 'WARN: Could not merge the following branches: origin/barbaz'
-            $result | Assert-ShouldBeObject @{ commit = 'new-COMMIT' }
+            $result | Assert-ShouldBeObject @{
+                commit = 'new-COMMIT'
+                hasChanges = $false
+                successful = @('baz')
+                failed = @('barbaz')
+            }
             Invoke-VerifyMock $mocks -Times 1
         }
     }

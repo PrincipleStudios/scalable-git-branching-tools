@@ -27,8 +27,28 @@ function Register-LocalActionMergeBranches([PSObject] $localActions) {
                 Add-ErrorDiagnostic $diagnostics "No branches could be resolved to merge"
             }
         }
-        # TODO - output successfully merged branches
-        return @{ commit = $commit }
+
+        $failed = $mergeResult.failed
+        $successful = $mergeResult.successful
+        if ($null -ne $config.remote) {
+            $prefix = "$($config.remote)/"
+            $failed = [string[]]$failed | Foreach-Object { $_.StartsWith($prefix) ? $_.Substring($prefix.Length) : $_ }
+            $successful = [string[]]$successful | Foreach-Object { $_.StartsWith($prefix) ? $_.Substring($prefix.Length) : $_ }
+        }
+
+        return @{
+            # [string] new commit hash, or null if everything failed
+            commit = $mergeResult.result
+            
+            # [boolean] false if the commit is null or if it matches the source
+            hasChanges = $mergeResult.hasChanges
+            
+            # [string[]] list of branches that could not merge due to conflicts
+            failed = $failed
+            
+            # [string[]] list of branches that would merge without errors (but may have no changes)
+            successful = $successful
+        }
     }
 }
 
