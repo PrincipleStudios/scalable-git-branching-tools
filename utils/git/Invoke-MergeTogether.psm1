@@ -28,6 +28,7 @@ function Invoke-MergeTogether(
             
             return @{
                 result = $null
+                hasChanges = $false
                 successful = @()
                 failed = @($target)
             }
@@ -114,7 +115,9 @@ function Invoke-MergeTogether(
         }
     }
 
+    $hasChanges = $false
     if ($parentCommits.Count -gt 1) {
+        $hasChanges = $true
         $commitMessage = $messageTemplate.Replace('{}', $successful -join ', ')
         $parents = $parentCommits | ForEach-Object { @("-p", $_) }
         $currentCommit = Invoke-ProcessLogs "git commit-tree $nextTree -m $commitMessage $parents" {
@@ -124,6 +127,7 @@ function Invoke-MergeTogether(
 
     return @{
         result = $currentCommit
+        hasChanges = $hasChanges
         successful = $successful
         failed = $failed
     }
