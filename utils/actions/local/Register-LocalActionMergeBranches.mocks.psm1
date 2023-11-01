@@ -37,7 +37,8 @@ function Initialize-LocalActionMergeBranchesSuccess(
     [Parameter(Mandatory)][string] $resultCommitish,
     [Parameter(Mandatory)][string] $mergeMessageTemplate,
     [Parameter()][string] $source,
-    [Parameter()][int] $failAtMerge = -1
+    [Parameter()][int] $failAtMerge = -1,
+    [Parameter()][string[]] $failedBranches
 ) {
     $config = Get-Configuration
     if ($null -ne $config.remote) {
@@ -45,9 +46,13 @@ function Initialize-LocalActionMergeBranchesSuccess(
         if ($null -ne $source -AND '' -ne $source) {
             $source = "$($config.remote)/$source"
         }
+        if ($failedBranches) {
+            $failedBranches = [string[]]$failedBranches | Foreach-Object { "$($config.remote)/$_" }
+        }
     }
 
-    $successfulBranches = $failAtMerge -eq -1 ? $upstreamBranches
+    [string[]]$successfulBranches = $failAtMerge -eq -1 -AND -not $failedBranches ? $upstreamBranches
+        : $failedBranches ? ($upstreamBranches | Where-Object { $failedBranches -notcontains $_ })
         : $failAtMerge -eq 0 ? @()
         : ($upstreamBranches | Select-Object -First $failAtMerge)
 
