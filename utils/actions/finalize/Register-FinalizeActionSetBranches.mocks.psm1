@@ -1,5 +1,6 @@
 Import-Module -Scope Local "$PSScriptRoot/../../testing.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../input.mocks.psm1"
+Import-Module -Scope Local "$PSScriptRoot/../../query-state.mocks.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../query-state.psm1"
 Import-Module -Scope Local "$PSScriptRoot/Register-FinalizeActionSetBranches.psm1"
 
@@ -7,7 +8,11 @@ function Invoke-MockGit([string] $gitCli, [object] $MockWith) {
     return Invoke-MockGitModule -ModuleName 'Register-FinalizeActionSetBranches' @PSBoundParameters
 }
 
-function Initialize-FinalizeActionSetBranches([Hashtable] $branches, [switch] $fail) {
+function Initialize-FinalizeActionSetBranches(
+    [Hashtable] $branches, 
+    [switch] $fail, 
+    [switch] $currentBranchDirty
+) {
     $config = Get-Configuration
     
     foreach ($branch in $branches.Keys) {
@@ -23,9 +28,14 @@ function Initialize-FinalizeActionSetBranches([Hashtable] $branches, [switch] $f
         $currentBranch = Get-CurrentBranch
         foreach ($key in $branches.Keys) {
             if ($currentBranch -eq $key) {
-                Invoke-MockGit `
-                    -gitCli "reset --hard $($branches[$key])" `
-                    -MockWith $($fail ? { $Global:LASTEXITCODE = 1 } : {})
+                if ($currentBranchDirty) {
+                    Initialize-DirtyWorkingDirectory
+                } else {
+                    Initialize-CleanWorkingDirectory
+                    Invoke-MockGit `
+                        -gitCli "reset --hard $($branches[$key])" `
+                        -MockWith $($fail ? { $Global:LASTEXITCODE = 1 } : {})
+                }
             } else {
                 Invoke-MockGit `
                     -gitCli "branch $($key) $($branches[$key]) -f" `
