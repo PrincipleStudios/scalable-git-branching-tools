@@ -78,7 +78,7 @@ function Initialize-MergeTogether(
             $treeish = "$current-tree"
             $message = $messageTemplate.Replace('{}', $current)
             Initialize-MergeTree $currentCommit $commitish[$current] $treeish
-            Invoke-MockGit "commit-tree $treeish -m $message -p $currentCommit -p $($commitish[$current])" -MockWith "$($resultCommitishes[$current])"
+            Invoke-MockGit "commit-tree $treeish -p $currentCommit -p $($commitish[$current]) -m interim merge" -MockWith "$($resultCommitishes[$current])"
             $currentCommit = $resultCommitishes[$current]
 
             foreach ($failedBranch in $failed) {
