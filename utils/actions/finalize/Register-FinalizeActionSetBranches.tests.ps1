@@ -59,6 +59,27 @@ Describe 'finalize action "set-branches"' {
             Invoke-VerifyMock $mocks -Times 1
         }
 
+        It 'handles standard functionality for a single branch' {
+            $standardScript = ('{ 
+                "type": "set-branches", 
+                "parameters": {
+                    "branches": {
+                        "other": "other-commitish"
+                    }
+                }
+            }' | ConvertFrom-Json)
+            Initialize-NoCurrentBranch
+            $mocks = @(
+                Initialize-AssertValidBranchName 'other'
+                Invoke-MockGitModule -ModuleName 'Register-FinalizeActionSetBranches' `
+                    -gitCli "branch other other-commitish -f"
+            )
+            
+            Invoke-FinalizeAction $standardScript -diagnostics $diag
+            $diag | Should -BeNullOrEmpty
+            Invoke-VerifyMock $mocks -Times 1
+        }
+
         It 'can execute a dry run' {
             Initialize-NoCurrentBranch
             $mocks = @(

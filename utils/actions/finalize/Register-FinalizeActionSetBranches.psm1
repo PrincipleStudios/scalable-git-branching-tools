@@ -29,7 +29,7 @@ function Register-FinalizeActionSetBranches([PSObject] $finalizeActions) {
 
         if ($null -ne $config.remote) {
             $atomicPart = $config.atomicPushEnabled ? @("--atomic") : @()
-            $branchList = ConvertTo-PushBranchList $branches
+            [string[]]$branchList = ConvertTo-PushBranchList $branches
             if ($dryRun) {
                 "git push $($config.remote) $atomicPart $branchList"
                 return

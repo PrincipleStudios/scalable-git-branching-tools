@@ -38,6 +38,8 @@ function Register-FinalizeActionTrack([PSObject] $finalizeActions) {
             
             if ($currentBranch -eq $localBranch) {
                 # update head
+                Assert-CleanWorkingDirectory -diagnostics $diagnostics
+                if (Get-HasErrorDiagnostic $diagnostics) { continue }
                 if ($dryRun) {
                     "git reset --hard `"refs/remotes/$($config.remote)/$branch`""
                 } else {

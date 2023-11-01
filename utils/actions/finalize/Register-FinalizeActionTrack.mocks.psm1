@@ -30,7 +30,8 @@ function Initialize-FinalizeActionTrackDryRun(
 
 function Initialize-FinalizeActionTrackSuccess(
     [Parameter()][AllowEmptyCollection()][string[]] $branches,
-    [Parameter()][AllowEmptyCollection()][string[]] $untracked
+    [Parameter()][AllowEmptyCollection()][string[]] $untracked,
+    [switch] $currentBranchDirty
 ) {
     $config = Get-Configuration
     if ($null -eq $config.remote) {
@@ -49,10 +50,15 @@ function Initialize-FinalizeActionTrackSuccess(
         }
 
         if ($branch -eq $currentBranch) {
-            if ($untracked -contains $currentBranch) {
-                Invoke-MockGit "branch $currentBranch --set-upstream-to refs/remotes/$($config.remote)/$currentBranch"
+            if ($currentBranchDirty) {
+                Initialize-DirtyWorkingDirectory
+            } else {
+                Initialize-CleanWorkingDirectory
+                if ($untracked -contains $currentBranch) {
+                    Invoke-MockGit "branch $currentBranch --set-upstream-to refs/remotes/$($config.remote)/$currentBranch"
+                }
+                Invoke-MockGit "reset --hard refs/remotes/$($config.remote)/$branch"
             }
-            Invoke-MockGit "reset --hard refs/remotes/$($config.remote)/$branch"
         } else {
             Invoke-MockGit "branch $branch refs/remotes/$($config.remote)/$branch -f"
         }
