@@ -59,6 +59,27 @@ Describe 'finalize action "set-branches"' {
             Invoke-VerifyMock $mocks -Times 1
         }
 
+        It 'handles standard functionality for a single branch' {
+            $standardScript = ('{ 
+                "type": "set-branches", 
+                "parameters": {
+                    "branches": {
+                        "other": "other-commitish"
+                    }
+                }
+            }' | ConvertFrom-Json)
+            Initialize-NoCurrentBranch
+            $mocks = @(
+                Initialize-AssertValidBranchName 'other'
+                Invoke-MockGitModule -ModuleName 'Register-FinalizeActionSetBranches' `
+                    -gitCli "branch other other-commitish -f"
+            )
+            
+            Invoke-FinalizeAction $standardScript -diagnostics $diag
+            $diag | Should -BeNullOrEmpty
+            Invoke-VerifyMock $mocks -Times 1
+        }
+
         It 'can execute a dry run' {
             Initialize-NoCurrentBranch
             $mocks = @(
@@ -96,6 +117,15 @@ Describe 'finalize action "set-branches"' {
             $mocks = Initialize-FinalizeActionSetBranches $standardBranches
             Invoke-FinalizeAction $standardScript -diagnostics $diag
             $diag | Should -BeNullOrEmpty
+            Invoke-VerifyMock $mocks -Times 1
+        }
+        
+        It 'ensures the current branch, if updated, is clean' {
+            Initialize-CurrentBranch 'another'
+            $mocks = Initialize-FinalizeActionSetBranches $standardBranches -currentBranchDirty
+            Invoke-FinalizeAction $standardScript -diagnostics $diag
+            Invoke-FlushAssertDiagnostic $fw.diagnostics
+            $fw.assertDiagnosticOutput | Should -Be @('ERR:  Git working directory is not clean.')
             Invoke-VerifyMock $mocks -Times 1
         }
     }

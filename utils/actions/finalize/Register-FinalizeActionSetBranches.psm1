@@ -29,7 +29,7 @@ function Register-FinalizeActionSetBranches([PSObject] $finalizeActions) {
 
         if ($null -ne $config.remote) {
             $atomicPart = $config.atomicPushEnabled ? @("--atomic") : @()
-            $branchList = ConvertTo-PushBranchList $branches
+            [string[]]$branchList = ConvertTo-PushBranchList $branches
             if ($dryRun) {
                 "git push $($config.remote) $atomicPart $branchList"
                 return
@@ -45,6 +45,9 @@ function Register-FinalizeActionSetBranches([PSObject] $finalizeActions) {
 
             foreach ($key in $branches.Keys) {
                 if ($currentBranch -eq $key) {
+                    Assert-CleanWorkingDirectory -diagnostics $diagnostics
+                    if (Get-HasErrorDiagnostic $diagnostics) { continue }
+
                     # update head, since it matches the branch to be "pushed"
                     if ($dryRun) {
                         "git reset --hard `"$($branches[$key])`""
