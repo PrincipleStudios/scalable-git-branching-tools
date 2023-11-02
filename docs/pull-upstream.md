@@ -4,10 +4,14 @@ Merges all the "upstream" branches into the current branch, or the specified one
 
 Usage:
 
-    git-pull-upstream.ps1 [-target <string>]
+    git-pull-upstream.ps1 [-target <string>] [-dryRun]
 
 ## Parameters
 
 ### `[-target] <string>` (Optional)
 
 If provided, the script will change branches to the named branch, and pull-upstream for that branch. If it succeeds, `pull-upstream` will return to the original branch. Otherwise, conflicts will be left uncommitted.
+
+### `-dryRun` (Optional)
+
+If specified, only test merging, do not push the updates.
