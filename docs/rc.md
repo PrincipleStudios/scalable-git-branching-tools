@@ -4,7 +4,7 @@ Create a new branch from multiple upstream branches without changing the local b
 
 Usage:
 
-    git-rc.ps1 [-target] <string> [-upstreamBranches <string[]>] [-comment <string>] [-force]
+    git-rc.ps1 [-target] <string> [-upstreamBranches <string[]>] [-comment <string>] [-force] [-dryRun]
 
 ## Parameters
 
@@ -27,3 +27,7 @@ If specified, adds to the commit message on the upstream tracking branch for cre
 ### `[-force]` (Optional)
 
 Forces an update of the RC branch. Use this if you are replacing the existing branch.
+
+### `-dryRun` (Optional)
+
+If specified, only test merging, do not push the updates.
