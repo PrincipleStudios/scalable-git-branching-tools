@@ -219,5 +219,31 @@ Describe 'local action "merge-branches"' {
             }
             Invoke-VerifyMock $mocks -Times 1
         }
+        
+        It 'reports merge failures' {
+            $mocks = Initialize-LocalActionMergeBranchesSuccess @('baz', 'barbaz') 'new-Commit' `
+                -mergeMessageTemplate "Merge {}" `
+                -failedBranches @('barbaz')
+
+            $result = Invoke-LocalAction ('{ 
+                "type": "merge-branches", 
+                "parameters": {
+                    "upstreamBranches": [
+                        "baz",
+                        "barbaz"
+                    ],
+                    "mergeMessageTemplate": "Merge {}"
+                }
+            }' | ConvertFrom-Json) -diagnostics $diag
+            { Assert-Diagnostics $diag } | Should -Not -Throw
+            $output | Should -contain 'WARN: Could not merge the following branches: origin/barbaz'
+            $result | Assert-ShouldBeObject @{
+                commit = 'new-COMMIT'
+                hasChanges = $false
+                successful = @('baz')
+                failed = @('barbaz')
+            }
+            Invoke-VerifyMock $mocks -Times 1
+        }
     }
 }
