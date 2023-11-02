@@ -18,6 +18,7 @@ function Register-FinalizeActionSetBranches([PSObject] $finalizeActions) {
     $finalizeActions['set-branches'] = {
         param(
             [Parameter()] $branches,
+            [Parameter()] $force = $false,
             [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics,
             [switch] $dryRun
         )
@@ -29,13 +30,14 @@ function Register-FinalizeActionSetBranches([PSObject] $finalizeActions) {
 
         if ($null -ne $config.remote) {
             $atomicPart = $config.atomicPushEnabled ? @("--atomic") : @()
+            $forcePart = $force ? @("--force") : @()
             [string[]]$branchList = ConvertTo-PushBranchList $branches
             if ($dryRun) {
-                "git push $($config.remote) $atomicPart $branchList"
+                "git push $($config.remote) $atomicPart $forcePart $branchList"
                 return
             }
-            Invoke-ProcessLogs "git push $($config.remote)" {
-                git push $config.remote @atomicPart @branchList
+            Invoke-ProcessLogs "git push $($config.remote) $atomicPart $forcePart $branchList" {
+                git push $config.remote @atomicPart @forcePart @branchList
             }
             if ($global:LASTEXITCODE -ne 0) {
                 Add-ErrorDiagnostic $diagnostics "Unable to push updates to $($config.remote)"
