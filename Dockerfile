@@ -6,6 +6,7 @@ RUN  apt-get update \
   && rm packages-microsoft-prod.deb \
   && apt-get update \
   && add-apt-repository universe \
+  && add-apt-repository ppa:git-core/ppa \
   && apt-get install -y git powershell \
   && apt-get clean
 RUN  git config --global user.email "test@example.com" \
