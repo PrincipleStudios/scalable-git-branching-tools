@@ -1,101 +1,126 @@
 BeforeAll {
     . "$PSScriptRoot/utils/testing.ps1"
     Import-Module -Scope Local "$PSScriptRoot/utils/framework.mocks.psm1"
+    Import-Module -Scope Local "$PSScriptRoot/utils/input.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/utils/query-state.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/utils/git.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-BranchPushed.mocks.psm1";
-
-    Initialize-QuietMergeBranches
+    Import-Module -Scope Local "$PSScriptRoot/utils/actions.mocks.psm1"
 }
 
 Describe 'git-pull-upstream' {
     BeforeEach {
-        Register-Framework
+        [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
+        $fw = Register-Framework
     }
 
     Context 'with a remote' {
         BeforeEach {
             Initialize-ToolConfiguration
             Initialize-UpdateGitRemote
-            Initialize-UpstreamBranches @{ 'feature/FOO-123' = @("main", "infra/add-services") }
-            Initialize-UpstreamBranches @{ 'infra/add-services' = @("main") }
+            Initialize-UpstreamBranches @{
+                'feature/FOO-456' = @("infra/add-services", "infra/refactor-api")
+                'feature/FOO-123' = @("infra/add-services")
+                'infra/add-services' = @("main")
+                'infra/refactor-api' = @("main")
+            }
         }
 
-        It 'fails if no branch is checked out' {
-            Initialize-NoCurrentBranch
+        It 'fails if no branch is checked out and none is specified' {
+            $mocks = @(
+                Initialize-NoCurrentBranch
+            )
 
-            { & $PSScriptRoot/git-pull-upstream.ps1 } | Should -Throw 'Must have a branch checked out or specify one.'
+            { & ./git-pull-upstream.ps1 } | Should -Throw
+            $fw.assertDiagnosticOutput | Should -Contain "ERR:  No branch name was provided"
+            Invoke-VerifyMock $mocks -Times 1
         }
 
         It 'fails if the working directory is not clean' {
-            Initialize-CurrentBranch 'feature/FOO-123'
-            Initialize-DirtyWorkingDirectory
-            Initialize-BranchPushed 'feature/FOO-123'
+            $mocks = @(
+                Initialize-AssertValidBranchName 'feature/FOO-123'
+                Initialize-CurrentBranch 'feature/FOO-123'
+                Initialize-LocalActionAssertExistence -branches @('feature/FOO-123') -shouldExist $true
+                Initialize-LocalActionAssertPushedSuccess 'feature/FOO-123'
+                Initialize-LocalActionMergeBranchesSuccess `
+                    -upstreamBranches @('infra/add-services') -resultCommitish 'result-commitish' `
+                    -source 'feature/FOO-123' `
+                    -mergeMessageTemplate "Merge '{}' to feature/FOO-123"
+                Initialize-FinalizeActionSetBranches @{
+                    'feature/FOO-123' = 'result-commitish'
+                }
+                Initialize-FinalizeActionTrackSuccess @('feature/FOO-123') -currentBranchDirty
+            )
 
-            { & $PSScriptRoot/git-pull-upstream.ps1 } | Should -Throw 'Git working directory is not clean.'
+            { & $PSScriptRoot/git-pull-upstream.ps1 } | Should -Throw
+            $fw.assertDiagnosticOutput | Should -Be @('ERR:  Git working directory is not clean.')
+            Invoke-VerifyMock $mocks -Times 1
         }
 
         It 'merges all upstream branches for the current branch' {
-            Initialize-CurrentBranch 'feature/FOO-123'
-            Initialize-CheckoutBranch 'feature/FOO-123'
-            Initialize-CleanWorkingDirectory
-            Initialize-InvokeMergeSuccess 'origin/main'
-            Initialize-InvokeMergeSuccess 'origin/infra/add-services'
-            Initialize-BranchPushed 'feature/FOO-123'
-            Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin feature/FOO-123:refs/heads/feature/FOO-123' } { $Global:LASTEXITCODE = 0 }
-            Initialize-RestoreGitHead 'feature/FOO-123'
+            $mocks = @(
+                Initialize-AssertValidBranchName 'feature/FOO-456'
+                Initialize-CurrentBranch 'feature/FOO-456'
+                Initialize-LocalActionAssertExistence -branches @('feature/FOO-456') -shouldExist $true
+                Initialize-LocalActionAssertPushedSuccess 'feature/FOO-456'
+                Initialize-LocalActionMergeBranchesSuccess `
+                    -upstreamBranches @('infra/add-services', 'infra/refactor-api') -resultCommitish 'result-commitish' `
+                    -source 'feature/FOO-456' `
+                    -mergeMessageTemplate "Merge '{}' to feature/FOO-456"
+                Initialize-FinalizeActionSetBranches @{
+                    'feature/FOO-456' = 'result-commitish'
+                }
+                Initialize-FinalizeActionTrackSuccess @('feature/FOO-456')
+            )
 
             & $PSScriptRoot/git-pull-upstream.ps1
+            $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
+            Invoke-VerifyMock $mocks -Times 1
         }
 
         It 'ensures the remote is up-to-date' {
-            Initialize-CleanWorkingDirectory
-            Initialize-CurrentBranch 'feature/FOO-76'
-            Initialize-BranchNotPushed 'feature/FOO-76'
+            $mocks = @(
+                Initialize-AssertValidBranchName 'feature/FOO-456'
+                Initialize-CurrentBranch 'feature/FOO-456'
+                Initialize-LocalActionAssertExistence -branches @('feature/FOO-456') -shouldExist $true
+                Initialize-LocalActionAssertPushedAhead 'feature/FOO-456'
+            )
 
-            { & ./git-pull-upstream.ps1 }
-                | Should -Throw "Branch feature/FOO-76 has changes not pushed to origin/feature/FOO-76. Please ensure changes are pushed (or reset) and try again."
+            { & $PSScriptRoot/git-pull-upstream.ps1 } | Should -Throw
+            $fw.assertDiagnosticOutput | Should -Be @('ERR:  The local branch for feature/FOO-456 has changes that are not pushed to the remote')
+            Invoke-VerifyMock $mocks -Times 1
         }
 
-        It 'ensures the remote is tracked' {
-            Initialize-ToolConfiguration
-            Initialize-UpdateGitRemote
-            Initialize-CleanWorkingDirectory
-            Initialize-CurrentBranch 'feature/FOO-76'
-            Initialize-BranchNoUpstream 'feature/FOO-76'
+        It "merges upstream branches for the specified branch when an upstream branch cannot be merged" {
+            $mocks = @(
+                Initialize-AssertValidBranchName 'feature/FOO-456'
+                Initialize-CurrentBranch 'feature/FOO-456'
+                Initialize-LocalActionAssertExistence -branches @('feature/FOO-456') -shouldExist $true
+                Initialize-LocalActionAssertPushedSuccess 'feature/FOO-456'
+                Initialize-LocalActionMergeBranchesSuccess `
+                    -upstreamBranches @('infra/add-services', 'infra/refactor-api') -resultCommitish 'result-commitish' `
+                    -failedBranches 'infra/refactor-api' `
+                    -source 'feature/FOO-456' `
+                    -mergeMessageTemplate "Merge '{}' to feature/FOO-456"
+                Initialize-FinalizeActionSetBranches @{
+                    'feature/FOO-456' = 'result-commitish'
+                }
+                Initialize-FinalizeActionTrackSuccess @('feature/FOO-456')
+            )
 
-            { & ./git-pull-upstream.ps1 }
-                | Should -Throw "Branch feature/FOO-76 does not have a remote tracking branch. Please ensure changes are pushed (or reset) and try again."
-        }
-
-        It "merges all upstream branches for the specified branch when it doesn't exist" {
-            Initialize-CurrentBranch 'feature/FOO-123'
-            Initialize-BranchDoesNotExist 'infra/add-services'
-            Initialize-CheckoutBranch 'infra/add-services'
-            Initialize-CleanWorkingDirectory
-            Initialize-InvokeMergeSuccess 'origin/main'
-            Mock git -ParameterFilter { ($args -join ' ') -eq 'push origin infra/add-services:refs/heads/infra/add-services' } { $Global:LASTEXITCODE = 0 }
-            Initialize-RestoreGitHead 'feature/FOO-123'
-
-            & $PSScriptRoot/git-pull-upstream.ps1 'infra/add-services'
+            & $PSScriptRoot/git-pull-upstream.ps1
+            $fw.assertDiagnosticOutput | Should -Not -BeNullOrEmpty
+            Invoke-VerifyMock $mocks -Times 1
         }
 
         It 'ensures the remote is up-to-date with the specified branch' {
-            Initialize-CleanWorkingDirectory
-            Initialize-CurrentBranch 'feature/FOO-76'
-            Initialize-BranchNotPushed 'infra/add-services'
+            $mocks = @(
+                Initialize-AssertValidBranchName 'feature/FOO-456'
+                Initialize-LocalActionAssertExistence -branches @('feature/FOO-456') -shouldExist $true
+                Initialize-LocalActionAssertPushedAhead 'feature/FOO-456'
+            )
 
-            { & ./git-pull-upstream.ps1 'infra/add-services' }
-                | Should -Throw "Branch infra/add-services has changes not pushed to origin/infra/add-services. Please ensure changes are pushed (or reset) and try again."
-        }
-
-        It 'ensures the remote is tracked by the specified branch' {
-            Initialize-CleanWorkingDirectory
-            Initialize-CurrentBranch 'feature/FOO-76'
-            Initialize-BranchNoUpstream 'infra/add-services'
-
-            { & ./git-pull-upstream.ps1 'infra/add-services' }
-                | Should -Throw "Branch infra/add-services does not have a remote tracking branch. Please ensure changes are pushed (or reset) and try again."
+            { & $PSScriptRoot/git-pull-upstream.ps1 'feature/FOO-456' } | Should -Throw
+            $fw.assertDiagnosticOutput | Should -Be @('ERR:  The local branch for feature/FOO-456 has changes that are not pushed to the remote')
+            Invoke-VerifyMock $mocks -Times 1
         }
     }
 
@@ -103,31 +128,61 @@ Describe 'git-pull-upstream' {
         BeforeEach {
             Initialize-ToolConfiguration -noRemote
             Initialize-UpdateGitRemote
-            Initialize-UpstreamBranches @{ 'feature/FOO-123' = @("main", "infra/add-services") }
+            Initialize-UpstreamBranches @{
+                'feature/FOO-456' = @("infra/add-services", "infra/refactor-api")
+                'feature/FOO-123' = @("infra/add-services")
+                'infra/add-services' = @("main")
+                'infra/refactor-api' = @("main")
+            }
         }
 
         It 'fails if no branch is checked out' {
-            Initialize-NoCurrentBranch
+            $mocks = @(
+                Initialize-NoCurrentBranch
+            )
 
-            { & $PSScriptRoot/git-pull-upstream.ps1 } | Should -Throw 'Must have a branch checked out or specify one.'
+            { & ./git-pull-upstream.ps1 } | Should -Throw
+            $fw.assertDiagnosticOutput | Should -Contain "ERR:  No branch name was provided"
+            Invoke-VerifyMock $mocks -Times 1
         }
 
         It 'fails if the working directory is not clean' {
-            Initialize-CurrentBranch 'feature/FOO-123'
-            Initialize-DirtyWorkingDirectory
+            $mocks = @(
+                Initialize-AssertValidBranchName 'feature/FOO-123'
+                Initialize-CurrentBranch 'feature/FOO-123'
+                Initialize-LocalActionAssertExistence -branches @('feature/FOO-123') -shouldExist $true
+                Initialize-LocalActionMergeBranchesSuccess `
+                    -upstreamBranches @('infra/add-services') -resultCommitish 'result-commitish' `
+                    -source 'feature/FOO-123' `
+                    -mergeMessageTemplate "Merge '{}' to feature/FOO-123"
+                Initialize-FinalizeActionSetBranches @{
+                    'feature/FOO-123' = 'result-commitish'
+                } -currentBranchDirty
+            )
 
-            { & $PSScriptRoot/git-pull-upstream.ps1 } | Should -Throw 'Git working directory is not clean.'
+            { & $PSScriptRoot/git-pull-upstream.ps1 } | Should -Throw
+            $fw.assertDiagnosticOutput | Should -Be @('ERR:  Git working directory is not clean.')
+            Invoke-VerifyMock $mocks -Times 1
         }
 
         It 'merges all upstream branches for the current branch' {
-            Initialize-CurrentBranch 'feature/FOO-123'
-            Initialize-CleanWorkingDirectory
-            Initialize-CheckoutBranch 'feature/FOO-123'
-            Initialize-InvokeMergeSuccess 'main'
-            Initialize-InvokeMergeSuccess 'infra/add-services'
-            Initialize-RestoreGitHead 'feature/FOO-123'
+            $mocks = @(
+                Initialize-AssertValidBranchName 'feature/FOO-456'
+                Initialize-CurrentBranch 'feature/FOO-456'
+                Initialize-LocalActionAssertExistence -branches @('feature/FOO-456') -shouldExist $true
+                Initialize-LocalActionMergeBranchesSuccess `
+                    -upstreamBranches @('infra/add-services', 'infra/refactor-api') -resultCommitish 'result-commitish' `
+                    -source 'feature/FOO-456' `
+                    -mergeMessageTemplate "Merge '{}' to feature/FOO-456"
+                Initialize-FinalizeActionSetBranches @{
+                    'feature/FOO-456' = 'result-commitish'
+                }
+                Initialize-FinalizeActionTrackSuccess @('feature/FOO-456')
+            )
 
             & $PSScriptRoot/git-pull-upstream.ps1
+            $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
+            Invoke-VerifyMock $mocks -Times 1
         }
     }
 }

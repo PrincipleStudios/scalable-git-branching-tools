@@ -1,37 +1,14 @@
 #!/usr/bin/env pwsh
 
 Param(
-    [Parameter()][String] $target
+    [Parameter()][String] $target,
+    [switch] $dryRun
 )
 
+Import-Module -Scope Local "$PSScriptRoot/utils/input.psm1"
+Import-Module -Scope Local "$PSScriptRoot/utils/scripting.psm1"
 Import-Module -Scope Local "$PSScriptRoot/utils/query-state.psm1"
-Import-Module -Scope Local "$PSScriptRoot/utils/git.psm1"
-Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-BranchPushed.psm1"
 
-$config = Get-Configuration
-
-Update-GitRemote
-if ($target -eq '') {
-    $target = Get-CurrentBranch
-}
-if ($target -eq $nil) {
-    throw 'Must have a branch checked out or specify one.'
-}
-# TODO - check to see if current branch is pulled, too?
-Assert-BranchPushed $target -m 'Please ensure changes are pushed (or reset) and try again.' -failIfNoUpstream
-$parentBranches = [String[]](Select-UpstreamBranches $target -includeRemote -config $config)
-
-$originalHead = Get-GitHead
-
-Assert-CleanWorkingDirectory
-Invoke-CheckoutBranch $target
-
-$mergeResult = Invoke-MergeBranches ($parentBranches) -noAbort
-if (-not $mergeResult.isValid) {
-    Write-Warning "Encountered merge conflicts while pulling upstream for $target. Resolve conflicts and resume with 'git pull-upstream'. If this was a release branch, abort the merge and create an integration branch instead."
-} else {
-    if ($config.remote -ne $nil) {
-        git push $config.remote "$($target):refs/heads/$($target)"
-    }
-    Restore-GitHead $originalHead
-}
+Invoke-JsonScript -scriptPath "$PSScriptRoot/git-pull-upstream.json" -params @{
+    target = ($target ? $target : (Get-CurrentBranch ?? ''))
+} -dryRun:$dryRun
