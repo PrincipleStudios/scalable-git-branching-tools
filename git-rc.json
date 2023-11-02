@@ -1,0 +1,73 @@
+{
+    "local": [
+        {
+            "type": "validate-branch-names",
+            "parameters": {
+                "branches": ["$params.branchName", "$params.upstreamBranches"]
+            }
+        },
+        {
+            "type": "assert-existence",
+            "condition": "$params.force ? $false : $true",
+            "parameters": {
+                "branches": ["$params.branchName"],
+                "shouldExist": false
+            }
+        },
+        {
+            "type": "assert-existence",
+            "parameters": {
+                "branches": ["$params.upstreamBranches"],
+                "shouldExist": true
+            }
+        },
+        {
+            "id": "simplify-upstream",
+            "type": "simplify-upstream",
+            "parameters": {
+                "upstreamBranches": ["$params.upstreamBranches"]
+            }
+        },
+        {
+            "id": "set-upstream",
+            "type": "set-upstream",
+            "parameters": {
+                "upstreamBranches": {
+                    "$params.branchName": ["$actions['simplify-upstream'].outputs"]
+                },
+                "message": "Add branch $($params.branchName)$($params.comment ? \" for $($params.comment)\" : '')"
+            }
+        },
+        {
+            "id": "create-branch",
+            "type": "merge-branches",
+            "parameters": {
+                "upstreamBranches": ["$actions['simplify-upstream'].outputs"],
+                "mergeMessageTemplate": "Merge '{}' for creation of $($params.branchName)",
+                "errorOnFailure": true
+            }
+        }
+    ],
+    "finalize": [
+        {
+            "type": "set-branches",
+            "parameters": {
+                "force": "$params.force",
+                "branches": {
+                    "$config.upstreamBranch": "$actions['set-upstream'].outputs['commit']",
+                    "$params.branchName": "$actions['create-branch'].outputs['commit']"
+                }
+            }
+        },
+        {
+            "type": "track",
+            "parameters": {
+                "branches": ["$params.branchName"],
+                "createIfNotTracked": true
+            }
+        }
+    ],
+    "output": [
+        "Created branch '$($params.branchName)'"
+    ]
+}

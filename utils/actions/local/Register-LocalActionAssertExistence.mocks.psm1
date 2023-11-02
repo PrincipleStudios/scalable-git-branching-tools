@@ -10,7 +10,7 @@ function Invoke-MockGit([string] $gitCli, [object] $MockWith) {
 
 function Initialize-LocalActionAssertExistence(
     [Parameter(Mandatory)][AllowEmptyCollection()] $branches,
-    [Parameter(Mandatory)][bool] $shouldExist
+    [Parameter()][bool] $shouldExist = $true
 ) {
     $remote = $(Get-Configuration).remote
         

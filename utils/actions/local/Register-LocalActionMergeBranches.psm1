@@ -9,6 +9,7 @@ function Register-LocalActionMergeBranches([PSObject] $localActions) {
             [string] $source,
             [string[]] $upstreamBranches,
             [string] $mergeMessageTemplate,
+            [Parameter()][bool] $errorOnFailure = $false,
             [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
         )
 
@@ -20,7 +21,7 @@ function Register-LocalActionMergeBranches([PSObject] $localActions) {
             }
         }
 
-        $mergeResult = Invoke-MergeTogether -source $source -commitishes $upstreamBranches -messageTemplate $mergeMessageTemplate -diagnostics $diagnostics -asWarnings
+        $mergeResult = Invoke-MergeTogether -source $source -commitishes $upstreamBranches -messageTemplate $mergeMessageTemplate -diagnostics $diagnostics -asWarnings:$(-not $errorOnFailure)
         $commit = $mergeResult.result
         if ($null -eq $commit) {
             if ($source -notin $mergeResult.failed) {
