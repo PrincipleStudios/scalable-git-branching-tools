@@ -11,6 +11,7 @@ function Invoke-MockGit([string] $gitCli, [object] $MockWith) {
 function Initialize-FinalizeActionSetBranches(
     [Hashtable] $branches, 
     [switch] $fail, 
+    [switch] $force, 
     [switch] $currentBranchDirty
 ) {
     $config = Get-Configuration
@@ -21,8 +22,9 @@ function Initialize-FinalizeActionSetBranches(
 
     if ($null -ne $config.remote) {
         $atomicPart = $config.atomicPushEnabled ? "--atomic " : ''
+        $forcePart = $force ? "--force " : ''
         $branchList = ConvertTo-PushBranchList $branches
-        Invoke-MockGit -gitCli "push $($config.remote) $atomicPart$branchList" `
+        Invoke-MockGit -gitCli "push $($config.remote) $atomicPart$forcePart$branchList" `
             -MockWith $($fail ? { $Global:LASTEXITCODE = 1 } : {})
     } else {
         $currentBranch = Get-CurrentBranch

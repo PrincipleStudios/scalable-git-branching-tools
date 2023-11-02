@@ -161,6 +161,24 @@ Describe 'finalize action "set-branches"' {
             Invoke-FinalizeAction $standardScript -diagnostics $diag
             Get-HasErrorDiagnostic $diag | Should -Be $true
         }
+
+        It 'reports force-push' {
+            $standardScript = ('{ 
+                "type": "set-branches", 
+                "parameters": {
+                    "force": true,
+                    "branches": {
+                        "_upstream": "new-upstream-commitish",
+                        "other": "other-commitish",
+                        "another": "another-commitish",
+                    }
+                }
+            }' | ConvertFrom-Json)
+            $mocks = Initialize-FinalizeActionSetBranches $standardBranches -force
+            Invoke-FinalizeAction $standardScript -diagnostics $diag
+            $diag | Should -Be $null
+            Invoke-VerifyMock $mocks -Times 1
+        }
     }
     Context 'with remote where atomic is disabled' {
         BeforeEach {
@@ -192,6 +210,24 @@ Describe 'finalize action "set-branches"' {
             Initialize-FinalizeActionSetBranches $standardBranches -fail
             Invoke-FinalizeAction $standardScript -diagnostics $diag
             Get-HasErrorDiagnostic $diag | Should -Be $true
+        }
+
+        It 'supports force-push' {
+            $standardScript = ('{ 
+                "type": "set-branches", 
+                "parameters": {
+                    "force": true,
+                    "branches": {
+                        "_upstream": "new-upstream-commitish",
+                        "other": "other-commitish",
+                        "another": "another-commitish",
+                    }
+                }
+            }' | ConvertFrom-Json)
+            $mocks = Initialize-FinalizeActionSetBranches $standardBranches -force
+            Invoke-FinalizeAction $standardScript -diagnostics $diag
+            $diag | Should -Be $null
+            Invoke-VerifyMock $mocks -Times 1
         }
     }
 }
