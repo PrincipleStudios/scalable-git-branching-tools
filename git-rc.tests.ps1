@@ -17,19 +17,6 @@ BeforeAll {
         & $scriptBlock
         & $cleanup
     }
-
-    $noRemoteBranches = @(
-        'feature/FOO-123'
-        'feature/FOO-124-comment'
-        'feature/FOO-124_FOO-125'
-        'feature/FOO-76'
-        'feature/XYZ-1-services'
-        'main'
-        'rc/2022-07-14'
-        'integrate/FOO-125_XYZ-1'
-    )
-
-    $defaultBranches = $noRemoteBranches | ForEach-Object { "origin/$_" }
 }
 
 
@@ -51,7 +38,11 @@ Describe 'git-rc' {
     Context 'without remote' {
         BeforeAll {
             Initialize-ToolConfiguration -noRemote
-            Initialize-UpstreamBranches @{}
+            Initialize-UpstreamBranches  @{
+                'feature/FOO-123' = @('main')
+                'feature/FOO-124-comment' = @('main')
+                'integrate/FOO-125_XYZ-1' = @('feature/FOO-125', 'feature/XYZ-1')
+            }
             Initialize-NoCurrentBranch
         }
 
@@ -63,6 +54,7 @@ Describe 'git-rc' {
                 Initialize-AssertValidBranchName 'integrate/FOO-125_XYZ-1'
                 Initialize-LocalActionAssertExistence -branches @('rc/2022-07-28') -shouldExist $false
                 Initialize-LocalActionAssertExistence -branches @('feature/FOO-123','feature/FOO-124-comment','integrate/FOO-125_XYZ-1')
+                Initialize-LocalActionUpstreamsUpdated @('feature/FOO-123','feature/FOO-124-comment','integrate/FOO-125_XYZ-1') -recurse
                 Initialize-LocalActionSetUpstream @{
                     'rc/2022-07-28' = @('feature/FOO-123','feature/FOO-124-comment','integrate/FOO-125_XYZ-1')
                 } -commitish 'new-commit' -message 'Add branch rc/2022-07-28 for New RC'
@@ -87,7 +79,13 @@ Describe 'git-rc' {
             Initialize-ToolConfiguration
             Initialize-UpdateGitRemote
             Initialize-NoCurrentBranch
-            Initialize-UpstreamBranches @{}
+            Initialize-UpstreamBranches @{
+                'feature/FOO-123' = @('main')
+                'feature/FOO-124-comment' = @('main')
+                'feature/FOO-125' = @('main')
+                'feature/XYZ-1' = @('main')
+                'integrate/FOO-125_XYZ-1' = @('feature/FOO-125', 'feature/XYZ-1')
+            }
         }
 
         It 'handles standard functionality' {
@@ -98,6 +96,7 @@ Describe 'git-rc' {
                 Initialize-AssertValidBranchName 'integrate/FOO-125_XYZ-1'
                 Initialize-LocalActionAssertExistence -branches @('rc/2022-07-28') -shouldExist $false
                 Initialize-LocalActionAssertExistence -branches @('feature/FOO-123','feature/FOO-124-comment','integrate/FOO-125_XYZ-1')
+                Initialize-LocalActionUpstreamsUpdated @('feature/FOO-123','feature/FOO-124-comment','integrate/FOO-125_XYZ-1') -recurse
                 Initialize-LocalActionSetUpstream @{
                     'rc/2022-07-28' = @('feature/FOO-123','feature/FOO-124-comment','integrate/FOO-125_XYZ-1')
                 } -commitish 'new-commit' -message 'Add branch rc/2022-07-28 for New RC'
@@ -124,6 +123,7 @@ Describe 'git-rc' {
                 Initialize-AssertValidBranchName 'integrate/FOO-125_XYZ-1'
                 Initialize-LocalActionAssertExistence -branches @('rc/2022-07-28') -shouldExist $false
                 Initialize-LocalActionAssertExistence -branches @('feature/FOO-123','feature/FOO-124-comment','integrate/FOO-125_XYZ-1')
+                Initialize-LocalActionUpstreamsUpdated @('feature/FOO-123','feature/FOO-124-comment','integrate/FOO-125_XYZ-1') -recurse
                 Initialize-LocalActionSetUpstream @{
                     'rc/2022-07-28' = @('feature/FOO-123','feature/FOO-124-comment','integrate/FOO-125_XYZ-1')
                 } -commitish 'new-commit' -message 'Add branch rc/2022-07-28'
@@ -142,11 +142,7 @@ Describe 'git-rc' {
             Invoke-VerifyMock $mocks -Times 1
         }
 
-        It 'simplifies upstream before creating the rc' {
-            Initialize-UpstreamBranches @{
-                'integrate/FOO-125_XYZ-1' = @( 'feature/FOO-125', 'feature/XYZ-1' )
-            }
-            
+        It 'simplifies upstream before creating the rc' {            
             $mocks = @(
                 Initialize-AssertValidBranchName 'rc/2022-07-28'
                 Initialize-AssertValidBranchName 'feature/FOO-123'
@@ -155,6 +151,7 @@ Describe 'git-rc' {
                 Initialize-AssertValidBranchName 'integrate/FOO-125_XYZ-1'
                 Initialize-LocalActionAssertExistence -branches @('rc/2022-07-28') -shouldExist $false
                 Initialize-LocalActionAssertExistence -branches @('feature/FOO-123','feature/FOO-125','feature/XYZ-1','integrate/FOO-125_XYZ-1')
+                Initialize-LocalActionUpstreamsUpdated @('feature/FOO-123','integrate/FOO-125_XYZ-1') -recurse
                 Initialize-LocalActionSetUpstream @{
                     'rc/2022-07-28' = @('feature/FOO-123','integrate/FOO-125_XYZ-1')
                 } -commitish 'new-commit' -message 'Add branch rc/2022-07-28 for New RC'
@@ -181,6 +178,7 @@ Describe 'git-rc' {
                 Initialize-AssertValidBranchName 'integrate/FOO-125_XYZ-1'
                 Initialize-LocalActionAssertExistence -branches @('rc/2022-07-28') -shouldExist $false
                 Initialize-LocalActionAssertExistence -branches @('feature/FOO-123','feature/FOO-124-comment','integrate/FOO-125_XYZ-1')
+                Initialize-LocalActionUpstreamsUpdated @('feature/FOO-123','feature/FOO-124-comment','integrate/FOO-125_XYZ-1') -recurse
                 Initialize-LocalActionSetUpstream @{
                     'rc/2022-07-28' = @('feature/FOO-123','feature/FOO-124-comment','integrate/FOO-125_XYZ-1')
                 } -commitish 'new-commit' -message 'Add branch rc/2022-07-28 for new RC'

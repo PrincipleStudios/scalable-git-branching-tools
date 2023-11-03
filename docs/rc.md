@@ -4,7 +4,7 @@ Create a new branch from multiple upstream branches without changing the local b
 
 Usage:
 
-    git-rc.ps1 [-target] <string> [-upstreamBranches <string[]>] [-comment <string>] [-force] [-dryRun]
+    git-rc.ps1 [-target] <string> [-upstreamBranches <string[]>] [-comment <string>] [-force] [-dryRun] [-allowOutOfDate] [-allowNoUpstreams]
 
 ## Parameters
 
@@ -24,9 +24,17 @@ _Aliases: -m, -message_
 
 If specified, adds to the commit message on the upstream tracking branch for creating the RC branch.
 
-### `[-force]` (Optional)
+### `-force` (Optional)
 
 Forces an update of the RC branch. Use this if you are replacing the existing branch.
+
+### `-allowOutOfDate` (Optional)
+
+Allows branches that are not up-to-date with their upstreams. (This is the old behavior.)
+
+### `-allowNoUpstreams` (Optional)
+
+Allows branches that do not have any upstreams. (This is the old behavior.)
 
 ### `-dryRun` (Optional)
 

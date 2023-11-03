@@ -5,6 +5,8 @@ Param(
     [Parameter()][Alias('u')][Alias('upstream')][Alias('upstreams')][String[]] $upstreamBranches,
     [Parameter()][Alias('message')][Alias('m')][string] $comment,
     [switch] $force,
+    [switch] $allowOutOfDate,
+    [switch] $allowNoUpstreams,
     [switch] $dryRun
 )
 
@@ -15,5 +17,7 @@ Invoke-JsonScript -scriptPath "$PSScriptRoot/git-rc.json" -params @{
     branchName = $target;
     upstreamBranches = Expand-StringArray $upstreamBranches;
     force = [boolean]$force;
+    allowOutOfDate = [boolean]$allowOutOfDate;
+    allowNoUpstreams = [boolean]$allowNoUpstreams;
     comment = $comment ?? '';
 } -dryRun:$dryRun
