@@ -49,6 +49,7 @@ Describe 'git-tool-update' {
         $mockPull = Invoke-MockGit 'pull --ff-only'
         Initialize-PreserveBranchNoCleanup
         Mock -CommandName git -ParameterFilter { ($args -join ' ') -like 'config alias.*' } -MockWith { $Global:LASTEXITCODE = 0 }
+        Invoke-MockGit 'version' -MockWith 'git version 2.38.0'
 
         & $PSScriptRoot/git-tool-update.ps1
 
@@ -73,6 +74,7 @@ Describe 'git-tool-update' {
         $mockPull = Invoke-MockGit 'pull --ff-only'
         Initialize-PreserveBranchNoCleanup
         Mock -CommandName git -ParameterFilter { ($args -join ' ') -like 'config alias.*' } -MockWith { $Global:LASTEXITCODE = 0 }
+        Invoke-MockGit 'version' -MockWith 'git version 2.38.0'
 
         & $PSScriptRoot/git-tool-update.ps1 -sourceBranch feature/test
 
