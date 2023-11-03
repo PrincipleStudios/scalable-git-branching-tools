@@ -7,6 +7,7 @@ Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionFilterBranch
 Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionMergeBranches.psm1"
 Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionSetUpstream.psm1"
 Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionSimplifyUpstreamBranches.psm1"
+Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionUpstreamsUpdated.psm1"
 Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionValidateBranchNames.psm1"
 Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionAssertExistence.psm1"
 
@@ -18,6 +19,7 @@ Register-LocalActionFilterBranches $localActions
 Register-LocalActionMergeBranches $localActions
 Register-LocalActionSetUpstream $localActions
 Register-LocalActionSimplifyUpstreamBranches $localActions
+Register-LocalActionUpstreamsUpdated $localActions
 Register-LocalActionValidateBranchNames $localActions
 Register-LocalActionAssertExistence $localActions
 
