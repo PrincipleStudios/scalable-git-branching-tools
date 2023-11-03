@@ -17,6 +17,7 @@ function Invoke-VerifyMock([Object] $verifiableMock,
     [int] $Times
 ) {
     $verifiableMock | ForEach-Object {
+        if ($null -eq $_) { return }
         $info = "ModuleName = $($_.ModuleName), CommandName = $($_.commandName), ParameterFilter = $($_.parameterFilter)"
         try {
             Should -ModuleName $_.ModuleName -Invoke -CommandName $_.commandName -ParameterFilter $_.parameterFilter -Times $Times
