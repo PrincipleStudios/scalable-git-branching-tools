@@ -29,6 +29,30 @@
             }
         },
         {
+            "id": "updated-status",
+            "type": "upstreams-updated",
+            "parameters": {
+                "recurse": true,
+                "branches": ["$actions['simplify-upstream'].outputs"]
+            }
+        },
+        {
+            "type": "add-diagnostic",
+            "condition": "$actions['updated-status'].outputs['noUpstreams'].Count -gt 0",
+            "parameters": {
+                "isWarning": "$params.allowNoUpstreams ? $false : $true",
+                "message": "The following branches have no upstreams: $($actions['updated-status'].outputs['noUpstreams'])"
+            }
+        },
+        {
+            "type": "add-diagnostic",
+            "condition": "$actions['updated-status'].outputs['needsUpdate'].Keys.Count -gt 0",
+            "parameters": {
+                "isWarning": "$params.allowOutOfDate ? $false : $true",
+                "message": "The following branches are missing commits from their upstreams: $($actions['updated-status'].outputs['needsUpdate'].Keys)"
+            }
+        },
+        {
             "id": "set-upstream",
             "type": "set-upstream",
             "parameters": {
