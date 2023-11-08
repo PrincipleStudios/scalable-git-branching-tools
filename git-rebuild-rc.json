@@ -1,0 +1,104 @@
+{
+    "local": [
+        {
+            "type": "validate-branch-names",
+            "parameters": {
+                "branches": ["$params.target", "$params.with", "$params.without"]
+            }
+        },
+        {
+            "type": "assert-existence",
+            "parameters": {
+                "branches": ["$params.with"],
+                "shouldExist": true
+            }
+        },
+        {
+            "id": "get-upstream",
+            "type": "get-upstream",
+            "parameters": {
+                "target": "$params.target"
+            }
+        },
+        {
+            "id": "filtered-upstream",
+            "type": "filter-branches",
+            "parameters": {
+                "include": ["$actions['get-upstream'].outputs", "$params.with"],
+                "exclude": ["$params.without"]
+            }
+        },
+        {
+            "id": "simplify-upstream",
+            "type": "simplify-upstream",
+            "parameters": {
+                "upstreamBranches": ["$actions['filtered-upstream'].outputs"]
+            }
+        },
+        {
+            "id": "updated-status",
+            "type": "upstreams-updated",
+            "parameters": {
+                "recurse": true,
+                "branches": ["$actions['simplify-upstream'].outputs"]
+            }
+        },
+        {
+            "type": "add-diagnostic",
+            "condition": "$actions['updated-status'].outputs['noUpstreams'].Count -gt 0",
+            "parameters": {
+                "isWarning": "$params.allowNoUpstreams ? $false : $true",
+                "message": "The following branches have no upstreams:\n$(($actions['updated-status'].outputs['noUpstreams'] | ForEach-Object { \"- $_\" }) -join \"\n\")"
+            }
+        },
+        {
+            "type": "add-diagnostic",
+            "condition": "$actions['updated-status'].outputs['needsUpdate'].Keys.Count -gt 0",
+            "parameters": {
+                "isWarning": "$params.allowOutOfDate ? $false : $true",
+                "message": "The following branches are missing commits from their upstreams:\n$(($actions['updated-status'].outputs['needsUpdate'].Keys | ForEach-Object { \"- $_\" }) -join \"\n\")"
+            }
+        },
+        {
+            "id": "set-upstream",
+            "type": "set-upstream",
+            "parameters": {
+                "upstreamBranches": {
+                    "$params.target": ["$actions['simplify-upstream'].outputs"]
+                },
+                "message": "Revise branch $($params.target)$($params.comment ? \" for $($params.comment)\" : '')"
+            }
+        },
+        {
+            "id": "create-branch",
+            "type": "merge-branches",
+            "parameters": {
+                "upstreamBranches": ["$actions['simplify-upstream'].outputs"],
+                "mergeMessageTemplate": "Merge '{}' for creation of $($params.target)",
+                "errorOnFailure": true
+            }
+        }
+    ],
+    "finalize": [
+        {
+            "type": "set-branches",
+            "parameters": {
+                "force": true,
+                "branches": {
+                    "$config.upstreamBranch": "$actions['set-upstream'].outputs['commit']",
+                    "$params.target": "$actions['create-branch'].outputs['commit']"
+                }
+            }
+        },
+        {
+            "type": "track",
+            "parameters": {
+                "branches": ["$params.target"],
+                "createIfNotTracked": true
+            }
+        }
+    ],
+    "output": [
+        "Recreated branch '$($params.target)'"
+    ]
+}

@@ -29,6 +29,9 @@ git config alias.rc "!$dir/git-rc.ps1"
 # Build a release candidate from other branches using interactive prompts
 git config alias.rci "!$dir/git-rci.ps1"
 
+# Rebuild a branch from its upstreams
+git config alias.rebuild-rc "!$dir/git-rebuild-rc.ps1"
+
 # Verify that a branch has all of its upstream up-to-date
 git config alias.verify-updated "!$dir/git-verify-updated.ps1"
 
