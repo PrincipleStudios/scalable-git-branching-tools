@@ -48,7 +48,9 @@ function Invoke-ProcessLogs {
                 Write-Host "Working on '$($processDescription)'..."
             }
         }
+        Write-Host '1'
         $job = Start-ThreadJob $reportProgress -StreamingHost $Host -ArgumentList @($state, $processDescription, $beginThreshold)
+        Write-Host '2'
     } else {
         $job = $null
     }
@@ -61,9 +63,13 @@ function Invoke-ProcessLogs {
         $global:ErrorActionPreference = $tempErrorActionPreference
         $state.isRunning = $false
         $timer.Stop()
+        Write-Host '3'
         if ($null -ne $job -AND $job.jobstateinfo.state -ne 'Completed') {
+            Write-Host '4'
             Stop-Job $job *>$null
+            Write-Host '5'
             Remove-Job $job -Force
+            Write-Host '6'
         }
         if ($state.hasOutput) {
             Write-Host "End '$processDescription'. ($([math]::Round($timer.Elapsed.TotalSeconds, 1))s)"

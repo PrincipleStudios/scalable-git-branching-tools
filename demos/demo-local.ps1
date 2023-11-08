@@ -11,8 +11,12 @@ function ThrowOnNativeFalure {
 ln -s origin local
 cd local
 
-git new feature/PS-1
-ThrowOnNativeFalure
+for ($i = 0; $i -lt 100; $i++) {
+    git checkout main
+    git branch -D feature/PS-1
+    git new feature/PS-1
+    ThrowOnNativeFalure
+}
 
 if ((git rev-parse main) -ne (git rev-parse HEAD)) {
     throw 'HEAD does not point to the same commit as main';
