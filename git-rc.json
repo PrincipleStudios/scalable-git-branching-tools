@@ -41,7 +41,7 @@
             "condition": "$actions['updated-status'].outputs['noUpstreams'].Count -gt 0",
             "parameters": {
                 "isWarning": "$params.allowNoUpstreams ? $false : $true",
-                "message": "The following branches have no upstreams: $($actions['updated-status'].outputs['noUpstreams'])"
+                "message": "The following branches have no upstreams:\n$(($actions['updated-status'].outputs['noUpstreams'] | ForEach-Object { \"- $_\" }) -join \"\n\")"
             }
         },
         {
@@ -49,7 +49,7 @@
             "condition": "$actions['updated-status'].outputs['needsUpdate'].Keys.Count -gt 0",
             "parameters": {
                 "isWarning": "$params.allowOutOfDate ? $false : $true",
-                "message": "The following branches are missing commits from their upstreams: $($actions['updated-status'].outputs['needsUpdate'].Keys)"
+                "message": "The following branches are missing commits from their upstreams:\n$(($actions['updated-status'].outputs['needsUpdate'].Keys | ForEach-Object { \"- $_\" }) -join \"\n\")"
             }
         },
         {
