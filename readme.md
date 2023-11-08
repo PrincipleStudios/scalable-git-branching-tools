@@ -38,6 +38,8 @@ Alternatively, if you already have the .NET Core SDK installed, you can install 
 
 [`git rc`](./docs/rc.md)
 
+[`git rebuild-rc`](./docs/rebuild-rc.md)
+
 [`git verify-updated`](./docs/verify-updated.md)
 
 [`git release`](./docs/release.md)

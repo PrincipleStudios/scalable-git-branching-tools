@@ -3,29 +3,36 @@
         {
             "type": "validate-branch-names",
             "parameters": {
-                "branches": ["$params.branchName", "$params.upstreamBranches"]
-            }
-        },
-        {
-            "type": "assert-existence",
-            "condition": "$params.force ? $false : $true",
-            "parameters": {
-                "branches": ["$params.branchName"],
-                "shouldExist": false
+                "branches": ["$params.target", "$params.with", "$params.without"]
             }
         },
         {
             "type": "assert-existence",
             "parameters": {
-                "branches": ["$params.upstreamBranches"],
+                "branches": ["$params.with"],
                 "shouldExist": true
+            }
+        },
+        {
+            "id": "get-upstream",
+            "type": "get-upstream",
+            "parameters": {
+                "target": "$params.target"
+            }
+        },
+        {
+            "id": "filtered-upstream",
+            "type": "filter-branches",
+            "parameters": {
+                "include": ["$actions['get-upstream'].outputs", "$params.with"],
+                "exclude": ["$params.without"]
             }
         },
         {
             "id": "simplify-upstream",
             "type": "simplify-upstream",
             "parameters": {
-                "upstreamBranches": ["$params.upstreamBranches"]
+                "upstreamBranches": ["$actions['filtered-upstream'].outputs"]
             }
         },
         {
@@ -57,9 +64,9 @@
             "type": "set-upstream",
             "parameters": {
                 "upstreamBranches": {
-                    "$params.branchName": ["$actions['simplify-upstream'].outputs"]
+                    "$params.target": ["$actions['simplify-upstream'].outputs"]
                 },
-                "message": "Add branch $($params.branchName)$($params.comment ? \" for $($params.comment)\" : '')"
+                "message": "Revise branch $($params.target)$($params.comment ? \" for $($params.comment)\" : '')"
             }
         },
         {
@@ -67,7 +74,7 @@
             "type": "merge-branches",
             "parameters": {
                 "upstreamBranches": ["$actions['simplify-upstream'].outputs"],
-                "mergeMessageTemplate": "Merge '{}' for creation of $($params.branchName)",
+                "mergeMessageTemplate": "Merge '{}' for creation of $($params.target)",
                 "errorOnFailure": true
             }
         }
@@ -76,22 +83,22 @@
         {
             "type": "set-branches",
             "parameters": {
-                "force": "$params.force",
+                "force": true,
                 "branches": {
                     "$config.upstreamBranch": "$actions['set-upstream'].outputs['commit']",
-                    "$params.branchName": "$actions['create-branch'].outputs['commit']"
+                    "$params.target": "$actions['create-branch'].outputs['commit']"
                 }
             }
         },
         {
             "type": "track",
             "parameters": {
-                "branches": ["$params.branchName"],
+                "branches": ["$params.target"],
                 "createIfNotTracked": true
             }
         }
     ],
     "output": [
-        "Created branch '$($params.branchName)'"
+        "Recreated branch '$($params.target)'"
     ]
 }
