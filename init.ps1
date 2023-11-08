@@ -39,7 +39,7 @@ git config alias.verify-updated "!$dir/git-verify-updated.ps1"
 git config alias.release "!$dir/git-release.ps1"
 
 # Get the git version and warn about older versions
-[double]$ver = ((((git version) -split ' ') | Select-Object -Last 1) -split '\.',3 | Select-Object -First 2) -join '.'
-if ($ver -lt 2.38) {
-    throw 'Git version installed should be at least 2.38; unexpected issues may occur. Please update git.'
+[double]$ver = ((((git version) -split ' ')[2]) -split '\.',3 | Select-Object -First 2) -join '.'
+if ($ver -lt 2.41) {
+    throw 'Git version installed should be at least 2.41; unexpected issues may occur. Please update git.'
 }

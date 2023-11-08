@@ -49,7 +49,7 @@ Describe 'git-tool-update' {
         $mockPull = Invoke-MockGit 'pull --ff-only'
         Initialize-PreserveBranchNoCleanup
         Mock -CommandName git -ParameterFilter { ($args -join ' ') -like 'config alias.*' } -MockWith { $Global:LASTEXITCODE = 0 }
-        Invoke-MockGit 'version' -MockWith 'git version 2.38.0'
+        Invoke-MockGit 'version' -MockWith 'git version 2.41.0'
 
         & $PSScriptRoot/git-tool-update.ps1
 
@@ -74,12 +74,28 @@ Describe 'git-tool-update' {
         $mockPull = Invoke-MockGit 'pull --ff-only'
         Initialize-PreserveBranchNoCleanup
         Mock -CommandName git -ParameterFilter { ($args -join ' ') -like 'config alias.*' } -MockWith { $Global:LASTEXITCODE = 0 }
-        Invoke-MockGit 'version' -MockWith 'git version 2.38.0'
+        Invoke-MockGit 'version' -MockWith 'git version 2.41.0'
 
         & $PSScriptRoot/git-tool-update.ps1 -sourceBranch feature/test
 
         Invoke-VerifyMock $verifyMigrations -Times 1
         Invoke-VerifyMock $mockCheckout -Times 1
+        Invoke-VerifyMock $mockPull -Times 1
+    }
+    
+
+    It 'allows running the script for mac' {
+        Initialize-CleanWorkingDirectory
+        Initialize-CurrentBranch 'main'
+        $verifyMigrations = Initialize-RunNoMigrations 'old-commit'
+        $mockPull = Invoke-MockGit 'pull --ff-only'
+        Initialize-PreserveBranchNoCleanup
+        Mock -CommandName git -ParameterFilter { ($args -join ' ') -like 'config alias.*' } -MockWith { $Global:LASTEXITCODE = 0 }
+        Invoke-MockGit 'version' -MockWith 'git version 2.41.0 (Apple Git-143)'
+
+        & $PSScriptRoot/git-tool-update.ps1
+
+        Invoke-VerifyMock $verifyMigrations -Times 1
         Invoke-VerifyMock $mockPull -Times 1
     }
 }
