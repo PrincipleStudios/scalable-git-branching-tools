@@ -1,0 +1,18 @@
+name: Verify powershell scripts all have the correct permission
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+
+jobs:
+  test-pester:
+    runs-on: 'ubuntu-latest'
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Check git HEAD to make sure all root powershell scripts have execute permissions
+      shell: pwsh
+      run: |
+        exit (git ls-tree HEAD 
+          | Where-Object { $_.EndsWith('.ps1') -and $_.StartsWith('100644') }
+          | ForEach-Object { $_.Split("`t")[1] }
+        ).Length
