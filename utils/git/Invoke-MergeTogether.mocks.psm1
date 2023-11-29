@@ -53,9 +53,9 @@ function Initialize-MergeTogether(
     if ($null -ne $initialSuccessfulBranch) {
         $lastBranch = ($allBranches | Where-Object { $successfulBranches -contains $_ } | Select-Object -Last 1)
         $resultCommitishes = $successfulBranches | Where-Object { $successfulBranches -contains $_ } | ConvertTo-HashMap -getValue { "$_-result-commitish" }
-        if ($lastBranch -eq $initialSuccessfulBranch) {
-            $resultCommitishes[$lastBranch] = $resultCommitish
-        }
+        # if ($lastBranch -eq $initialSuccessfulBranch) {
+        $resultCommitishes[$lastBranch] = $resultCommitish
+        # }
         $commitish[$initialSuccessfulBranch] = $resultCommitishes[$initialSuccessfulBranch]
         if ($null -eq $resultCommitish) {
             throw 'Invalid Initialize-MergeTogether; -resultCommitish must be provided if any branches are successful'
@@ -78,7 +78,7 @@ function Initialize-MergeTogether(
             $treeish = "$current-tree"
             $message = $messageTemplate.Replace('{}', $current)
             Initialize-MergeTree $currentCommit $commitish[$current] $treeish
-            Invoke-MockGit "commit-tree $treeish -p $currentCommit -p $($commitish[$current]) -m interim merge" -MockWith "$($resultCommitishes[$current])"
+            Invoke-MockGit "commit-tree $treeish -p $currentCommit -p $($commitish[$current]) -m $message" -MockWith "$($resultCommitishes[$current])"
             $currentCommit = $resultCommitishes[$current]
 
             foreach ($failedBranch in $failed) {
@@ -100,12 +100,12 @@ function Initialize-MergeTogether(
         }
     }
 
-    if ($successfulBranches.Count -gt 1) {
-        $message = $messageTemplate.Replace('{}', ($successfulBranches | Where-Object { $_ -ne $source }) -join ', ')
-        $parents = $allBranches | Where-Object { $successfulBranches -contains $_ } | ForEach-Object { @("-p", $commitish[$_]) }
-        $treeish = "$lastBranch-tree"
-        Invoke-MockGit "commit-tree $treeish -m $message $parents" -MockWith "$($resultCommitish)"
-    }
+    # if ($successfulBranches.Count -gt 1) {
+    #     $message = $messageTemplate.Replace('{}', ($successfulBranches | Where-Object { $_ -ne $source }) -join ', ')
+    #     $parents = $allBranches | Where-Object { $successfulBranches -contains $_ } | ForEach-Object { @("-p", $commitish[$_]) }
+    #     $treeish = "$lastBranch-tree"
+    #     Invoke-MockGit "commit-tree $treeish -m $message $parents" -MockWith "$($resultCommitish)"
+    # }
 }
 
 Export-ModuleMember -Function Initialize-MergeTogetherAllFailed, Initialize-MergeTogether

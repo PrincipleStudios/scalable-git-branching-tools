@@ -88,9 +88,9 @@ function Invoke-MergeTogether(
 
                     # Successful merge
                     $commitMessage = $messageTemplate.Replace('{}', $target)
-                    $resultCommit = Invoke-ProcessLogs "git commit-tree $nextTree -p $currentCommit -p $targetCommit -m 'interim merge'" {
+                    $resultCommit = Invoke-ProcessLogs "git commit-tree $nextTree -p $currentCommit -p $targetCommit -m $commitMessage" {
                         # Order and message is different here from below so that the mocks can give different results
-                        git commit-tree $nextTree -p $currentCommit -p $targetCommit -m 'interim merge'
+                        git commit-tree $nextTree -p $currentCommit -p $targetCommit -m $commitMessage
                     } -allowSuccessOutput
                     if ($global:LASTEXITCODE -ne 0) { continue }
 
@@ -119,11 +119,11 @@ function Invoke-MergeTogether(
     $hasChanges = $false
     if ($parentCommits.Count -gt 1) {
         $hasChanges = $true
-        $commitMessage = $messageTemplate.Replace('{}', $successful -join ', ')
-        $parents = $parentCommits | ForEach-Object { @("-p", $_) }
-        $currentCommit = Invoke-ProcessLogs "git commit-tree $nextTree -m $commitMessage $parents" {
-            git commit-tree $nextTree -m $commitMessage @parents
-        } -allowSuccessOutput
+        # $commitMessage = $messageTemplate.Replace('{}', $successful -join ', ')
+        # $parents = $parentCommits | ForEach-Object { @("-p", $_) }
+        # $currentCommit = Invoke-ProcessLogs "git commit-tree $nextTree -m $commitMessage $parents" {
+        #     git commit-tree $nextTree -m $commitMessage @parents
+        # } -allowSuccessOutput
     }
 
     return @{
