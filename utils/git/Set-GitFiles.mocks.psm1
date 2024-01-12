@@ -6,16 +6,17 @@ Import-Module -Scope Local "$PSScriptRoot/../query-state.mocks.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../testing.psm1"
 
 function Initialize-SetGitFiles(
-    [Parameter()][AllowNull()][PSObject]$files,
-    [Parameter()][Alias('m')][Alias('message')][AllowNull()][String]$commitMessage,
-    [Parameter()][Alias('branchName')][Alias('commitish')][AllowNull()][String]$initialCommitish
+    [Parameter(Mandatory)][AllowNull()][PSObject]$files,
+    [Parameter(Mandatory)][Alias('m')][Alias('message')][AllowNull()][String]$commitMessage,
+    [Parameter(Mandatory)][Alias('branchName')][Alias('commitish')][AllowNull()][String]$initialCommitish,
+    [Parameter(Mandatory)][Alias('result')][AllowNull()][String]$resultCommitish
 ) {
     Invoke-MockGitModule -ModuleName Set-GitFiles "rev-parse --verify $initialCommitish -q" { $global:LASTEXITCODE = 128 }
     Invoke-MockGitModule -ModuleName Set-GitFiles "rev-parse --verify $initialCommitish^{tree} -q" { $global:LASTEXITCODE = 128 }
     
     $treeHash = Initialize-SetGitFilesTree (ConvertTo-FileTree $files) $null $null
 
-    Invoke-MockGitModule -ModuleName Set-GitFiles "commit-tree $treeHash -m $commitMessage"
+    Invoke-MockGitModule -ModuleName Set-GitFiles "commit-tree $treeHash -m $commitMessage" $resultCommitish
 }
 
 function ConvertTo-FileTree([Parameter(Position=1, Mandatory)][PSObject]$files) {
