@@ -10,7 +10,7 @@ function Set-GitFiles(
     # Verify that folders/files do not conflict
     $files.Keys | ForEach-Object {
         $parts = $_.split('/')
-        if ($files[$_] -ne $nil -AND $files[$_] -isnot [string]) {
+        if ($null -ne $files[$_] -AND $files[$_] -isnot [string]) {
             throw "File $_ must have string contents"
         }
         if ($_ -match '/') {
@@ -25,17 +25,23 @@ function Set-GitFiles(
 
     $treeSuffix = '^{tree}'
 
-    $parentCommit = git rev-parse --verify $initialCommitish -q 2> $nil
-    $oldTree = git rev-parse --verify ($initialCommitish + $treeSuffix) -q 2> $nil
+    $parentCommit = git rev-parse --verify $initialCommitish -q 2> $null
+    $oldTree = git rev-parse --verify ($initialCommitish + $treeSuffix) -q 2> $null
 
     $newTree = Update-Tree (ConvertTo-Alterations $files) $oldTree
 
-    if ($newTree -eq $nil) {
+    if ($null -eq $newTree) {
         $newTree = Invoke-WriteTree @()
     }
 
-    $parentSwitch = $parentCommit -eq $nil ? @() : @('-p', $parentCommit)
+    $parentSwitch = $null -eq $parentCommit ? @() : @('-p', $parentCommit)
     $newCommitHash = git commit-tree $newTree -m $commitMessage @parentSwitch
+    if ($Global:LASTEXITCODE -ne 0) {
+        throw "git-commit-tree exited with non-zero exit code: $($Global:LASTEXITCODE)"
+    } elseif ($null -eq $newCommitHash -OR -not $newCommitHash -is [string]) {
+        # If it returned multiple lines, would not be a string
+        throw "Invalid hash returned from git-commit-tree: '$newCommitHash'"
+    }
 
     return $newCommitHash
 }
@@ -43,7 +49,7 @@ function Set-GitFiles(
 function ConvertTo-Alterations([Parameter(Position=1, Mandatory)][PSObject]$files) {
     $grouped = $files.Keys | Group-Object -Property { $_ -match '/' ? $_.Split('/')[0] : $_ } -AsHashTable
     $result = $grouped.Keys | ConvertTo-HashMap -getValue {
-        if ($files[$_] -ne $nil) { return $files[$_] }
+        if ($null -ne $files[$_]) { return $files[$_] }
         $grouped[$_] | ConvertTo-HashMap `
             -getKey { ($_.Split('/') | Select-Object -Skip 1) -join '/' } `
             -getValue { $files[$_] }
@@ -52,11 +58,11 @@ function ConvertTo-Alterations([Parameter(Position=1, Mandatory)][PSObject]$file
 }
 
 function Update-Tree($alterations, $treeHash) {
-    $treeEntries = $treeHash -eq $nil ? @() : (git ls-tree $treeHash 2> $nil)
+    $treeEntries = $null -eq $treeHash ? @() : (git ls-tree $treeHash 2> $null)
 
     $treeEntriesByName = $treeEntries | ConvertTo-HashMap { $_.Split("`t")[1] }
 
-    if ($alterations -eq $nil) { return $treeHash }
+    if ($null -eq $alterations) { return $treeHash }
 
     $alterations.Keys | ForEach-Object {
         if ($alterations[$_] -is [String]) {
@@ -64,24 +70,24 @@ function Update-Tree($alterations, $treeHash) {
             $fileSha = Invoke-WriteBlob ([Text.Encoding]::UTF8.GetBytes($alterations[$_]))
             $treeEntriesByName[$_] = "100644 blob $fileSha`t$_"
         } else {
-            if ($treeEntriesByName[$_] -ne $nil) {
+            if ($null -ne $treeEntriesByName[$_]) {
                 # existing file
                 $parts = $treeEntriesByName[$_].Split("`t")[0].Split(' ')
                 if ($parts[1] -eq 'tree') {
                     $oldTreeSha = $parts[2]
                 } else {
                     # it was not a tree, so we ignore it
-                    $oldTreeSha = $nil
+                    $oldTreeSha = $null
                 }
             } else {
-                $oldTreeSha = $nil
+                $oldTreeSha = $null
             }
             $newTreeSha = Update-Tree $alterations[$_] $oldTreeSha
-            $treeEntriesByName[$_] = $newTreeSha -ne $nil ? "040000 tree $newTreeSha`t$_" : $nil
+            $treeEntriesByName[$_] = $null -ne $newTreeSha ? "040000 tree $newTreeSha`t$_" : $null
         }
     }
-    $entries = [String[]]($treeEntriesByName.Values | Where-Object { $_ -ne $nil })
-    if ($entries.Length -eq 0) { return $nil }
+    $entries = [String[]]($treeEntriesByName.Values | Where-Object { $_ -ne $null })
+    if ($entries.Length -eq 0) { return $null }
     $result = Invoke-WriteTree $entries
     return $result
 }

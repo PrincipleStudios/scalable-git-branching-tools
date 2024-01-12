@@ -35,7 +35,10 @@ Describe 'Set-GitFiles' {
             Mock -CommandName Invoke-WriteTree -ModuleName 'Set-GitFiles' -ParameterFilter {
                 $treeEntries -contains "100644 blob some-hash`tfoo"
             } { return 'root-TREE' }
-            Mock git -ModuleName 'Set-GitFiles' -ParameterFilter { ($args -join ' ') -eq 'commit-tree root-TREE -m Test' } { 'new-commit-hash' }
+            Mock git -ModuleName 'Set-GitFiles' -ParameterFilter { ($args -join ' ') -eq 'commit-tree root-TREE -m Test' } {
+                $global:LASTEXITCODE = 0
+                'new-commit-hash'
+            }
 
             Set-GitFiles @{ 'foo' = 'something' } -m 'Test' -branchName 'origin/target'
         }
@@ -47,25 +50,30 @@ Describe 'Set-GitFiles' {
             Mock -CommandName Invoke-WriteTree -ModuleName 'Set-GitFiles' -ParameterFilter {
                 $treeEntries -contains "040000 tree foo-TREE`tfoo"
             } { return 'root-TREE' }
-            Mock git -ModuleName 'Set-GitFiles' -ParameterFilter { ($args -join ' ') -eq 'commit-tree root-TREE -m Test' } { 'new-commit-hash' }
+            Mock git -ModuleName 'Set-GitFiles' -ParameterFilter { ($args -join ' ') -eq 'commit-tree root-TREE -m Test' } {
+                $global:LASTEXITCODE = 0
+                'new-commit-hash'
+            }
 
             Set-GitFiles @{ 'foo/bar' = 'something' } -m 'Test' -branchName 'origin/target'
         }
 
         It 'adds mocks to verify' {
-            $mocks = Initialize-SetGitFiles -files @{ 'foo/bar' = 'something' } -m 'Test' -commitish 'origin/target'
-            Set-GitFiles @{ 'foo/bar' = 'something' } -m 'Test' -branchName 'origin/target'
+            $mocks = Initialize-SetGitFiles -files @{ 'foo/bar' = 'something' } -m 'Test' -commitish 'origin/target' -result 'result-commitish'
+            $result = Set-GitFiles @{ 'foo/bar' = 'something' } -m 'Test' -branchName 'origin/target'
+            $result | Should -Be 'result-commitish'
             Invoke-VerifyMock $mocks -Times 1
         }
 
         It 'fails if not mocked' {
-            Initialize-SetGitFiles -files @{ 'foo/bar' = 'something' } -m 'Test' -commitish 'origin/target'
+            Initialize-SetGitFiles -files @{ 'foo/bar' = 'something' } -m 'Test' -commitish 'origin/target' -result 'no-match'
             { Set-GitFiles @{ 'foo/bar' = 'something'; 'foo/baz' = 'something else' } -m 'Test' -branchName 'origin/target' } | Should -Throw
         }
 
         It 'adds mocks to verify multiple files' {
-            $mocks = Initialize-SetGitFiles -files @{ 'foo/bar' = 'something'; 'foo/baz' = 'something else' } -m 'Test' -commitish 'origin/target'
-            Set-GitFiles @{ 'foo/bar' = 'something'; 'foo/baz' = 'something else' } -m 'Test' -branchName 'origin/target'
+            $mocks = Initialize-SetGitFiles -files @{ 'foo/bar' = 'something'; 'foo/baz' = 'something else' } -m 'Test' -commitish 'origin/target' -result 'result-commitish'
+            $result = Set-GitFiles @{ 'foo/bar' = 'something'; 'foo/baz' = 'something else' } -m 'Test' -branchName 'origin/target'
+            $result | Should -Be 'result-commitish'
             Invoke-VerifyMock $mocks -Times 1
         }
     }
@@ -85,7 +93,10 @@ Describe 'Set-GitFiles' {
                 $treeEntries -contains "040000 tree foo-TREE`tfoo" `
                 -AND $treeEntries -contains "100644 blob existing-hash`texisting"
             } { return 'root-TREE' }
-            Mock git -ModuleName 'Set-GitFiles' -ParameterFilter { ($args -join ' ') -eq 'commit-tree root-TREE -m Test -p prev-commit-hash' } { 'new-commit-hash' }
+            Mock git -ModuleName 'Set-GitFiles' -ParameterFilter { ($args -join ' ') -eq 'commit-tree root-TREE -m Test -p prev-commit-hash' } {
+                $global:LASTEXITCODE = 0
+                'new-commit-hash'
+            }
 
             Set-GitFiles @{ 'foo/bar' = 'something' } -m 'Test' -branchName 'origin/target'
         }
@@ -105,7 +116,10 @@ Describe 'Set-GitFiles' {
                 $treeEntries -contains "040000 tree foo-TREE`tfoo" `
                     -AND $treeEntries.length -eq 1
             } { return 'root-TREE' }
-            Mock git -ModuleName 'Set-GitFiles' -ParameterFilter { ($args -join ' ') -eq 'commit-tree root-TREE -m Test -p prev-commit-hash' } { 'new-commit-hash' }
+            Mock git -ModuleName 'Set-GitFiles' -ParameterFilter { ($args -join ' ') -eq 'commit-tree root-TREE -m Test -p prev-commit-hash' } {
+                $global:LASTEXITCODE = 0
+                'new-commit-hash'
+            }
 
             Set-GitFiles @{ 'foo/baz' = 'something new' } -m 'Test' -branchName 'origin/target'
         }
@@ -120,7 +134,10 @@ Describe 'Set-GitFiles' {
             Mock -CommandName Invoke-WriteTree -ModuleName 'Set-GitFiles' -ParameterFilter {
                 $treeEntries.length -eq 0
             } { return 'root-TREE' }
-            Mock git -ModuleName 'Set-GitFiles' -ParameterFilter { ($args -join ' ') -eq 'commit-tree root-TREE -m Test -p prev-commit-hash' } { 'new-commit-hash' }
+            Mock git -ModuleName 'Set-GitFiles' -ParameterFilter { ($args -join ' ') -eq 'commit-tree root-TREE -m Test -p prev-commit-hash' } {
+                $global:LASTEXITCODE = 0
+                'new-commit-hash'
+            }
 
             Set-GitFiles @{ 'foo/baz' = $nil } -m 'Test' -branchName 'origin/target'
         }
