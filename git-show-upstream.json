@@ -1,0 +1,15 @@
+{
+    "local": [
+        {
+            "id": "get-upstream",
+            "type": "get-upstream",
+            "parameters": {
+                "recurse": "$params.recurse",
+                "includeRemote": "$params.includeRemote",
+                "target": "$params.target"
+            }
+        }
+    ],
+    "finalize": [],
+    "output": "$actions['get-upstream'].outputs"
+}

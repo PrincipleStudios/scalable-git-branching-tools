@@ -33,9 +33,10 @@ function Invoke-ProcessLogs {
         [Parameter(Mandatory)][string]$processDescription,
         [Parameter(Mandatory)][scriptblock]$process,
         [Switch] $allowSuccessOutput,
+        [Switch] $quiet,
         [Parameter()] $beginThreshold = 0.5
     )
-    $state = @{ isRunning = $true; hasOutput = $false }
+    $state = @{ isRunning = $true; hasOutput = $false; quiet = $quiet }
     $quiet = Get-IsQuiet
     $timer = [Diagnostics.Stopwatch]::StartNew()
     if (-not $quiet) {
@@ -43,7 +44,7 @@ function Invoke-ProcessLogs {
             param ($state, $processDescription, $beginThreshold)
 
             Start-Sleep -Seconds $beginThreshold
-            if ($state.isRunning) {
+            if ($state.isRunning -AND -not $state.quiet) {
                 $state.hasOutput = $true
                 Write-Host "Working on '$($processDescription)'..."
             }
