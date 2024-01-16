@@ -3,14 +3,15 @@ Import-Module -Scope Local "$PSScriptRoot/../framework.psm1"
 
 function Update-GitRemote(
     [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics,
-    [switch] $prune
+    [switch] $prune,
+    [switch] $quiet
 ) {
     $config = Get-Configuration
     if ($config.remote -eq $nil) { return }
     $pruneArgs = $prune ? @('--prune') : @()
     Invoke-ProcessLogs "git fetch $($config.remote)" {
         git fetch $config.remote -q @pruneArgs
-    }
+    } -quiet:$quiet
 
     if ($LASTEXITCODE -ne 0) {
         Add-ErrorDiagnostic $diagnostics "Unable to update remote '$($config.remote)'"

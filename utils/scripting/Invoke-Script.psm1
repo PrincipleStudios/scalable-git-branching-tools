@@ -41,33 +41,35 @@ function Invoke-Script(
 
         Assert-Diagnostics $diagnostics
         
-        $allFinalize = ConvertFrom-ParameterizedAnything -script $script.finalize -config $config -params $params -actions $actions -diagnostics $diagnostics
-        if ($allFinalize.fail) {
-            Add-ErrorDiagnostic $diagnostics "Could not apply parameters for finalize actions; see above errors."
-            Assert-Diagnostics $diagnostics
-        }
-
-        $allFinalizeScripts = $allFinalize.result
-        if ($dryRun) {
-            Write-Host -ForegroundColor Yellow "Executing dry run; would run the following commands:"
-        }
-
-        for ($i = 0; $i -lt $allFinalizeScripts.Count; $i++) {
-            $name = $allFinalizeScripts[$i].id ?? "#$($i + 1) (1-based)";
-            $finalize = $allFinalizeScripts[$i]
-            try {
-                $outputs = Invoke-FinalizeAction $finalize -diagnostics $diagnostics -dryRun:$dryRun
-                if ($dryRun) {
-                    $outputs | Write-Host
-                }
-                if ($null -ne $finalize.id) {
-                    $actions += @{ $finalize.id = @{ outputs = $outputs } }
-                }
-            } catch {
-                Add-ErrorDiagnostic $diagnostics "Encountered error while running finalize action $($name): see the following error."
-                Add-ErrorException $diagnostics $_
+        if ($script.finalize) {
+            $allFinalize = ConvertFrom-ParameterizedAnything -script $script.finalize -config $config -params $params -actions $actions -diagnostics $diagnostics
+            if ($allFinalize.fail) {
+                Add-ErrorDiagnostic $diagnostics "Could not apply parameters for finalize actions; see above errors."
+                Assert-Diagnostics $diagnostics
             }
-            Assert-Diagnostics $diagnostics
+
+            $allFinalizeScripts = $allFinalize.result
+            if ($dryRun) {
+                Write-Host -ForegroundColor Yellow "Executing dry run; would run the following commands:"
+            }
+
+            for ($i = 0; $i -lt $allFinalizeScripts.Count; $i++) {
+                $name = $allFinalizeScripts[$i].id ?? "#$($i + 1) (1-based)";
+                $finalize = $allFinalizeScripts[$i]
+                try {
+                    $outputs = Invoke-FinalizeAction $finalize -diagnostics $diagnostics -dryRun:$dryRun
+                    if ($dryRun) {
+                        $outputs | Write-Host
+                    }
+                    if ($null -ne $finalize.id) {
+                        $actions += @{ $finalize.id = @{ outputs = $outputs } }
+                    }
+                } catch {
+                    Add-ErrorDiagnostic $diagnostics "Encountered error while running finalize action $($name): see the following error."
+                    Add-ErrorException $diagnostics $_
+                }
+                Assert-Diagnostics $diagnostics
+            }
         }
         
         if ($null -ne $script.output -AND -not $dryRun) {

@@ -11,7 +11,7 @@ Describe 'git-show-upstream' {
         Initialize-ToolConfiguration
         Initialize-UpstreamBranches @{ 'feature/FOO-123' = @("main", "infra/add-services") }
 
-        $result = & ./git-show-upstream.ps1 -target 'feature/FOO-123'
+        $result = & ./git-show-upstream.ps1 -noFetch -includeRemote -target 'feature/FOO-123'
         $result | Should -Be @('origin/main', 'origin/infra/add-services')
     }
 
@@ -21,7 +21,7 @@ Describe 'git-show-upstream' {
 
         Initialize-UpstreamBranches @{ 'feature/FOO-123' = @("main", "infra/add-services") }
 
-        $result = & ./git-show-upstream.ps1
+        $result = & ./git-show-upstream.ps1 -noFetch -includeRemote
         $result | Should -Be @('origin/main', 'origin/infra/add-services')
     }
 
@@ -35,7 +35,9 @@ Describe 'git-show-upstream' {
             'infra/build-infrastructure' = $()
         }
 
-        $result = & ./git-show-upstream.ps1 -recurse
+        $result = & ./git-show-upstream.ps1 -noFetch -includeRemote -recurse
         $result | Should -Be @('origin/main', 'origin/infra/add-services', 'origin/infra/build-infrastructure')
     }
+
+    # TODO - improve tests, but shows that the old behavior can still be invoked
 }

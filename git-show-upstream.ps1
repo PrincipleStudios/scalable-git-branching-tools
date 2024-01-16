@@ -2,19 +2,18 @@
 
 Param(
     [Parameter()][String] $target,
-    [switch] $recurse
+    [switch] $recurse,
+    [switch] $includeRemote,
+    [switch] $noFetch,
+    [switch] $quiet
 )
 
+Import-Module -Scope Local "$PSScriptRoot/utils/input.psm1"
+Import-Module -Scope Local "$PSScriptRoot/utils/scripting.psm1"
 Import-Module -Scope Local "$PSScriptRoot/utils/query-state.psm1"
-. $PSScriptRoot/config/core/coalesce.ps1
 
-$target = ($target -eq $nil -OR $target -eq '') ? (Get-CurrentBranch) : $target
-if ($target -eq $nil) {
-    throw 'Must specify a branch'
-}
-
-$parentBranches = [String[]]($recurse `
-    ? (Select-UpstreamBranches $target -includeRemote -recurse) `
-    : (Select-UpstreamBranches $target -includeRemote))
-
-$parentBranches
+Invoke-JsonScript -scriptPath "$PSScriptRoot/git-show-upstream.json" -params @{
+    target = ($target ? $target : (Get-CurrentBranch ?? ''));
+    recurse = $recurse;
+    includeRemote = $includeRemote;
+} -dryRun:$dryRun -noFetch:$noFetch -quiet:$quiet

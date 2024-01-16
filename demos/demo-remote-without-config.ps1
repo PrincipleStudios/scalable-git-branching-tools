@@ -25,7 +25,7 @@ if ((git branch --show-current) -ne 'feature/PS-1') {
 }
 
 $upstreamOfNewFeature = [string[]](git show-upstream)
-if ($upstreamOfNewFeature -notcontains 'origin/main') {
+if ($upstreamOfNewFeature -notcontains 'main') {
     throw "Expected main to be upstream of the current branch; found: $(ConvertTo-Json $upstreamOfNewFeature)"
 }
 
