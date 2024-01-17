@@ -33,14 +33,9 @@ function Invoke-Script(
                 Add-ErrorDiagnostic $diagnostics "$(ConvertTo-Json $local.result -Depth 10)"
                 Add-ErrorException $diagnostics $_
             }
-            if (Get-HasErrorDiagnostic $diagnostics) {
-                # Don't bother continuing if anything failed; this leads to lots of noise in failed applied parameters
-                break
-            }
+            Assert-Diagnostics $diagnostics
         }
 
-        Assert-Diagnostics $diagnostics
-        
         if ($script.finalize) {
             $allFinalize = ConvertFrom-ParameterizedAnything -script $script.finalize -config $config -params $params -actions $actions -diagnostics $diagnostics
             if ($allFinalize.fail) {
