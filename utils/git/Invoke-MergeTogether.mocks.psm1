@@ -35,7 +35,9 @@ function Initialize-MergeTogetherAllFailed(
 function Initialize-MergeTogether(
     [AllowEmptyCollection()][string[]] $allBranches,
     [AllowEmptyCollection()][string[]] $successfulBranches,
+    [AllowEmptyCollection()][string[]] $noChangeBranches,
     [AllowNull()][string] $source = $null,
+    [Hashtable] $initialCommits = @{},
     [string] $messageTemplate = "Merge {}",
     [string] $resultCommitish
 ) {
@@ -47,16 +49,25 @@ function Initialize-MergeTogether(
     if ($null -ne $source -AND '' -ne $source -AND $successfulBranches -notcontains $source) {
         $successfulBranches = @($source) + ($successfulBranches | Where-Object { $_ })
     }
-    $initialSuccessfulBranch = ($allBranches | Where-Object { $successfulBranches -contains $_ } | Select-Object -First 1)
+    $initialSuccessfulBranch = ($allBranches | Where-Object { $successfulBranches -contains $_ -or $noChangeBranches -contains $_ } | Select-Object -First 1)
     
-    $commitish = $allBranches | ConvertTo-HashMap -getValue { "$_-commitish" }
+    $commitish = $allBranches | ConvertTo-HashMap -getValue { $initialCommits[$_] ?? "$_-commitish" }
     if ($null -ne $initialSuccessfulBranch) {
         $lastBranch = ($allBranches | Where-Object { $successfulBranches -contains $_ } | Select-Object -Last 1)
-        $resultCommitishes = $successfulBranches | Where-Object { $successfulBranches -contains $_ } | ConvertTo-HashMap -getValue { "$_-result-commitish" }
-        if ($lastBranch -eq $initialSuccessfulBranch) {
-            $resultCommitishes[$lastBranch] = $resultCommitish
+        $resultCommitishes = $successfulBranches | ConvertTo-HashMap -getValue { "$_-result-commitish" }
+
+        if ($null -eq $initialCommits[$initialSuccessfulBranch]) {
+            if ($lastBranch -eq $initialSuccessfulBranch) {
+                $resultCommitishes[$lastBranch] = $resultCommitish
+            }
+            $commitish[$initialSuccessfulBranch] = $resultCommitishes[$initialSuccessfulBranch]
+        } else {
+            $resultCommitishes[$initialSuccessfulBranch] = $commitish[$initialSuccessfulBranch]
+            if ($lastBranch -eq $initialSuccessfulBranch -AND $commitish[$initialSuccessfulBranch] -ne $resultCommitish) {
+                throw "Invalid Initialize-MergeTogether; `$initialCommits[$initialSuccessfulBranch] should be $resultCommitish"
+            }
         }
-        $commitish[$initialSuccessfulBranch] = $resultCommitishes[$initialSuccessfulBranch]
+
         if ($null -eq $resultCommitish) {
             throw 'Invalid Initialize-MergeTogether; -resultCommitish must be provided if any branches are successful'
         }
@@ -65,10 +76,15 @@ function Initialize-MergeTogether(
         Invoke-MockGit "rev-parse --verify $initialSuccessfulBranch" -MockWith { $commitish[$initialSuccessfulBranch] }.GetNewClosure()
     }
 
-
     for ($i = 0; $i -lt $allBranches.Count; $i++) {
         $current = $allBranches[$i]
-        if ($successfulBranches -contains $current) {
+        if ($noChangeBranches -contains $current) {
+            $success += $current
+            if ($current -eq $initialSuccessfulBranch) { continue }
+            Invoke-MockGit "rev-parse --verify $current" -MockWith $commitish[$current]
+
+            Invoke-MockGit "rev-list --count ^$currentCommit $($commitish[$current])" -MockWith "0"
+        } elseif ($successfulBranches -contains $current) {
             $success += $current
             if ($current -eq $initialSuccessfulBranch) { continue }
             Invoke-MockGit "rev-parse --verify $current" -MockWith $commitish[$current]

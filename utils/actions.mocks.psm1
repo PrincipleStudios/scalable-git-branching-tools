@@ -8,7 +8,7 @@ Import-Module -Scope Local "$PSScriptRoot/actions/local/Register-LocalActionGetU
 Export-ModuleMember -Function Initialize-UpstreamBranches
 
 Import-Module -Scope Local "$PSScriptRoot/actions/local/Register-LocalActionMergeBranches.mocks.psm1"
-Export-ModuleMember -Function Initialize-LocalActionMergeBranchesFailure,Initialize-LocalActionMergeBranchesSuccess
+Export-ModuleMember -Function Initialize-LocalActionMergeBranches,Initialize-LocalActionMergeBranchesFailure,Initialize-LocalActionMergeBranchesSuccess
 
 Import-Module -Scope Local "$PSScriptRoot/actions/local/Register-LocalActionSetUpstream.mocks.psm1"
 Export-ModuleMember -Function Lock-LocalActionSetUpstream, Initialize-LocalActionSetUpstream

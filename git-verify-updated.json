@@ -16,7 +16,8 @@
         {
             "type": "assert-pushed",
             "parameters": {
-                "target": "$params.target"
+                "target": "$params.target",
+                "remoteMustExist": true
             }
         },
         {
@@ -43,8 +44,7 @@
             "condition": "$params.recurse ? $false : $true",
             "parameters": {
                 "source": "$($params.target)",
-                "upstreamBranches": ["$actions['get-upstream'].outputs"],
-                "mergeMessageTemplate": "Merge '{}' to $($params.target)"
+                "upstreamBranches": ["$actions['get-upstream'].outputs"]
             }
         },
         { 
