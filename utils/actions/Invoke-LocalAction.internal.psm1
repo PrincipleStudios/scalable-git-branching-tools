@@ -6,6 +6,10 @@ function Get-LocalActionsRegistry {
     return $localActions
 }
 
+function Get-LocalAction([string] $type) {
+    return $localActions[$type]
+}
+
 function Invoke-LocalAction(
     [PSObject] $actionDefinition,
     [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
@@ -13,7 +17,7 @@ function Invoke-LocalAction(
     $actionDefinition = ConvertTo-Hashtable $actionDefinition
 
     # look up type
-    $targetAction = $localActions[$actionDefinition.type]
+    $targetAction = Get-LocalAction $actionDefinition.type
     if ($null -eq $targetAction) {
         Add-ErrorDiagnostic $diagnostics "Could not find local action type '$($actionDefinition.type)'"
         return $null
@@ -37,4 +41,4 @@ function Invoke-LocalAction(
     return $outputs
 }
 
-Export-ModuleMember -Function Invoke-LocalAction, Get-LocalActionsRegistry
+Export-ModuleMember -Function Invoke-LocalAction, Get-LocalAction, Get-LocalActionsRegistry

@@ -20,9 +20,10 @@ function Register-LocalActionRecurse([PSObject] $localActions) {
         }
 
         $instructions = Get-Content "$PSScriptRoot/../../../$path" | ConvertFrom-Json
+        $depthFirst = $instructions.recursion.mode -eq 'depth-first'
 
-        [System.Collections.ArrayList]$allInputs = $inputParameters
-        [System.Collections.ArrayList]$inputStack = $inputParameters
+        [System.Collections.ArrayList]$allInputs = @() + $inputParameters
+        [System.Collections.ArrayList]$inputStack = @() + $inputParameters
         [System.Collections.ArrayList]$pendingAct = @()
 
         $paramScript = [ScriptBlock]::Create('
@@ -37,7 +38,7 @@ function Register-LocalActionRecurse([PSObject] $localActions) {
             param($actions)
             Set-StrictMode -Version 3.0; 
             try {
-                ' + $instructions.recursion.mapScript + '
+                ' + $instructions.recursion.map + '
             } catch {
             }
         ')
@@ -59,19 +60,27 @@ function Register-LocalActionRecurse([PSObject] $localActions) {
                 actions = $actions;
             }
             $inputs.actions = Invoke-Prepare -prepareScripts $instructions.prepare @inputs @commonParams
-            if ($instructions.recursion.mode -eq 'depth-first') {
+            [array]$newParams = & $paramScript -actions $inputs.actions -previous $allInputs
+            if ($depthFirst) {
                 $pendingAct.Insert(0, $inputs)
+                if ($null -ne $newParams) {
+                    $inputStack.InsertRange(0, $newParams)
+                }
             } else {
                 $pendingAct.Add($inputs) > $null
+                if ($null -ne $newParams) {
+                    $inputStack.AddRange($newParams)
+                }
             }
-            [array]$newParams = & $paramScript -actions $inputs.actions -previous $allInputs
             if ($null -ne $newParams) {
-                $inputStack.AddRange($newParams)
-                $allInputs.AddRange($newParams)
+                $allInputs += $newParams
             }
         }
 
         [System.Collections.ArrayList]$mapped = @()
+        if ($depthFirst) {
+            $pendingAct.Reverse()
+        }
         while ($pendingAct.Count -gt 0) {
             $inputs = $pendingAct[0]
             $pendingAct.RemoveAt(0);
