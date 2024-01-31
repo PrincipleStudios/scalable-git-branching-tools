@@ -4,6 +4,17 @@ Import-Module -Scope Local "$PSScriptRoot/../../query-state.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../scripting/ConvertFrom-ParameterizedAnything.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../Invoke-LocalAction.internal.psm1"
 
+function New-SafeScript([string] $header, [string] $script) {
+    return [ScriptBlock]::Create("
+        $header
+        Set-StrictMode -Version 3.0; 
+        try {
+            $script
+        } catch {
+        }
+    ")
+}
+
 function Register-LocalActionRecurse([PSObject] $localActions) {
     $localActions['recurse'] = {
         param(
@@ -22,34 +33,22 @@ function Register-LocalActionRecurse([PSObject] $localActions) {
         $instructions = Get-Content "$PSScriptRoot/../../../$path" | ConvertFrom-Json
         $depthFirst = $instructions.recursion.mode -eq 'depth-first'
 
+        $addDepthParam = ($inputParameters | Where-Object { $null -ne $_.depth }).Count -eq 0
+        if ($addDepthParam) {
+            $inputParameters = @($inputParameters | ForEach-Object { (ConvertTo-Hashtable $_) + @{ depth = 0 } })
+        }
         [System.Collections.ArrayList]$allInputs = @() + $inputParameters
         [System.Collections.ArrayList]$inputStack = @() + $inputParameters
         [System.Collections.ArrayList]$pendingAct = @()
 
-        $paramScript = [ScriptBlock]::Create('
-            param($actions, $previous)
-            Set-StrictMode -Version 3.0; 
-            try {
-                ' + $instructions.recursion.paramScript + '
-            } catch {
-            }
-        ')
-        $mapScript = [ScriptBlock]::Create('
-            param($actions)
-            Set-StrictMode -Version 3.0; 
-            try {
-                ' + $instructions.recursion.map + '
-            } catch {
-            }
-        ')
-        $reduceToOutput = [ScriptBlock]::Create('
-            param($mapped)
-            Set-StrictMode -Version 3.0; 
-            try {
-                ' + $instructions.recursion.reduceToOutput + '
-            } catch {
-            }
-        ');
+        $paramScript = New-SafeScript -header 'param($actions, $params, $previous)' `
+            -script $instructions.recursion.paramScript 
+        $canActScript = New-SafeScript -header 'param($actions, $params)' `
+            -script ($instructions.recursion.actCondition ?? '$true')
+        $mapScript = New-SafeScript -header 'param($actions, $params)' `
+            -script $instructions.recursion.map
+        $reduceToOutput = New-SafeScript -header 'param($mapped)' `
+            -script $instructions.recursion.reduceToOutput
 
         while ($inputStack.Count -gt 0) {
             $params = $inputStack[0];
@@ -60,14 +59,22 @@ function Register-LocalActionRecurse([PSObject] $localActions) {
                 actions = $actions;
             }
             $inputs.actions = Invoke-Prepare -prepareScripts $instructions.prepare @inputs @commonParams
-            [array]$newParams = & $paramScript -actions $inputs.actions -previous $allInputs
+            [array]$newParams = (& $paramScript -actions $inputs.actions -params $inputs.params -previous $allInputs)
+            if ($addDepthParam -AND $null -ne $newParams) {
+                [array]$newParams = $newParams | ForEach-Object { (ConvertTo-Hashtable $_) + @{ depth = $params.depth + 1 } }
+            }
+            $canAct = (& $canActScript -actions $inputs.actions -params $inputs.params)
             if ($depthFirst) {
-                $pendingAct.Insert(0, $inputs)
+                if ($canAct) {
+                    $pendingAct.Insert(0, $inputs)
+                }
                 if ($null -ne $newParams) {
                     $inputStack.InsertRange(0, $newParams)
                 }
             } else {
-                $pendingAct.Add($inputs) > $null
+                if ($canAct) {
+                    $pendingAct.Add($inputs) > $null
+                }
                 if ($null -ne $newParams) {
                     $inputStack.AddRange($newParams)
                 }
@@ -88,7 +95,7 @@ function Register-LocalActionRecurse([PSObject] $localActions) {
             $inputs = $pendingAct[0]
             $pendingAct.RemoveAt(0);
             $inputs.actions = Invoke-Act -actScripts $instructions.act @inputs @commonParams
-            $mapResult = & $mapScript -actions $inputs.actions
+            $mapResult = & $mapScript -actions $inputs.actions -params $inputs.params
             $mapped.Add($mapResult) > $null
             if (Get-HasErrorDiagnostic $diagnostics) {
                 return $null
