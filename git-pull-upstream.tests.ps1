@@ -107,7 +107,9 @@ Describe 'git-pull-upstream' {
             )
 
             & $PSScriptRoot/git-pull-upstream.ps1
-            $fw.assertDiagnosticOutput | Should -Not -BeNullOrEmpty
+            $fw.assertDiagnosticOutput | Should -Be @(
+                'WARN: Could not merge the following branches: origin/infra/refactor-api'
+            )
             Invoke-VerifyMock $mocks -Times 1
         }
 
