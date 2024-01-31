@@ -36,7 +36,7 @@ Describe 'git-verify-updated' {
                 -resultCommitish 'result-commitish' `
                 -source 'feature/PS-2'
 
-                & $PSScriptRoot/git-verify-updated.ps1
+            & $PSScriptRoot/git-verify-updated.ps1
         }
 
         It 'uses the branch specified' {
@@ -50,7 +50,17 @@ Describe 'git-verify-updated' {
                 -resultCommitish 'result-commitish' `
                 -source 'feature/PS-2'
 
-                & $PSScriptRoot/git-verify-updated.ps1 -target feature/PS-2
+            & $PSScriptRoot/git-verify-updated.ps1 -target feature/PS-2
+        }
+
+        It 'fails if there are no upstreams on the initial branch' {
+            Initialize-AssertValidBranchName 'feature/PS-2'
+            Initialize-LocalActionAssertExistence -branches @('feature/PS-2') -shouldExist $true
+            Initialize-LocalActionAssertPushedSuccess 'feature/PS-2'
+            Initialize-UpstreamBranches @{ 'feature/PS-2' = @() }
+
+            { & $PSScriptRoot/git-verify-updated.ps1 -target feature/PS-2 }
+                | Should -Throw 'ERR:  feature/PS-2 has no upstream branches to verify.'
         }
 
         It 'throws when one branch is out of date' {
@@ -65,7 +75,7 @@ Describe 'git-verify-updated' {
                 -resultCommitish 'result-commitish' `
                 -source 'feature/PS-2'
 
-                { & $PSScriptRoot/git-verify-updated.ps1 -target feature/PS-2 }
+            { & $PSScriptRoot/git-verify-updated.ps1 -target feature/PS-2 }
                 | Should -Throw 'ERR:  feature/PS-2 did not have the latest from feature/PS-1 infra/build-improvements.'
         }
 
@@ -130,7 +140,7 @@ Describe 'git-verify-updated' {
                 -source 'feature/PS-2' `
                 -initialCommits $initialCommits
 
-                & $PSScriptRoot/git-verify-updated.ps1 -target feature/PS-2 -recurse
+            & $PSScriptRoot/git-verify-updated.ps1 -target feature/PS-2 -recurse
         }
     }
 

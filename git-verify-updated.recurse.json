@@ -21,6 +21,13 @@
         }
     ],
     "act": [
+        { 
+            "type": "add-diagnostic",
+            "condition": "$null -eq $actions['get-upstream'].outputs",
+            "parameters": {
+                "message": "$($params.target) has no upstream branches to verify."
+            }
+        },
         {
             "id": "merge-branches",
             "type": "merge-branches",
