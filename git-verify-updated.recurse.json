@@ -1,7 +1,7 @@
 {
     "recursion": {
         "mode": "depth-first",
-        "paramScript": "$actions['get-upstream'].outputs | Where-Object { $null -ne $_ -AND $_ -notin ($previous | ForEach-Object { $_.target }) } | ForEach-Object { @{ target = $_ } }",
+        "paramScript": "$params.recurse ? ($actions['get-upstream'].outputs | Where-Object { $null -ne $_ -AND $_ -notin ($previous | ForEach-Object { $_.target }) } | ForEach-Object { @{ target = $_ } }) : @()",
         "map": "@{}",
         "reduceToOutput": "@{}"
     },

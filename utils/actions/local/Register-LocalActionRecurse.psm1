@@ -75,6 +75,9 @@ function Register-LocalActionRecurse([PSObject] $localActions) {
             if ($null -ne $newParams) {
                 $allInputs += $newParams
             }
+            if (Get-HasErrorDiagnostic $diagnostics) {
+                return $null
+            }
         }
 
         [System.Collections.ArrayList]$mapped = @()
@@ -87,6 +90,9 @@ function Register-LocalActionRecurse([PSObject] $localActions) {
             $inputs.actions = Invoke-Act -actScripts $instructions.act @inputs @commonParams
             $mapResult = & $mapScript -actions $inputs.actions
             $mapped.Add($mapResult) > $null
+            if (Get-HasErrorDiagnostic $diagnostics) {
+                return $null
+            }
         }
 
         return & $reduceToOutput -mapped $mapped
@@ -120,7 +126,9 @@ function Invoke-Prepare(
             Add-ErrorDiagnostic $diagnostics "$(ConvertTo-Json $local.result -Depth 10)"
             Add-ErrorException $diagnostics $_
         }
-        Assert-Diagnostics $diagnostics
+        if (Get-HasErrorDiagnostic $diagnostics) {
+            return $actions
+        }
     }
 
     return $actions
@@ -153,7 +161,9 @@ function Invoke-Act(
             Add-ErrorDiagnostic $diagnostics "$(ConvertTo-Json $local.result -Depth 10)"
             Add-ErrorException $diagnostics $_
         }
-        Assert-Diagnostics $diagnostics
+        if (Get-HasErrorDiagnostic $diagnostics) {
+            return $actions
+        }
     }
 
     return $actions

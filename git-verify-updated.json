@@ -22,43 +22,12 @@
         },
         {
             "type": "recurse",
-            "condition": "$params.recurse",
             "parameters": {
                 "inputParameters": [{
-                    "target": "$params.target"
+                    "target": "$params.target",
+                    "recurse": "$params.recurse"
                 }],
                 "path": "git-verify-updated.recurse.json"
-            }
-        },
-        {
-            "id": "get-upstream",
-            "type": "get-upstream",
-            "condition": "$params.recurse ? $false : $true",
-            "parameters": {
-                "target": "$params.target"
-            }
-        },
-        {
-            "id": "merge-branches",
-            "type": "merge-branches",
-            "condition": "$params.recurse ? $false : $true",
-            "parameters": {
-                "source": "$($params.target)",
-                "upstreamBranches": ["$actions['get-upstream'].outputs"]
-            }
-        },
-        { 
-            "type": "add-diagnostic",
-            "condition": "$actions['merge-branches'].outputs['failed'] -AND -not $params.recurse",
-            "parameters": {
-                "message": "$($params.target) has incoming conflicts from $($actions['merge-branches'].outputs['failed'])."
-            }
-        },
-        { 
-            "type": "add-diagnostic",
-            "condition": "$actions['merge-branches'].outputs['hasChanges'] ? -not $params.recurse : $false",
-            "parameters": {
-                "message": "$($params.target) did not have the latest from $($actions['merge-branches'].outputs['successful'])."
             }
         }
     ],
