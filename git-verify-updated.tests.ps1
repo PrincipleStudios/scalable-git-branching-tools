@@ -87,7 +87,7 @@ Describe 'git-verify-updated' {
             )
 
             { & $PSScriptRoot/git-verify-updated.ps1 -target feature/PS-2 }
-                | Should -Throw 'ERR:  feature/PS-2 did not have the latest from feature/PS-1 infra/build-improvements.'
+                | Should -Throw 'ERR:  feature/PS-2 did not have the latest from feature/PS-1.'
             Invoke-VerifyMock $mocks -Times 1
         }
 

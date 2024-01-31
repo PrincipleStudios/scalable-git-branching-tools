@@ -96,11 +96,11 @@ function Invoke-MergeTogether(
 
                     $currentCommit = $resultCommit
                     $parentCommits += $targetCommit
+                    $successful += $target
                 }
                 $allFailed = $false
                 $i--
                 $remaining = $remaining | Where-Object { $_ -ne $target }
-                $successful += $target
                 break;
             }
             if ($allFailed -AND $remaining.Count -gt 0) {

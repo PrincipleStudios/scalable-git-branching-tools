@@ -8,7 +8,7 @@ function Register-LocalActionMergeBranches([PSObject] $localActions) {
         param(
             [string] $source,
             [string[]] $upstreamBranches,
-            [string] $mergeMessageTemplate,
+            [string] $mergeMessageTemplate = "Merge {}",
             [Parameter()][bool] $errorOnFailure = $false,
             [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
         )

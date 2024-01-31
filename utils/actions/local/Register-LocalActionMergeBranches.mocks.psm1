@@ -10,7 +10,7 @@ function Initialize-LocalActionMergeBranches(
     [AllowEmptyCollection()][string[]] $noChangeBranches,
     [Parameter()][Hashtable] $initialCommits = @{},
     [Parameter()][string] $resultCommitish,
-    [Parameter()][string] $mergeMessageTemplate,
+    [Parameter()][string] $mergeMessageTemplate = "Merge {}",
     [Parameter()][string] $source,
     [Switch] $sourceFailed
 ) {
