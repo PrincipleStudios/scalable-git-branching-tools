@@ -18,6 +18,6 @@ _Aliases: -m, -message_
 
 If specified, overrides the commit message on the upstream tracking branch for creating the RC branch.
 
-### `[-force]` (Optional)
+### `-force` (Optional)
 
 Forces an update of the RC branch. Use this if you are replacing the existing branch.

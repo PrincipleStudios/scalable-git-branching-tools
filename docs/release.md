@@ -24,10 +24,10 @@ If specified, overrides the commit message added to the upstream tracking branch
 
 A comma delimited list of branches to preserve in addition to those upstream
 
-### `[-dryRun]` (Optional)
+### `-dryRun` (Optional)
 
 If specified, changes to branches will be displayed but no actual changes will be applied.
 
-### `[-cleanupOnly]` (Optional)
+### `-cleanupOnly` (Optional)
 
 Use this flag when the released branch (from `-branchName`) was already merged to the target branch (`-target`) to clean up the included branches.
