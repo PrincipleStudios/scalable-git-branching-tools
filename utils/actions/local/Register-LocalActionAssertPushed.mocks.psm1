@@ -13,6 +13,9 @@ function Initialize-LocalActionAssertPushedNotTracked(
 function Initialize-LocalActionAssertPushedSuccess(
     [string] $branchName
 ) {
+    $remote = $(Get-Configuration).remote
+    if ($null -eq $remote) { return }
+
     Initialize-RemoteBranchInSync $branchName
 }
 
