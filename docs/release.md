@@ -2,7 +2,8 @@
 
 Usage:
 
-    git-release.ps1 [-sourceBranch] <string> [-target] <string> [-comment <string>] [-preserve <string[]>] [-dryRun] [-cleanupOnly]
+    git-release.ps1 [-sourceBranch] <string> [-target] <string>
+        [-comment <string>] [-preserve <string[]>] [-dryRun] [-cleanupOnly]
 
 ## Parameters
 
@@ -18,7 +19,8 @@ The name of the branch that will be updated with the released branch.
 
 _Aliases: -m, -message_
 
-If specified, overrides the commit message added to the upstream tracking branch.
+If specified, overrides the commit message added to the upstream tracking
+branch.
 
 ### `-preserve <string[]>` (Optional)
 
@@ -26,8 +28,10 @@ A comma delimited list of branches to preserve in addition to those upstream
 
 ### `-dryRun` (Optional)
 
-If specified, changes to branches will be displayed but no actual changes will be applied.
+If specified, changes to branches will be displayed but no actual changes will
+be applied.
 
 ### `-cleanupOnly` (Optional)
 
-Use this flag when the released branch (from `-branchName`) was already merged to the target branch (`-target`) to clean up the included branches.
+Use this flag when the released branch (from `-branchName`) was already merged
+to the target branch (`-target`) to clean up the included branches.

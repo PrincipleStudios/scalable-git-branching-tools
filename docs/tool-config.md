@@ -11,7 +11,9 @@ Usage:
 
 ### `-remote <string>` (Optional)
 
-Sets the remote used where the upstream branch is tracked. Most commands will automatically fetch/push from this remote when set. If not set and the repository has a remote configured, the first remote will be used.
+Sets the remote used where the upstream branch is tracked. Most commands will
+automatically fetch/push from this remote when set. If not set and the
+repository has a remote configured, the first remote will be used.
 
 ### `-upstreamBranch <string>` (Optional)
 

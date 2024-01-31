@@ -23,8 +23,11 @@ Specifies a comment as part of the commit message for the upstream branch.
 
 _Aliases: -u, -upstream, -upstreams_
 
-A comma-delimited list of branches (without the remote, if applicable). If not specified, assumes the default service line (see [tool-config](./tool-config.md).)
+A comma-delimited list of branches (without the remote, if applicable). If not
+specified, assumes the default service line (see [tool-config][tool-config].)
 
 ### `-dryRun` (Optional)
 
 If specified, only test merging, do not push the updates.
+
+[tool-config]: ./tool-config.md

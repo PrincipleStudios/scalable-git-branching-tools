@@ -1,6 +1,7 @@
 # `git rci`
 
-Interactively create a new branch from multiple upstream branches without changing the local branch. Intended for creating release candidate branches.
+Interactively create a new branch from multiple upstream branches without
+changing the local branch. Intended for creating release candidate branches.
 
 Usage:
 
@@ -16,8 +17,10 @@ The name of the new branch.
 
 _Aliases: -m, -message_
 
-If specified, overrides the commit message on the upstream tracking branch for creating the RC branch.
+If specified, overrides the commit message on the upstream tracking branch for
+creating the RC branch.
 
 ### `-force` (Optional)
 
-Forces an update of the RC branch. Use this if you are replacing the existing branch.
+Forces an update of the RC branch. Use this if you are replacing the existing
+branch.
