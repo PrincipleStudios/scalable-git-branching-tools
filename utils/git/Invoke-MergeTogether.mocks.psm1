@@ -38,6 +38,7 @@ function Initialize-MergeTogether(
     [AllowEmptyCollection()][string[]] $noChangeBranches,
     [AllowNull()][string] $source = $null,
     [Hashtable] $initialCommits = @{},
+    [string[]] $skipRevParse = @(),
     [string] $messageTemplate = "Merge {}",
     [string] $resultCommitish
 ) {
@@ -73,7 +74,9 @@ function Initialize-MergeTogether(
         }
 
         $currentCommit = $resultCommitishes[$initialSuccessfulBranch]
-        Invoke-MockGit "rev-parse --verify $initialSuccessfulBranch" -MockWith { $commitish[$initialSuccessfulBranch] }.GetNewClosure()
+        if ($initialSuccessfulBranch -notin $skipRevParse) {
+            Invoke-MockGit "rev-parse --verify $initialSuccessfulBranch" -MockWith { $commitish[$initialSuccessfulBranch] }.GetNewClosure()
+        }
     }
 
     for ($i = 0; $i -lt $allBranches.Count; $i++) {
@@ -81,13 +84,17 @@ function Initialize-MergeTogether(
         if ($noChangeBranches -contains $current) {
             $success += $current
             if ($current -eq $initialSuccessfulBranch) { continue }
-            Invoke-MockGit "rev-parse --verify $current" -MockWith $commitish[$current]
+            if ($current -notin $skipRevParse) {
+                Invoke-MockGit "rev-parse --verify $current" -MockWith $commitish[$current]
+            }
 
             Invoke-MockGit "rev-list --count ^$currentCommit $($commitish[$current])" -MockWith "0"
         } elseif ($successfulBranches -contains $current) {
             $success += $current
             if ($current -eq $initialSuccessfulBranch) { continue }
-            Invoke-MockGit "rev-parse --verify $current" -MockWith $commitish[$current]
+            if ($current -notin $skipRevParse) {
+                Invoke-MockGit "rev-parse --verify $current" -MockWith $commitish[$current]
+            }
 
             Invoke-MockGit "rev-list --count ^$currentCommit $($commitish[$current])" -MockWith "1"
 
@@ -107,7 +114,9 @@ function Initialize-MergeTogether(
                 # If everything fails, that means we weren't able to resolve a single commitish
                 Invoke-MockGit "rev-parse --verify $current" -MockWith { $global:LASTEXITCODE = 1 }
             } else {
-                Invoke-MockGit "rev-parse --verify $current" -MockWith $commitish[$current]
+                if ($current -notin $skipRevParse) {
+                    Invoke-MockGit "rev-parse --verify $current" -MockWith $commitish[$current]
+                }
                 Invoke-MockGit "rev-list --count ^$currentCommit $($commitish[$current])" -MockWith "1"
                 $treeish = "$current-tree"
                 Initialize-MergeTree $currentCommit $commitish[$current] $treeish -fail

@@ -1,0 +1,35 @@
+{
+    "recursion": {
+        "mode": "depth-first",
+        "paramScript": "$params.recurse ? ($actions['get-upstream'].outputs | Where-Object { $null -ne $_ -AND $_ -notin ($previous | ForEach-Object { $_.target }) } | ForEach-Object { @{ target = $_; recurse = $params.recurse } }) : @()",
+        "map": "@{ hasChanges = $actions['merge-branches'].outputs.hasChanges; push = $actions['merge-branches'].outputs.hasChanges ? @{ \"$($params.target)\" = $actions['merge-branches'].outputs['commit'] } : @{}; track = $params.target; failures = @{ \"$($params.target)\" = $actions['merge-branches'].outputs.failed } }",
+        "reduceToOutput": "$mapped | ForEach-Object { $accum = @{ hasChanges = $false; push = @{}; track = @(); failures = @{} } } { $accum.hasChanges = $accum.hasChanges -OR $_.hasChanges; $accum.push = $accum.push + $_.push; $accum.track = $accum.track + $_.track; $accum.failures = $accum.failures + $_.failures } { $accum }",
+        "actCondition": "$null -ne $actions['get-upstream'].outputs"
+    },
+    "prepare": [
+        {
+            "type": "assert-pushed",
+            "parameters": {
+                "target": "$params.target"
+            }
+        },
+        {
+            "id": "get-upstream",
+            "type": "get-upstream",
+            "parameters": {
+                "target": "$params.target"
+            }
+        }
+    ],
+    "act": [
+        {
+            "id": "merge-branches",
+            "type": "merge-branches",
+            "parameters": {
+                "source": "$params.target",
+                "upstreamBranches": ["$actions['get-upstream'].outputs"],
+                "mergeMessageTemplate": "Merge '{}' to $($params.target)"
+            }
+        }
+    ]
+}
