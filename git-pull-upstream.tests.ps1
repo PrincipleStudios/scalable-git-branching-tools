@@ -221,6 +221,54 @@ Describe 'git-pull-upstream' {
             & $PSScriptRoot/git-pull-upstream.ps1 -target feature/PS-2 -recurse
             Invoke-VerifyMock $mocks -Times 1
         }
+        
+        It 'uses the branch specified, recursively, and fails if an upstream merge fails' {
+            # Fails merging 'main' into 'infra/build-improvements'
+            $remote = $(Get-Configuration).remote
+            $remotePrefix = $remote ? "$remote/" : ""
+            $initialCommits = @{
+                "$($remotePrefix)main" = "$($remotePrefix)main-commitish"
+                "$($remotePrefix)feature/PS-1" = "$($remotePrefix)feature/PS-1-commitish"
+                "$($remotePrefix)infra/build-improvements" = "$($remotePrefix)infra/build-improvements-commitish"
+                "$($remotePrefix)feature/PS-2" = "$($remotePrefix)feature/PS-2-commitish"
+            }
+            $updatedCommits = @{
+                "$($remotePrefix)feature/PS-1" = "PS-1-updated"
+                "$($remotePrefix)feature/PS-2" = "PS-2-updated"
+            }
+
+            $mocks = @(
+                Initialize-AssertValidBranchName 'feature/PS-2'
+                Initialize-LocalActionAssertExistence -branches @('feature/PS-2') -shouldExist $true
+                Initialize-LocalActionAssertPushedSuccess 'feature/PS-2'
+                Initialize-UpstreamBranches @{
+                    'feature/PS-2' = @('feature/PS-1','infra/build-improvements')
+                    'feature/PS-1' = @('main')
+                    'infra/build-improvements' = @('main')
+                }
+                Initialize-LocalActionAssertPushedSuccess 'feature/PS-1'
+                Initialize-LocalActionAssertPushedSuccess 'infra/build-improvements'
+                Initialize-LocalActionAssertPushedSuccess 'main'
+
+                Initialize-LocalActionMergeBranches `
+                    -upstreamBranches @('main') `
+                    -successfulBranches @('main') `
+                    -resultCommitish $updatedCommits["$($remotePrefix)feature/PS-1"] `
+                    -source 'feature/PS-1' `
+                    -initialCommits $initialCommits `
+                    -mergeMessageTemplate "Merge '{}' to feature/PS-1"
+                Initialize-LocalActionMergeBranches `
+                    -upstreamBranches @('main') `
+                    -resultCommitish $initialCommits["$($remotePrefix)infra/build-improvements"] `
+                    -source 'infra/build-improvements' `
+                    -initialCommits $initialCommits `
+                    -mergeMessageTemplate "Merge '{}' to infra/build-improvements"
+            )
+
+            { & $PSScriptRoot/git-pull-upstream.ps1 -target feature/PS-2 -recurse } | Should -Throw
+            $fw.assertDiagnosticOutput | Should -Contain 'ERR:  infra/build-improvements has incoming conflicts from main. Resolve them before continuing.'
+            Invoke-VerifyMock $mocks -Times 1
+        }
     }
 
     Context 'with a remote' {

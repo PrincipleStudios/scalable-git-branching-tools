@@ -35,6 +35,13 @@
                 "commitMappingOverride": "$recursionContext.result.override"
             }
         },
+        { 
+            "type": "add-diagnostic",
+            "condition": "$actions.mergeBranches.outputs.failed -AND $params.depth -ne 0",
+            "parameters": {
+                "message": "$($params.target) has incoming conflicts from $($actions.mergeBranches.outputs.failed). Resolve them before continuing."
+            }
+        },
         {
             "id": "iterationResult",
             "type": "evaluate",
