@@ -117,7 +117,8 @@ function Invoke-Prepare(
     
     for ($i = 0; $i -lt $prepareScripts.Count; $i++) {
         $name = $prepareScripts[$i].id ?? "#$($i + 1) (1-based)";
-        $local = ConvertFrom-ParameterizedAnything -script $prepareScripts[$i] -config $config -params $params -actions $actions -diagnostics $diagnostics
+        $variables = @{ config=$config; params=$params; actions=$actions }
+        $local = ConvertFrom-ParameterizedAnything -script $prepareScripts[$i] -variables $variables -diagnostics $diagnostics
         if ($local.fail) {
             Add-ErrorDiagnostic $diagnostics "Could not apply parameters to recursive prepare (local) action $name; see above errors. Evaluation below:"
             Add-ErrorDiagnostic $diagnostics "$(ConvertTo-Json $local.result -Depth 10)"
@@ -152,7 +153,8 @@ function Invoke-Act(
     
     for ($i = 0; $i -lt $actScripts.Count; $i++) {
         $name = $actScripts[$i].id ?? "#$($i + 1) (1-based)";
-        $local = ConvertFrom-ParameterizedAnything -script $actScripts[$i] -config $config -params $params -actions $actions -diagnostics $diagnostics
+        $variables = @{ config=$config; params=$params; actions=$actions }
+        $local = ConvertFrom-ParameterizedAnything -script $actScripts[$i] -variables $variables -diagnostics $diagnostics
         if ($local.fail) {
             Add-ErrorDiagnostic $diagnostics "Could not apply parameters to recursive act (local) action $name; see above errors. Evaluation below:"
             Add-ErrorDiagnostic $diagnostics "$(ConvertTo-Json $local.result -Depth 10)"

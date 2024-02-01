@@ -3,9 +3,7 @@ Import-Module -Scope Local "$PSScriptRoot/New-Closure.psm1"
 
 function ConvertFrom-ParameterizedString(
     [string] $script, 
-    [PSObject] $config,
-    [PSObject] $params,
-    [PSObject] $actions,
+    [Parameter(Mandatory)][PSObject] $variables,
     [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics,
     [switch] $failOnError
 ) {
@@ -16,7 +14,7 @@ function ConvertFrom-ParameterizedString(
     } catch {
         $null
     }
-    ')) -variables @{ config = $config; params = $params; actions = $actions }
+    ')) -variables $variables
     $entry = Invoke-Command -ScriptBlock $targetScript
     if ($null -eq $entry) {
         if ($failOnError) {
