@@ -41,6 +41,10 @@ function Register-LocalActionRecurse([PSObject] $localActions) {
         [System.Collections.ArrayList]$inputStack = @() + $inputParameters
         [System.Collections.ArrayList]$pendingAct = @()
 
+        if ($depthFirst) {
+            $inputStack.Reverse()
+        }
+
         $paramScript = New-SafeScript -header 'param($actions, $params, $previous)' `
             -script $instructions.recursion.paramScript 
         $canActScript = New-SafeScript -header 'param($actions, $params)' `
@@ -69,6 +73,8 @@ function Register-LocalActionRecurse([PSObject] $localActions) {
                     $pendingAct.Insert(0, $inputs)
                 }
                 if ($null -ne $newParams) {
+                    [array]$newParams = @() + [array]$newParams
+                    [array]::Reverse($newParams)
                     $inputStack.InsertRange(0, $newParams)
                 }
             } else {
@@ -88,9 +94,6 @@ function Register-LocalActionRecurse([PSObject] $localActions) {
         }
 
         [System.Collections.ArrayList]$mapped = @()
-        if ($depthFirst) {
-            $pendingAct.Reverse()
-        }
         while ($pendingAct.Count -gt 0) {
             $inputs = $pendingAct[0]
             $pendingAct.RemoveAt(0);
