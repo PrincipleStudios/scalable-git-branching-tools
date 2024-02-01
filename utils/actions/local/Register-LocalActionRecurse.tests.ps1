@@ -78,12 +78,12 @@ Describe 'local action "recurse"' {
             } 
             Initialize-FakeLocalAction "handle-target" {
                 param($target)
-                if ($target -eq '10') { return '1' }
-                if ($target -eq '11') { return '2' }
-                if ($target -eq '12') { return '3' }
-                if ($target -eq '20') { return '4' }
-                if ($target -eq '21') { return '5' }
-                if ($target -eq '22') { return '6' }
+                if ($target -eq '11') { return '1' }
+                if ($target -eq '12') { return '2' }
+                if ($target -eq '10') { return '3' }
+                if ($target -eq '21') { return '4' }
+                if ($target -eq '22') { return '5' }
+                if ($target -eq '20') { return '6' }
             }
 
             $output = Invoke-LocalAction $standardScript -diagnostics $fw.diagnostics

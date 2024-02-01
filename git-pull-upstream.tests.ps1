@@ -200,11 +200,9 @@ Describe 'git-pull-upstream' {
                     -resultCommitish $updatedCommits["$($remotePrefix)feature/PS-2"] `
                     -source 'feature/PS-2' `
                     -initialCommits  @{
-                        # TODO: feature/PS-1 should not get set up with git rev-parse
                         "$($remotePrefix)feature/PS-1" = $updatedCommits["$($remotePrefix)feature/PS-1"]
-
-                        "$($remotePrefix)infra/build-improvements" = "$($remotePrefix)infra/build-improvements-commitish"
-                        "$($remotePrefix)feature/PS-2" = "$($remotePrefix)feature/PS-2-commitish"
+                        "$($remotePrefix)infra/build-improvements" = $initialCommits["$($remotePrefix)infra/build-improvements"]
+                        "$($remotePrefix)feature/PS-2" = $initialCommits["$($remotePrefix)feature/PS-2"]
                     } `
                     -skipRevParse @(
                         # feature/PS-1 was updated in a previous merge; we should automatically use that instead
@@ -217,7 +215,7 @@ Describe 'git-pull-upstream' {
                     'feature/PS-1' = $updatedCommits["$($remotePrefix)feature/PS-1"]
                     'feature/PS-2' = $updatedCommits["$($remotePrefix)feature/PS-2"]
                 }
-                Initialize-FinalizeActionTrackSuccess @('feature/PS-1','feature/PS-2')
+                Initialize-FinalizeActionTrackSuccess @('infra/build-improvements', 'feature/PS-1','feature/PS-2')
             )
 
             & $PSScriptRoot/git-pull-upstream.ps1 -target feature/PS-2 -recurse
