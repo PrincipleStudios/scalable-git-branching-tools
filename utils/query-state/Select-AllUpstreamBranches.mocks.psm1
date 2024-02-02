@@ -9,7 +9,7 @@ function Invoke-MockGit([string] $gitCli, [object] $MockWith) {
 function Initialize-AllUpstreamBranches([PSObject] $upstreamConfiguration) {
 	$upstream = Get-UpstreamBranch
 	$workDir = [System.IO.Path]::GetRandomFileName()
-	Invoke-MockGit "rev-parse --show-toplevel" -MockWith $workDir
+	Invoke-MockGit "rev-parse --absolute-git-dir" -MockWith $workDir
 
 	$treeEntries = $upstreamConfiguration.Keys | ForEach-Object { "100644 blob $_-blob`t$_" } | Sort-Object
 	Invoke-MockGit "ls-tree -r $upstream" -MockWith $treeEntries

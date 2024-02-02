@@ -8,8 +8,8 @@ Import-Module -Scope Local "$PSScriptRoot/Configuration.psm1"
 $allUpstreams = @{}
 
 function Select-AllUpstreamBranches([switch]$refresh) {
-	$workDir = Invoke-ProcessLogs "git rev-parse --show-toplevel" {
-		git rev-parse --show-toplevel
+	$workDir = Invoke-ProcessLogs "git rev-parse --absolute-git-dir" {
+		git rev-parse --absolute-git-dir
 	} -allowSuccessOutput
 	if ($allUpstreams[$workDir] -AND -not $refresh) {
 		return $allUpstreams[$workDir]
