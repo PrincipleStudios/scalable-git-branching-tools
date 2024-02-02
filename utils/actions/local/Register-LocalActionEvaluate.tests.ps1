@@ -39,7 +39,8 @@ Describe 'local action "evaluate"' {
 
         Invoke-FlushAssertDiagnostic $fw.diagnostics
         $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
-        (ConvertTo-Json $result) | Should -Be (ConvertTo-Json @{ one=1; two=2 })
+        $result.one | Should -Be 1
+        $result.two | Should -Be 2
     }
 
     It 'can return arrays' {
