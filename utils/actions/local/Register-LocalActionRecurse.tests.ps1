@@ -92,6 +92,7 @@ Describe 'local action "recurse"' {
             } 
             Initialize-FakeLocalAction "handle-target" {
                 param($target)
+                return $target
                 if ($target -eq '11') { return '1' }
                 if ($target -eq '12') { return '2' }
                 if ($target -eq '13') { return '3' }
@@ -102,7 +103,7 @@ Describe 'local action "recurse"' {
             }
 
             $output = Invoke-LocalAction $standardScript -diagnostics $fw.diagnostics
-            $output | Should -Be '1 2 3 4 5 6 7'
+            $output | Should -Be '11 12 13 10 21 22 20'
 
             Invoke-FlushAssertDiagnostic $fw.diagnostics
             $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
