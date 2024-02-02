@@ -137,7 +137,6 @@ Describe 'git-pull-upstream' {
     Context 'without a remote' {
         BeforeEach {
             Initialize-ToolConfiguration -noRemote
-            Initialize-UpdateGitRemote
             Initialize-UpstreamBranches @{
                 'feature/FOO-456' = @("infra/add-services", "infra/refactor-api")
                 'feature/FOO-123' = @("infra/add-services")
