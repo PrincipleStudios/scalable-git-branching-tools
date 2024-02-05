@@ -1,6 +1,7 @@
 # `git rebuild-rc`
 
-Recreate a branch from its upstream branches, possibly modifying the upstream branches. Intended for creating release candidate branches.
+Recreate a branch from its upstream branches, possibly modifying the upstream
+branches. Intended for creating release candidate branches.
 
 Usage:
 
@@ -28,7 +29,8 @@ Comma-delimited list of branches to remove upstream of the rc when rebuilding
 
 _Aliases: -m, -message_
 
-If specified, adds to the commit message on the upstream tracking branch for creating the RC branch.
+If specified, adds to the commit message on the upstream tracking branch for
+creating the RC branch.
 
 ### `-allowOutOfDate` (Optional)
 
