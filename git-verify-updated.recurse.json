@@ -1,0 +1,55 @@
+{
+    "recursion": {
+        "mode": "depth-first",
+        "paramScript": "$params.recurse ? ($actions['get-upstream'].outputs | Where-Object { $null -ne $_ -AND $_ -notin ($previous | ForEach-Object { $_.target }) } | ForEach-Object { @{ target = $_; recurse = $params.recurse } }) : @()",
+        "map": "@{}",
+        "reduceToOutput": "@{}",
+        "actCondition": "$null -ne $actions['get-upstream'].outputs"
+    },
+    "prepare": [
+        {
+            "type": "assert-pushed",
+            "parameters": {
+                "target": "$params.target"
+            }
+        },
+        {
+            "id": "get-upstream",
+            "type": "get-upstream",
+            "parameters": {
+                "target": "$params.target"
+            }
+        },
+        { 
+            "type": "add-diagnostic",
+            "condition": "$params.depth -eq 0 -AND $null -eq $actions['get-upstream'].outputs",
+            "parameters": {
+                "message": "$($params.target) has no upstream branches to verify."
+            }
+        }
+    ],
+    "act": [
+        {
+            "id": "merge-branches",
+            "type": "merge-branches",
+            "parameters": {
+                "source": "$($params.target)",
+                "upstreamBranches": ["$actions['get-upstream'].outputs"]
+            }
+        },
+        { 
+            "type": "add-diagnostic",
+            "condition": "$actions['merge-branches'].outputs['failed']",
+            "parameters": {
+                "message": "$($params.target) has incoming conflicts from $($actions['merge-branches'].outputs['failed'])."
+            }
+        },
+        { 
+            "type": "add-diagnostic",
+            "condition": "$actions['merge-branches'].outputs['hasChanges'] ? $true : $false",
+            "parameters": {
+                "message": "$($params.target) did not have the latest from $($actions['merge-branches'].outputs['successful'])."
+            }
+        }
+    ]
+}

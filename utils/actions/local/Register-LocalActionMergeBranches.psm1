@@ -8,16 +8,26 @@ function Register-LocalActionMergeBranches([PSObject] $localActions) {
         param(
             [string] $source,
             [string[]] $upstreamBranches,
-            [string] $mergeMessageTemplate,
+            [string] $mergeMessageTemplate = "Merge {}",
             [Parameter()][bool] $errorOnFailure = $false,
             [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
         )
 
         $config = Get-Configuration
         if ($null -ne $config.remote) {
-            $upstreamBranches = [string[]]$upstreamBranches | Foreach-Object { "$($config.remote)/$_" }
+            $upstreamBranches = [string[]]$upstreamBranches | Where-Object { $_ } | Foreach-Object { "$($config.remote)/$_" }
             if ($null -ne $source -AND '' -ne $source) {
                 $source = "$($config.remote)/$source"
+            }
+        }
+
+        if ($null -eq $upstreamBranches) {
+            # Nothing to merge
+            return @{
+                commit = $null;
+                hasChanges = $false;
+                failed = @();
+                successful = $();
             }
         }
 
