@@ -28,6 +28,20 @@ Describe 'Invoke-MergeTogether' {
         Invoke-VerifyMock $mocks -Times 1
     }
 
+    It 'does not require a message template on the mock' {
+        $mocks = Initialize-MergeTogether `
+            -allBranches @('feature/FOO-1', 'feature/FOO-2', 'feature/FOO-3')
+
+        $result = Invoke-MergeTogether @('feature/FOO-1', 'feature/FOO-2', 'feature/FOO-3') -diagnostics $fw.diagnostics
+        $result.result | Should -Be $null
+        $result.failed | Should -Be @('feature/FOO-1', 'feature/FOO-2', 'feature/FOO-3')
+        $result.successful | Should -BeNullOrEmpty
+        $result.hasChanges | Should -Be $false
+        $fw.diagnostics | Should -Not -BeNullOrEmpty
+        Get-HasErrorDiagnostic $fw.diagnostics | Should -Be $true
+        Invoke-VerifyMock $mocks -Times 1
+    }
+
     It 'merges the branches that it can' {
         $mocks = Initialize-MergeTogether `
             -allBranches @('feature/FOO-1', 'feature/FOO-2', 'feature/FOO-3') `
@@ -58,6 +72,24 @@ Describe 'Invoke-MergeTogether' {
         $result.successful | Should -Be @('feature/FOO-1', 'feature/FOO-3')
         $result.hasChanges | Should -Be $true
         $fw.diagnostics | Should -Not -BeNullOrEmpty
+        Get-HasErrorDiagnostic $fw.diagnostics | Should -Be $false
+        Invoke-VerifyMock $mocks -Times 1
+    }
+
+    It 'correctly handles when no changes occur with a branch' {
+        $mocks = Initialize-MergeTogether `
+            -allBranches @('feature/FOO-1', 'feature/FOO-2', 'feature/FOO-3') `
+            -successfulBranches @('feature/FOO-1', 'feature/FOO-3') `
+            -noChangeBranches @('feature/FOO-2') `
+            -resultCommitish 'result-commitish' `
+            -messageTemplate 'Merge {}'
+
+        $result = Invoke-MergeTogether @('feature/FOO-1', 'feature/FOO-2', 'feature/FOO-3') -diagnostics $fw.diagnostics -asWarnings
+        $result.result | Should -Be 'result-commitish'
+        $result.failed | Should -Be @()
+        $result.successful | Should -Be @('feature/FOO-1', 'feature/FOO-3')
+        $result.hasChanges | Should -Be $true
+        $fw.diagnostics | Should -BeNullOrEmpty
         Get-HasErrorDiagnostic $fw.diagnostics | Should -Be $false
         Invoke-VerifyMock $mocks -Times 1
     }
