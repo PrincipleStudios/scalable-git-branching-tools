@@ -146,6 +146,57 @@ Describe 'git-verify-updated' {
             & $PSScriptRoot/git-verify-updated.ps1 -target feature/PS-2 -recurse
             Invoke-VerifyMock $mocks -Times 1
         }
+
+        It 'uses the branch specified, and fails on the first out-of-date branch' {
+            $remote = $(Get-Configuration).remote
+            $remotePrefix = $remote ? "$remote/" : ""
+            $initialCommits = @{
+                "$($remotePrefix)main" = "$($remotePrefix)main-commitish"
+                "$($remotePrefix)feature/PS-1" = "$($remotePrefix)feature/PS-1-commitish"
+                "$($remotePrefix)infra/ts-update" = "$($remotePrefix)infra/ts-update-commitish"
+                "$($remotePrefix)infra/build-improvements" = "$($remotePrefix)infra/build-improvements-commitish"
+                "$($remotePrefix)feature/PS-2" = "$($remotePrefix)feature/PS-2-commitish"
+            }
+
+            $mocks = @(
+                Initialize-AssertValidBranchName 'feature/PS-2'
+                Initialize-LocalActionAssertExistence -branches @('feature/PS-2') -shouldExist $true
+                Initialize-LocalActionAssertPushedSuccess 'feature/PS-2'
+                Initialize-UpstreamBranches @{
+                    'feature/PS-2' = @('feature/PS-1','infra/build-improvements')
+                    'feature/PS-1' = @('infra/ts-update')
+                    'infra/build-improvements' = @('infra/ts-update')
+                    'infra/ts-update' = @('main')
+                }
+                Initialize-LocalActionAssertPushedSuccess 'feature/PS-1'
+                Initialize-LocalActionAssertPushedSuccess 'infra/build-improvements'
+                Initialize-LocalActionAssertPushedSuccess 'infra/ts-update'
+                Initialize-LocalActionAssertPushedSuccess 'main'
+
+                Initialize-LocalActionMergeBranches `
+                    -upstreamBranches @('main') `
+                    -noChangeBranches @('main') `
+                    -resultCommitish $initialCommits["$($remotePrefix)infra/ts-update"] `
+                    -source 'infra/ts-update' `
+                    -initialCommits $initialCommits
+                Initialize-LocalActionMergeBranches `
+                    -upstreamBranches @('infra/ts-update') `
+                    -noChangeBranches @('infra/ts-update') `
+                    -resultCommitish $initialCommits["$($remotePrefix)feature/PS-1"] `
+                    -source 'feature/PS-1' `
+                    -initialCommits $initialCommits
+                Initialize-LocalActionMergeBranches `
+                    -upstreamBranches @('infra/ts-update') `
+                    -resultCommitish $initialCommits["$($remotePrefix)infra/build-improvements"] `
+                    -source 'infra/build-improvements' `
+                    -initialCommits $initialCommits
+            )
+
+            { & $PSScriptRoot/git-verify-updated.ps1 -target feature/PS-2 -recurse }
+                | Should -Throw "WARN: Could not merge the following branches: $($remotePrefix)infra/ts-update
+ERR:  infra/build-improvements has incoming conflicts from infra/ts-update."
+            Invoke-VerifyMock $mocks -Times 1
+        }
     }
 
     Context 'without a remote' {

@@ -51,12 +51,6 @@ Describe 'local action "recurse"' {
                 }]
             }'
         }
-
-        [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
-        $depthFirstInnerScript = Get-InnerScript "depth-first"
-
-        [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
-        $depthFirstInnerScript = Get-InnerScript "breadth-first"
     }
 
     Context 'depth-first' {
@@ -88,6 +82,32 @@ Describe 'local action "recurse"' {
             Invoke-FlushAssertDiagnostic $fw.diagnostics
             $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
         }
+
+        It 'leverages $previous to not repeat inputs' {
+            Initialize-LocalActionRecurseSuccess -ScriptName "mock-script" -ScriptContents $innerScript
+            Initialize-FakeLocalAction "get-children" {
+                param($target)
+                if ($target -eq '10') { return @('11', '12', '13') }
+                if ($target -eq '20') { return @('21', '22', '13') }
+            } 
+            Initialize-FakeLocalAction "handle-target" {
+                param($target)
+                return $target
+                if ($target -eq '11') { return '1' }
+                if ($target -eq '12') { return '2' }
+                if ($target -eq '13') { return '3' }
+                if ($target -eq '10') { return '4' }
+                if ($target -eq '21') { return '5' }
+                if ($target -eq '22') { return '6' }
+                if ($target -eq '20') { return '7' }
+            }
+
+            $output = Invoke-LocalAction $standardScript -diagnostics $fw.diagnostics
+            $output | Should -Be '11 12 13 10 21 22 20'
+
+            Invoke-FlushAssertDiagnostic $fw.diagnostics
+            $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
+        }
     }
 
     Context 'breadth-first' {
@@ -102,7 +122,7 @@ Describe 'local action "recurse"' {
                 param($target)
                 if ($target -eq '10') { return @('11', '12') }
                 if ($target -eq '20') { return @('21', '22') }
-            } 
+            }
             Initialize-FakeLocalAction "handle-target" {
                 param($target)
                 if ($target -eq '10') { return '1' }
@@ -115,6 +135,31 @@ Describe 'local action "recurse"' {
 
             $output = Invoke-LocalAction $standardScript -diagnostics $fw.diagnostics
             $output | Should -Be '1 2 3 4 5 6'
+
+            Invoke-FlushAssertDiagnostic $fw.diagnostics
+            $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
+        }
+
+        It 'leverages $previous to not repeat inputs' {
+            Initialize-LocalActionRecurseSuccess -ScriptName "mock-script" -ScriptContents $innerScript
+            Initialize-FakeLocalAction "get-children" {
+                param($target)
+                if ($target -eq '10') { return @('11', '12', '13') }
+                if ($target -eq '20') { return @('21', '22', '13') }
+            } 
+            Initialize-FakeLocalAction "handle-target" {
+                param($target)
+                if ($target -eq '10') { return '1' }
+                if ($target -eq '20') { return '2' }
+                if ($target -eq '11') { return '3' }
+                if ($target -eq '12') { return '4' }
+                if ($target -eq '13') { return '5' }
+                if ($target -eq '21') { return '6' }
+                if ($target -eq '22') { return '7' }
+            }
+
+            $output = Invoke-LocalAction $standardScript -diagnostics $fw.diagnostics
+            $output | Should -Be '1 2 3 4 5 6 7'
 
             Invoke-FlushAssertDiagnostic $fw.diagnostics
             $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
