@@ -42,10 +42,6 @@ function Register-LocalActionRecurse([PSObject] $localActions) {
         [System.Collections.ArrayList]$inputStack = @() + $inputParameters
         [System.Collections.ArrayList]$pendingAct = @()
 
-        if ($depthFirst) {
-            $inputStack.Reverse()
-        }
-
         $init = New-SafeScript -header 'param($recursionContext)' `
             -script ($instructions.recursion.init ?? '$null')
         $paramScript = New-SafeScript -header 'param($actions, $params, $previous, $recursionContext)' `
@@ -59,6 +55,12 @@ function Register-LocalActionRecurse([PSObject] $localActions) {
 
         (& $init -recursionContext $recursionContext) > $null
 
+        # depth first with a stack requires an extra check to revisit the item
+        # an extra time. This hashmap allows an object as the key and tracks
+        # which parameters are in the stack a second time, meaning their
+        # children have already been processed.
+        $depthFirstComplete = @{}
+
         while ($inputStack.Count -gt 0) {
             $params = $inputStack[0];
             $inputStack.RemoveAt(0);
@@ -68,6 +70,10 @@ function Register-LocalActionRecurse([PSObject] $localActions) {
                 actions = $actions;
                 recursionContext = $recursionContext;
             }
+            if ($depthFirst -AND $depthFirstComplete[$params]) {
+                $pendingAct.Add($params) > $null
+                continue
+            }
             $inputs.actions = Invoke-Prepare -prepareScripts $instructions.prepare @inputs @commonParams
             [array]$newParams = (& $paramScript -actions $inputs.actions -params $inputs.params -previous $allInputs -recursionContext $recursionContext)
             if ($addDepthParam -AND $null -ne $newParams) {
@@ -76,11 +82,11 @@ function Register-LocalActionRecurse([PSObject] $localActions) {
             $canAct = (& $canActScript -actions $inputs.actions -params $inputs.params -recursionContext $recursionContext)
             if ($depthFirst) {
                 if ($canAct) {
-                    $pendingAct.Insert(0, $inputs)
+                    $inputStack.Insert(0, $inputs) > $null
+                    $depthFirstComplete[$inputs] = $true
                 }
                 if ($null -ne $newParams) {
                     [array]$newParams = @() + [array]$newParams
-                    [array]::Reverse($newParams)
                     $inputStack.InsertRange(0, $newParams)
                 }
             } else {

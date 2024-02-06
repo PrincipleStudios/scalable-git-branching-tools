@@ -2,7 +2,9 @@
 
 Param(
     [Parameter()][String] $target,
-    [switch] $recurse
+    [switch] $recurse,
+    [switch] $noFetch,
+    [switch] $quiet
 )
 
 Import-Module -Scope Local "$PSScriptRoot/utils/input.psm1"
@@ -13,4 +15,4 @@ Invoke-JsonScript -scriptPath "$PSScriptRoot/git-verify-updated.json" -params @{
     target = ($target ? $target : (Get-CurrentBranch ?? ''));
     recurse = $recurse;
     includeRemote = $includeRemote;
-} -dryRun:$dryRun
+} -dryRun:$dryRun -noFetch:$noFetch -quiet:$quiet
