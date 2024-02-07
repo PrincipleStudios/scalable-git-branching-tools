@@ -6,10 +6,12 @@ function Register-LocalActionGetUpstream([PSObject] $localActions) {
     $localActions['get-upstream'] = {
         param(
             [Parameter(Mandatory)][string] $target,
+            [switch] $recurse,
+            [switch] $includeRemote,
             [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
         )
 
-        [string[]]$result = Select-UpstreamBranches -branchName $target
+        [string[]]$result = Select-UpstreamBranches -branchName $target -recurse:$recurse -includeRemote:$includeRemote
         
         return $result
     }

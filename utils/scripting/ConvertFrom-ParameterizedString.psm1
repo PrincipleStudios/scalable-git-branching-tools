@@ -1,21 +1,20 @@
 Import-Module -Scope Local "$PSScriptRoot/../framework.psm1"
+Import-Module -Scope Local "$PSScriptRoot/New-Closure.psm1"
 
 function ConvertFrom-ParameterizedString(
     [string] $script, 
-    [PSObject] $config,
-    [PSObject] $params,
-    [PSObject] $actions,
+    [Parameter(Mandatory)][PSObject] $variables,
     [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics,
     [switch] $failOnError
 ) {
-    $targetScript = [ScriptBlock]::Create('
+    $targetScript = New-Closure ([ScriptBlock]::Create('
     Set-StrictMode -Version 3.0; 
     try {
         "' + $script.replace('`', '``').replace('"', '`"') + '"
     } catch {
         $null
     }
-    ')
+    ')) -variables $variables
     $entry = Invoke-Command -ScriptBlock $targetScript
     if ($null -eq $entry) {
         if ($failOnError) {

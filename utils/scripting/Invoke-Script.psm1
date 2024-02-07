@@ -17,7 +17,8 @@ function Invoke-Script(
 
         for ($i = 0; $i -lt $script.local.Count; $i++) {
             $name = $script.local[$i].id ?? "#$($i + 1) (1-based)";
-            $local = ConvertFrom-ParameterizedAnything -script $script.local[$i] -config $config -params $params -actions $actions -diagnostics $diagnostics
+            $variables = @{ config=$config; params=$params; actions=$actions }
+            $local = ConvertFrom-ParameterizedAnything -script $script.local[$i] -variables $variables -diagnostics $diagnostics
             if ($local.fail) {
                 Add-ErrorDiagnostic $diagnostics "Could not apply parameters to local action $name; see above errors. Evaluation below:"
                 Add-ErrorDiagnostic $diagnostics "$(ConvertTo-Json $local.result -Depth 10)"
@@ -33,45 +34,44 @@ function Invoke-Script(
                 Add-ErrorDiagnostic $diagnostics "$(ConvertTo-Json $local.result -Depth 10)"
                 Add-ErrorException $diagnostics $_
             }
-            if (Get-HasErrorDiagnostic $diagnostics) {
-                # Don't bother continuing if anything failed; this leads to lots of noise in failed applied parameters
-                break
-            }
-        }
-
-        Assert-Diagnostics $diagnostics
-        
-        $allFinalize = ConvertFrom-ParameterizedAnything -script $script.finalize -config $config -params $params -actions $actions -diagnostics $diagnostics
-        if ($allFinalize.fail) {
-            Add-ErrorDiagnostic $diagnostics "Could not apply parameters for finalize actions; see above errors."
             Assert-Diagnostics $diagnostics
         }
 
-        $allFinalizeScripts = $allFinalize.result
-        if ($dryRun) {
-            Write-Host -ForegroundColor Yellow "Executing dry run; would run the following commands:"
-        }
-
-        for ($i = 0; $i -lt $allFinalizeScripts.Count; $i++) {
-            $name = $allFinalizeScripts[$i].id ?? "#$($i + 1) (1-based)";
-            $finalize = $allFinalizeScripts[$i]
-            try {
-                $outputs = Invoke-FinalizeAction $finalize -diagnostics $diagnostics -dryRun:$dryRun
-                if ($dryRun) {
-                    $outputs | Write-Host
-                }
-                if ($null -ne $finalize.id) {
-                    $actions += @{ $finalize.id = @{ outputs = $outputs } }
-                }
-            } catch {
-                Add-ErrorDiagnostic $diagnostics "Encountered error while running finalize action $($name): see the following error."
-                Add-ErrorException $diagnostics $_
+        if ($script.finalize) {
+            $variables = @{ config=$config; params=$params; actions=$actions }
+            $allFinalize = ConvertFrom-ParameterizedAnything -script $script.finalize -variables $variables -diagnostics $diagnostics
+            if ($allFinalize.fail) {
+                Add-ErrorDiagnostic $diagnostics "Could not apply parameters for finalize actions; see above errors."
+                Assert-Diagnostics $diagnostics
             }
-            Assert-Diagnostics $diagnostics
+
+            $allFinalizeScripts = $allFinalize.result
+            if ($dryRun) {
+                Write-Host -ForegroundColor Yellow "Executing dry run; would run the following commands:"
+            }
+
+            for ($i = 0; $i -lt $allFinalizeScripts.Count; $i++) {
+                $name = $allFinalizeScripts[$i].id ?? "#$($i + 1) (1-based)";
+                $finalize = $allFinalizeScripts[$i]
+                try {
+                    $outputs = Invoke-FinalizeAction $finalize -diagnostics $diagnostics -dryRun:$dryRun
+                    if ($dryRun) {
+                        $outputs | Write-Host
+                    }
+                    if ($null -ne $finalize.id) {
+                        $actions += @{ $finalize.id = @{ outputs = $outputs } }
+                    }
+                } catch {
+                    Add-ErrorDiagnostic $diagnostics "Encountered error while running finalize action $($name): see the following error."
+                    Add-ErrorException $diagnostics $_
+                }
+                Assert-Diagnostics $diagnostics
+            }
         }
         
         if ($null -ne $script.output -AND -not $dryRun) {
-            $allOutput = ConvertFrom-ParameterizedAnything -script $script.output -config $config -params $params -actions $actions -diagnostics $diagnostics
+            $variables = @{ config=$config; params=$params; actions=$actions }
+            $allOutput = ConvertFrom-ParameterizedAnything -script $script.output -variables $variables -diagnostics $diagnostics
             $allOutput.result | Write-Output
         }
     } catch {

@@ -14,30 +14,19 @@
             }
         },
         {
-            "type": "assert-pushed",
+            "id": "merge-recurse",
+            "type": "recurse",
             "parameters": {
-                "target": "$params.target"
+                "inputParameters": [{
+                    "target": "$params.target",
+                    "recurse": "$params.recurse"
+                }],
+                "path": "git-pull-upstream.recurse.json"
             }
         },
         {
-            "id": "get-upstream",
-            "type": "get-upstream",
-            "parameters": {
-                "target": "$params.target"
-            }
-        },
-        {
-            "id": "merge-branches",
-            "type": "merge-branches",
-            "parameters": {
-                "source": "$($params.target)",
-                "upstreamBranches": ["$actions['get-upstream'].outputs"],
-                "mergeMessageTemplate": "Merge '{}' to $($params.target)"
-            }
-        },
-        { 
             "type": "add-diagnostic",
-            "condition": "$actions['merge-branches'].outputs['hasChanges'] ? $false : $true",
+            "condition": "$actions['merge-recurse'].outputs.hasChanges ? $false : $true",
             "parameters": {
                 "isWarning": true,
                 "message": "No updates found."
@@ -47,18 +36,16 @@
     "finalize": [
         {
             "type": "set-branches",
-            "condition": "$actions['merge-branches'].outputs['hasChanges']",
+            "condition": "$actions['merge-recurse'].outputs.hasChanges",
             "parameters": {
-                "branches": {
-                    "$params.target": "$actions['merge-branches'].outputs['commit']"
-                }
+                "branches": "$actions['merge-recurse'].outputs.push"
             }
         },
         {
             "type": "track",
-            "condition": "$actions['merge-branches'].outputs['hasChanges']",
+            "condition": "$actions['merge-recurse'].outputs.hasChanges",
             "parameters": {
-                "branches": ["$params.target"]
+                "branches": ["$actions['merge-recurse'].outputs.track"]
             }
         }
     ],

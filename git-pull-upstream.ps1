@@ -2,6 +2,7 @@
 
 Param(
     [Parameter()][String] $target,
+    [switch] $recurse,
     [switch] $dryRun
 )
 
@@ -11,4 +12,5 @@ Import-Module -Scope Local "$PSScriptRoot/utils/query-state.psm1"
 
 Invoke-JsonScript -scriptPath "$PSScriptRoot/git-pull-upstream.json" -params @{
     target = ($target ? $target : (Get-CurrentBranch ?? ''))
+    recurse = $recurse
 } -dryRun:$dryRun

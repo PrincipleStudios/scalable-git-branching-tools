@@ -17,6 +17,9 @@ function Register-LocalActionSetUpstream([PSObject] $localActions) {
         }
         
         $commit = Set-GitFiles $contents -m $message -initialCommitish $upstreamBranch
+        if ($null -eq $commit) {
+            throw "Set-GitFiles was unable to create a new commit."
+        }
         return @{
             commit = $commit
         }
