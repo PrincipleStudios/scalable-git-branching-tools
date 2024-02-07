@@ -174,6 +174,33 @@ Describe 'Invoke-MergeTogether' {
         Invoke-VerifyMock $mocks -Times 1
     }
     
+    It 'can allow for overrides on commit resolution' {
+        $mocks = Initialize-MergeTogether @('feature/FOO-1', 'feature/FOO-2', 'feature/FOO-3') `
+            -successfulBranches @('feature/FOO-1', 'feature/FOO-2', 'feature/FOO-3') `
+            -initialCommits @{
+                'feature/FOO-1' = '1'
+                'feature/FOO-2' = '2'
+                'feature/FOO-3' = '3'
+            } `
+            -skipRevParse @('feature/FOO-1', 'feature/FOO-2', 'feature/FOO-3') `
+            -resultCommitish 'result-commitish'
+
+        $result = Invoke-MergeTogether @('feature/FOO-1', 'feature/FOO-2', 'feature/FOO-3') `
+            -commitMappingOverride @{
+                'feature/FOO-1' = '1'
+                'feature/FOO-2' = '2'
+                'feature/FOO-3' = '3'
+            } `
+            -diagnostics $fw.diagnostics
+
+        $result.result | Should -Be 'result-commitish'
+        $result.failed | Should -Be @()
+        $result.successful | Should -Be @('feature/FOO-1', 'feature/FOO-2', 'feature/FOO-3')
+        $result.hasChanges | Should -Be $true
+        $fw.diagnostics | Should -BeNullOrEmpty
+        Invoke-VerifyMock $mocks -Times 1
+    }
+    
     It 'succeeds with no changes if only one branch is provided' {
         $mocks = Initialize-MergeTogether @('feature/FOO-1') -successfulBranches @('feature/FOO-1') -resultCommitish 'result-commitish'
 

@@ -47,6 +47,18 @@ The contents of the recursion script should be something like the following:
 If `depth-first`, recursion will be done via a depth-first strategy. Otherwise,
 recursion will be breadth-first.
 
+### `recursion.init`
+
+A powershell script that:
+- runs before any other scripts
+- receives the following variables:
+    - `$recursionContext` is an object scoped to the recursion script that will
+      remain persistent for the action's duration; additional properties may be
+      added.
+- the return value is unused
+
+The script may be an array, where each string is a separate line.
+
 ### `recursion.paramScript`
 
 A powershell script that:
@@ -54,7 +66,12 @@ A powershell script that:
 - receives the following variables:
     - `$params` contains the current input object of the recursive algorithm.
     - `$actions` is the result of the `prepare` actions
+    - `$recursionContext` is an object scoped to the recursion script that will
+      remain persistent for the action's duration; additional properties may be
+      added.
 - should return an array of new inputs for the recursive algorithm
+
+The script may be an array, where each string is a separate line.
 
 ### `recursion.map`
 
@@ -63,7 +80,12 @@ A powershell script that:
 - receives the following variables:
     - `$params` contains the current input object of the recursive algorithm.
     - `$actions` is the result of the `prepare` actions
+    - `$recursionContext` is an object scoped to the recursion script that will
+      remain persistent for the action's duration; additional properties may be
+      added.
 - should return a value to be reduced in the `recursion.reduceToOutput` script
+
+The script may be an array, where each string is a separate line.
 
 ### `recursion.reduceToOutput`
 
@@ -72,8 +94,13 @@ A powershell script that:
 - receives the following variables:
     - `$mapped` is an array containing the results of each previous
       `recursion.map` script
+    - `$recursionContext` is an object scoped to the recursion script that will
+      remain persistent for the action's duration; additional properties may be
+      added.
 - returns the value to be bound to the output of the `recurse` action that
   invoked the script
+
+The script may be an array, where each string is a separate line.
 
 ### `recursion.actCondition`
 
@@ -82,8 +109,13 @@ An optional powershell script that:
 - receives the following variables:
     - `$params` contains the current input object of the recursive algorithm.
     - `$actions` is the result of the `prepare` actions
+    - `$recursionContext` is an object scoped to the recursion script that will
+      remain persistent for the action's duration; additional properties may be
+      added.
 - returns a falsy value if the `act` actions should not be run for this
   recursive input
+
+The script may be an array, where each string is a separate line.
 
 ### `prepare`
 

@@ -4,12 +4,12 @@ Import-Module -Scope Local "$PSScriptRoot/../../query-state.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../scripting/ConvertFrom-ParameterizedAnything.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../Invoke-LocalAction.internal.psm1"
 
-function New-SafeScript([string] $header, [string] $script) {
+function New-SafeScript([string] $header, [string[]] $script) {
     return [ScriptBlock]::Create("
         $header
         Set-StrictMode -Version 3.0; 
         try {
-            $script
+            $($script -join "`n")
         } catch {
         }
     ")
@@ -29,6 +29,7 @@ function Register-LocalActionRecurse([PSObject] $localActions) {
             config = $config
             diagnostics = $diagnostics
         }
+        $recursionContext = @{}
 
         $instructions = Get-Content "$PSScriptRoot/../../../$path" | ConvertFrom-Json
         $depthFirst = $instructions.recursion.mode -eq 'depth-first'
@@ -41,14 +42,18 @@ function Register-LocalActionRecurse([PSObject] $localActions) {
         [System.Collections.ArrayList]$inputStack = @() + $inputParameters
         [System.Collections.ArrayList]$pendingAct = @()
 
-        $paramScript = New-SafeScript -header 'param($actions, $params, $previous)' `
+        $init = New-SafeScript -header 'param($recursionContext)' `
+            -script ($instructions.recursion.init ?? '$null')
+        $paramScript = New-SafeScript -header 'param($actions, $params, $previous, $recursionContext)' `
             -script $instructions.recursion.paramScript 
-        $canActScript = New-SafeScript -header 'param($actions, $params)' `
+        $canActScript = New-SafeScript -header 'param($actions, $params, $recursionContext)' `
             -script ($instructions.recursion.actCondition ?? '$true')
-        $mapScript = New-SafeScript -header 'param($actions, $params)' `
-            -script $instructions.recursion.map
-        $reduceToOutput = New-SafeScript -header 'param($mapped)' `
-            -script $instructions.recursion.reduceToOutput
+        $mapScript = New-SafeScript -header 'param($actions, $params, $recursionContext)' `
+            -script ($instructions.recursion.map ?? '$null')
+        $reduceToOutput = New-SafeScript -header 'param($mapped, $recursionContext)' `
+            -script ($instructions.recursion.reduceToOutput ?? '$null')
+
+        (& $init -recursionContext $recursionContext) > $null
 
         # depth first with a stack requires an extra check to revisit the item
         # an extra time. This hashmap allows an object as the key and tracks
@@ -63,17 +68,18 @@ function Register-LocalActionRecurse([PSObject] $localActions) {
             $inputs = @{
                 params = $params;
                 actions = $actions;
+                recursionContext = $recursionContext;
             }
             if ($depthFirst -AND $depthFirstComplete[$params]) {
                 $pendingAct.Add($params) > $null
                 continue
             }
             $inputs.actions = Invoke-Prepare -prepareScripts $instructions.prepare @inputs @commonParams
-            [array]$newParams = (& $paramScript -actions $inputs.actions -params $inputs.params -previous $allInputs)
+            [array]$newParams = (& $paramScript -actions $inputs.actions -params $inputs.params -previous $allInputs -recursionContext $recursionContext)
             if ($addDepthParam -AND $null -ne $newParams) {
                 [array]$newParams = $newParams | ForEach-Object { (ConvertTo-Hashtable $_) + @{ depth = $params.depth + 1 } }
             }
-            $canAct = (& $canActScript -actions $inputs.actions -params $inputs.params)
+            $canAct = (& $canActScript -actions $inputs.actions -params $inputs.params -recursionContext $recursionContext)
             if ($depthFirst) {
                 if ($canAct) {
                     $inputStack.Insert(0, $inputs) > $null
@@ -104,14 +110,14 @@ function Register-LocalActionRecurse([PSObject] $localActions) {
             $inputs = $pendingAct[0]
             $pendingAct.RemoveAt(0);
             $inputs.actions = Invoke-Act -actScripts $instructions.act @inputs @commonParams
-            $mapResult = & $mapScript -actions $inputs.actions -params $inputs.params
+            $mapResult = & $mapScript -actions $inputs.actions -params $inputs.params -recursionContext $recursionContext
             $mapped.Add($mapResult) > $null
             if (Get-HasErrorDiagnostic $diagnostics) {
                 return $null
             }
         }
 
-        return & $reduceToOutput -mapped $mapped
+        return & $reduceToOutput -mapped $mapped -recursionContext $recursionContext
     }
 }
 
@@ -120,13 +126,15 @@ function Invoke-Prepare(
     $prepareScripts,
     $params,
     $actions,
+    $recursionContext,
 
     [Parameter(Mandatory)][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
 ) {
     
     for ($i = 0; $i -lt $prepareScripts.Count; $i++) {
         $name = $prepareScripts[$i].id ?? "#$($i + 1) (1-based)";
-        $local = ConvertFrom-ParameterizedAnything -script $prepareScripts[$i] -config $config -params $params -actions $actions -diagnostics $diagnostics
+        $variables = @{ config=$config; params=$params; actions=$actions; recursionContext=$recursionContext }
+        $local = ConvertFrom-ParameterizedAnything -script $prepareScripts[$i] -variables $variables -diagnostics $diagnostics
         if ($local.fail) {
             Add-ErrorDiagnostic $diagnostics "Could not apply parameters to recursive prepare (local) action $name; see above errors. Evaluation below:"
             Add-ErrorDiagnostic $diagnostics "$(ConvertTo-Json $local.result -Depth 10)"
@@ -155,13 +163,15 @@ function Invoke-Act(
     $actScripts,
     $params,
     $actions,
+    $recursionContext,
 
     [Parameter(Mandatory)][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
 ) {
     
     for ($i = 0; $i -lt $actScripts.Count; $i++) {
         $name = $actScripts[$i].id ?? "#$($i + 1) (1-based)";
-        $local = ConvertFrom-ParameterizedAnything -script $actScripts[$i] -config $config -params $params -actions $actions -diagnostics $diagnostics
+        $variables = @{ config=$config; params=$params; actions=$actions; recursionContext=$recursionContext }
+        $local = ConvertFrom-ParameterizedAnything -script $actScripts[$i] -variables $variables -diagnostics $diagnostics
         if ($local.fail) {
             Add-ErrorDiagnostic $diagnostics "Could not apply parameters to recursive act (local) action $name; see above errors. Evaluation below:"
             Add-ErrorDiagnostic $diagnostics "$(ConvertTo-Json $local.result -Depth 10)"

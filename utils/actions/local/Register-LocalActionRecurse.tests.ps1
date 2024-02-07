@@ -31,7 +31,11 @@ Describe 'local action "recurse"' {
             return '{
                 "recursion": {
                     "mode": "' + $mode + '",
-                    "paramScript": "$actions.children.outputs | Where-Object { $null -ne $_ -AND $_ -notin ($previous | ForEach-Object { $_.target }) } | ForEach-Object { @{ target = $_ } }",
+                    "paramScript": [
+                        "$actions.children.outputs | ",
+                        "    Where-Object { $null -ne $_ -AND $_ -notin ($previous | ForEach-Object { $_.target }) } |",
+                        "    ForEach-Object { @{ target = $_ } }"
+                    ],
                     "map": "$actions.handled.outputs",
                     "reduceToOutput": "$mapped -join \" \""
                 },
@@ -164,5 +168,59 @@ Describe 'local action "recurse"' {
             Invoke-FlushAssertDiagnostic $fw.diagnostics
             $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
         }
+    }
+
+    It 'has a recursion context for a scratch pad' {
+        Initialize-LocalActionRecurseSuccess -ScriptName "mock-script" -ScriptContents '{
+            "recursion": {
+                "mode": "depth-first",
+                "paramScript": [
+                    "$actions.children.outputs | ",
+                    "    Where-Object { $null -ne $_ -AND $_ -notin ($previous | ForEach-Object { $_.target }) } |",
+                    "    ForEach-Object { @{ target = $_ } }"
+                ],
+                "init": "$recursionContext.current = 0",
+                "reduceToOutput": "$recursionContext.current"
+            },
+            "prepare": [{
+                "id": "children",
+                "type": "get-children",
+                "parameters": {
+                    "target": "$params.target"
+                }
+            }],
+            "act": [{
+                "id": "handled",
+                "type": "handle-target",
+                "parameters": {
+                    "target": "$params.target"
+                }
+            }, {
+                "type": "evaluate",
+                "parameters": {
+                    "result": "$recursionContext.current = $recursionContext.current + $actions.handled.outputs"
+                }
+            }]
+        }'
+        Initialize-FakeLocalAction "get-children" {
+            param($target)
+            if ($target -eq '10') { return @('11', '12') }
+            if ($target -eq '20') { return @('21', '22') }
+        } 
+        Initialize-FakeLocalAction "handle-target" {
+            param($target)
+            if ($target -eq '10') { return '1' }
+            if ($target -eq '11') { return '2' }
+            if ($target -eq '12') { return '3' }
+            if ($target -eq '20') { return '4' }
+            if ($target -eq '21') { return '5' }
+            if ($target -eq '22') { return '6' }
+        }
+
+        $output = Invoke-LocalAction $standardScript -diagnostics $fw.diagnostics
+
+        Invoke-FlushAssertDiagnostic $fw.diagnostics
+        $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
+        $output | Should -Be 21
     }
 }

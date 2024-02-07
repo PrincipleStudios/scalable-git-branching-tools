@@ -1,4 +1,5 @@
 Import-Module -Scope Local "$PSScriptRoot/../framework.psm1"
+Import-Module -Scope Local "$PSScriptRoot/New-Closure.psm1"
 Import-Module -Scope Local "$PSScriptRoot/ConvertFrom-ParameterizedString.psm1"
 Import-Module -Scope Local "$PSScriptRoot/ConvertFrom-ParameterizedArray.psm1"
 Import-Module -Scope Local "$PSScriptRoot/ConvertFrom-ParameterizedObject.psm1"
@@ -10,9 +11,7 @@ Import-Module -Scope Local "$PSScriptRoot/ConvertFrom-ParameterizedObject.psm1"
 #>
 function ConvertFrom-ParameterizedAnything(
     [Parameter(Mandatory)][AllowNull()][PSCustomObject] $script,
-    [Parameter(Mandatory)][PSObject] $config,
-    [Parameter(Mandatory)][PSObject] $params,
-    [Parameter(Mandatory)][PSObject] $actions,
+    [Parameter(Mandatory)][PSObject] $variables,
     [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics,
     [switch] $failOnError
 ) {
@@ -22,14 +21,14 @@ function ConvertFrom-ParameterizedAnything(
         return @{ result = $script; fail = $false }
     } elseif ($script -is [string] -AND $script[0] -eq '$' -AND $script[1] -ne '(') {
         try {
-            $targetScript = [ScriptBlock]::Create('
+            $targetScript = New-Closure ([ScriptBlock]::Create('
                 Set-StrictMode -Version 3.0; 
                 try {
                     @{ result = ' + $script.replace('`', '``').replace('{', '`{').replace('}', '`}').replace(';', '`;') + '; fail = $false }
                 } catch {
                     $null
                 }
-            ')
+            ')) -variables $variables
             $entry = Invoke-Command -ScriptBlock $targetScript
         } catch {
             $entry = $null

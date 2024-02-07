@@ -9,6 +9,7 @@ function Initialize-LocalActionMergeBranches(
     [AllowEmptyCollection()][string[]] $successfulBranches,
     [AllowEmptyCollection()][string[]] $noChangeBranches,
     [Parameter()][Hashtable] $initialCommits = @{},
+    [Parameter()][string[]] $skipRevParse = @(),
     [Parameter()][string] $resultCommitish,
     [Parameter()][string] $mergeMessageTemplate = "Merge {}",
     [Parameter()][string] $source,
@@ -31,6 +32,7 @@ function Initialize-LocalActionMergeBranches(
 
     Initialize-MergeTogether -allBranches $upstreamBranches -successfulBranches $successfulBranches -noChangeBranches $noChangeBranches `
         -initialCommits $initialCommits `
+        -skipRevParse $skipRevParse `
         -source $source `
         -messageTemplate $mergeMessageTemplate `
         -resultCommitish $resultCommitish
