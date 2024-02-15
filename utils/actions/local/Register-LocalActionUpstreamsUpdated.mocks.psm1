@@ -26,10 +26,10 @@ function Initialize-LocalActionUpstreamsUpdated(
 
         if ($upToDate -contains $branch) {
             Invoke-MockGit "for-each-ref --format=%(refname:lstrip=3) %(ahead-behind:$target) $fullyQualifiedUpstreams" `
-                -mockWith (($upstreams | ForEach-Object { "$_ 5 0" }))
+                -mockWith (($upstreams | ForEach-Object { "$_ 0 5" }))
         } else {
             Invoke-MockGit "for-each-ref --format=%(refname:lstrip=3) %(ahead-behind:$target) $fullyQualifiedUpstreams" `
-                -mockWith (($upstreams | ForEach-Object { "$_ 5 $($outOfDate[$branch] -contains $_ ? '1' : '0' )" }))
+                -mockWith (($upstreams | ForEach-Object { "$_ $($outOfDate[$branch] -contains $_ ? '1' : '0' ) 5" }))
         }
     }
 }
