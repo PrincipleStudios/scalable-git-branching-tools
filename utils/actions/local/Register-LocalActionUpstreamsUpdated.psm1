@@ -27,7 +27,7 @@ function Register-LocalActionUpstreamsUpdated([PSObject] $localActions) {
             [string[]]$upstreamResults = Invoke-ProcessLogs "git for-each-ref --format=`"%(refname:lstrip=3) %(ahead-behind:$target)`" $fullyQualifiedUpstreams" {
                 git for-each-ref --format="%(refname:lstrip=3) %(ahead-behind:$target)" @fullyQualifiedUpstreams
             } -allowSuccessOutput
-            $outOfDate = ($upstreamResults | Where-Object { ($_ -split ' ')[2] -gt 0 } | ForEach-Object { ($_ -split ' ')[0] })
+            $outOfDate = ($upstreamResults | Where-Object { ($_ -split ' ')[1] -gt 0 } | ForEach-Object { ($_ -split ' ')[0] })
             if ($outOfDate.Count -gt 0) {
                 $needsUpdate[$branch] = $outOfDate
             } else {
