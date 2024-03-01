@@ -26,7 +26,7 @@
         },
         {
             "type": "add-diagnostic",
-            "condition": "$actions['merge-recurse'].outputs.hasChanges ? $false : $true",
+            "condition": "$actions['merge-recurse'].outputs.hasChanges -OR $actions['merge-recurse'].outputs.hasFailures ? $false : $true",
             "parameters": {
                 "isWarning": true,
                 "message": "No updates found."
@@ -50,6 +50,6 @@
         }
     ],
     "output": [
-        "$($params.target) has been updated with its upstream branches"
+        "$($actions['merge-recurse'].outputs.hasFailures ? \"$($params.target) requires manual merges from $($actions['merge-recurse'].outputs.failures[$params.target])\" : \"$($params.target) has been updated with its upstream branches\")"
     ]
 }

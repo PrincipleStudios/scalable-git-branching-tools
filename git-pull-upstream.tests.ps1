@@ -88,6 +88,7 @@ Describe 'git-pull-upstream' {
             & $PSScriptRoot/git-pull-upstream.ps1
             $fw.assertDiagnosticOutput | Should -Be @(
                 "WARN: Could not merge the following branches: $($remotePrefix)infra/refactor-api"
+                "WARN: feature/FOO-456 has incoming conflicts from infra/refactor-api. Resolve them before continuing."
             )
             Invoke-VerifyMock $mocks -Times 1
         }
