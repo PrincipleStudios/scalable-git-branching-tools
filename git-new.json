@@ -38,11 +38,19 @@
             }
         },
         {
-            "id": "create-branch",
+            "id": "createBranch",
             "type": "merge-branches",
             "parameters": {
                 "upstreamBranches": ["$actions['simplify-upstream'].outputs"],
                 "mergeMessageTemplate": "Merge '{}' for creation of $($params.branchName)"
+            }
+        },
+        { 
+            "type": "add-diagnostic",
+            "condition": "$actions.createBranch.outputs.failed -ne $null",
+            "parameters": {
+                "isWarning": true,
+                "message": "$($params.branchName) has incoming conflicts from $($actions.createBranch.outputs.failed). Be sure to manually merge."
             }
         }
     ],
@@ -52,7 +60,7 @@
             "parameters": {
                 "branches": {
                     "$config.upstreamBranch": "$actions['set-upstream'].outputs['commit']",
-                    "$params.branchName": "$actions['create-branch'].outputs['commit']"
+                    "$params.branchName": "$actions.createBranch.outputs['commit']"
                 }
             }
         },
