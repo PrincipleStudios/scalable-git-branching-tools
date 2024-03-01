@@ -193,8 +193,7 @@ Describe 'git-verify-updated' {
             )
 
             { & $PSScriptRoot/git-verify-updated.ps1 -target feature/PS-2 -recurse }
-                | Should -Throw "WARN: Could not merge the following branches: $($remotePrefix)infra/ts-update
-ERR:  infra/build-improvements has incoming conflicts from infra/ts-update."
+                | Should -Throw "ERR:  infra/build-improvements has incoming conflicts from infra/ts-update."
             Invoke-VerifyMock $mocks -Times 1
         }
     }

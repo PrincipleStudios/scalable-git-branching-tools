@@ -7,7 +7,8 @@ function Invoke-MergeTogether(
     [Parameter()][string] $messageTemplate = "Merge {}",
     [Parameter(Mandatory)][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics,
     [Parameter()][hashtable] $commitMappingOverride = @{},
-    [switch] $asWarnings
+    [switch] $asWarnings,
+    [switch] $noFailureMessages
 ) {
     function ResolveCommit($commitish) {
         if ($commitMappingOverride[$commitish]) {
@@ -57,7 +58,9 @@ function Invoke-MergeTogether(
             } else {
                 $remaining = $remaining | Where-Object { $_ -ne $target }
                 $failed += $target
-                if ($asWarnings) {
+                if ($noFailureMessages) {
+                    # Intentionally blank
+                } elseif ($asWarnings) {
                     Add-WarningDiagnostic $diagnostics "Could not resolve '$($target)'"
                 } else {
                     Add-ErrorDiagnostic $diagnostics "Could not resolve '$($target)'"
@@ -72,7 +75,9 @@ function Invoke-MergeTogether(
                     # If we can't resolve the commit, it'll never resolve
                     $remaining = $remaining | Where-Object { $_ -ne $target }
                     $failed += $target
-                    if ($asWarnings) {
+                    if ($noFailureMessages) {
+                        # Intentionally blank
+                    } elseif ($asWarnings) {
                         Add-WarningDiagnostic $diagnostics "Could not resolve '$($target)'"
                     } else {
                         Add-ErrorDiagnostic $diagnostics "Could not resolve '$($target)'"
@@ -109,7 +114,9 @@ function Invoke-MergeTogether(
                 break;
             }
             if ($allFailed -AND $remaining.Count -gt 0) {
-                if ($asWarnings) {
+                if ($noFailureMessages) {
+                    # Intentionally blank
+                } elseif ($asWarnings) {
                     Add-WarningDiagnostic $diagnostics "Could not merge the following branches: $remaining"
                 } else {
                     Add-ErrorDiagnostic $diagnostics "Could not merge the following branches: $remaining"

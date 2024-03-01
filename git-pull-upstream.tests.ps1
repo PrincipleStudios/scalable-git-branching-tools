@@ -66,9 +66,6 @@ Describe 'git-pull-upstream' {
         }
 
         It "merges upstream branches for the specified branch when an upstream branch cannot be merged" {
-            $remote = $(Get-Configuration).remote
-            $remotePrefix = $remote ? "$remote/" : ""
-
             $mocks = @(
                 Initialize-AssertValidBranchName 'feature/FOO-456'
                 Initialize-CurrentBranch 'feature/FOO-456'
@@ -87,7 +84,6 @@ Describe 'git-pull-upstream' {
 
             & $PSScriptRoot/git-pull-upstream.ps1
             $fw.assertDiagnosticOutput | Should -Be @(
-                "WARN: Could not merge the following branches: $($remotePrefix)infra/refactor-api"
                 "WARN: feature/FOO-456 has incoming conflicts from infra/refactor-api. Resolve them before continuing."
             )
             Invoke-VerifyMock $mocks -Times 1
