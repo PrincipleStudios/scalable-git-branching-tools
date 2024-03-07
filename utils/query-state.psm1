@@ -26,3 +26,6 @@ Export-ModuleMember -Function Get-LocalBranchForRemote
 
 Import-Module -Scope Local "$PSScriptRoot/query-state/Select-AllUpstreamBranches.psm1"
 Export-ModuleMember -Function Select-AllUpstreamBranches
+
+Import-Module -Scope Local "$PSScriptRoot/query-state/Select-DownstreamBranches.psm1"
+Export-ModuleMember -Function Select-DownstreamBranches
