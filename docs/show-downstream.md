@@ -4,8 +4,7 @@ Shows what the downstream branches are of the current (or specified) branch.
 
 Usage:
 
-    git-show-downstream.ps1 [-target <string>] [-recurse] [-includeRemote]
-        [-noFetch] [-quiet]
+    git-show-downstream.ps1 [-target <string>] [-recurse] [-noFetch] [-quiet]
 
 ## Parameters
 
@@ -17,12 +16,6 @@ current branch.
 ### `-recurse` (Optional)
 
 If specified, list all downstream branches recursively.
-
-### `-includeRemote` (Optional)
-
-If specified, include the remote name (if any) in the output branch list. For
-example, if the remote is `origin`, all branches listed would start with
-`origin/`.
 
 ## `-noFetch` (Optional)
 
