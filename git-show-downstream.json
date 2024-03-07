@@ -1,0 +1,14 @@
+{
+    "local": [
+        {
+            "id": "get-downstream",
+            "type": "get-downstream",
+            "parameters": {
+                "recurse": "$params.recurse",
+                "target": "$params.target"
+            }
+        }
+    ],
+    "finalize": [],
+    "output": "$actions['get-downstream'].outputs"
+}
