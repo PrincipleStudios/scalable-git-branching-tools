@@ -17,6 +17,9 @@ git config alias.new "!$dir/git-new.ps1"
 # Update current branch from its upstream/parent branches
 git config alias.pull-upstream "!$dir/git-pull-upstream.ps1"
 
+# List branches directly downstream from a branch
+git config alias.show-downstream "!$dir/git-show-downstream.ps1"
+
 # List branches directly upstream from a branch
 git config alias.show-upstream "!$dir/git-show-upstream.ps1"
 
