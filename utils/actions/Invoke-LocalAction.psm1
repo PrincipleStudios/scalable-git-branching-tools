@@ -4,6 +4,7 @@ Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionAssertPushed
 Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionEvaluate.psm1"
 Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionGetAllUpstreams.psm1"
 Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionGetUpstream.psm1"
+Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionGetDownstream.psm1"
 Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionFilterBranches.psm1"
 Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionMergeBranches.psm1"
 Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionRecurse.psm1"
@@ -19,6 +20,7 @@ Register-LocalActionAssertPushed $localActions
 Register-LocalActionEvaluate $localActions
 Register-LocalActionGetAllUpstreams $localActions
 Register-LocalActionGetUpstream $localActions
+Register-LocalActionGetDownstream $localActions
 Register-LocalActionFilterBranches $localActions
 Register-LocalActionMergeBranches $localActions
 Register-LocalActionRecurse $localActions
