@@ -1,0 +1,36 @@
+{
+    "local": [
+        {
+            "type": "validate-branch-names",
+            "parameters": {
+                "branches": ["$params.source", "$params.target"]
+            }
+        },
+        {
+            "type": "add-diagnostic",
+            "condition": "$true -AND -not $params.rename -AND -not $params.remove",
+            "parameters": {
+                "message": "Either -rename or -remove must be specfied."
+            }
+        },
+        {
+            "type": "add-diagnostic",
+            "parameters": {
+                "message": "TODO"
+            }
+        }
+    ],
+    "finalize": [
+        {
+            "type": "set-branches",
+            "parameters": {
+                "force": true,
+                "branches": {
+                    "$config.upstreamBranch": "$actions['set-upstream'].outputs['commit']"
+                }
+            }
+        }
+    ],
+    "output": [
+    ]
+}
