@@ -6,13 +6,16 @@ Import-Module -Scope Local "$PSScriptRoot/../../query-state.psm1"
 function Register-LocalActionSimplifyUpstreamBranches([PSObject] $localActions) {
     $localActions['simplify-upstream'] = {
         param(
-            [Parameter(Mandatory)][AllowEmptyCollection()][string[]] $upstreamBranches,
+            [Parameter(Mandatory)][AllowEmptyCollection()][AllowEmptyString()][string[]] $upstreamBranches,
             [Parameter()][AllowNull()] $overrideUpstreams,
             [Parameter()][AllowNull()][string] $branchName,
             [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
         )
-        
-        $upstreamBranches | Assert-ValidBranchName -diagnostics $diagnostics
+
+        $upstreamBranches = $upstreamBranches | Where-Object { $_ }
+        if ($upstreamBranches.Count -ne 0) {
+            $upstreamBranches | Assert-ValidBranchName -diagnostics $diagnostics
+        }
         if (Get-HasErrorDiagnostic $diagnostics) { return $null }
 
         if ($upstreamBranches.Count -eq 0) {
