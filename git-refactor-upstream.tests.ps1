@@ -38,9 +38,10 @@ Describe 'git-refactor-upstream' {
                 'feature/XYZ-1-services' = @("main")
                 'rc/1.1.0' = @("integrate/FOO-123_XYZ-1")
             }
+            Initialize-AssertValidBranchName 'integrate/FOO-123_XYZ-1'
             Initialize-AssertValidBranchName 'feature/FOO-123'
             Initialize-AssertValidBranchName 'main'
-            Initialize-LocalActionSimplifyUpstreamBranchesSuccess @('feature/XYZ-1-services', 'main') @('feature/XYZ-1-services')
+            Initialize-AssertValidBranchName 'feature/XYZ-1-services'
             Initialize-LocalActionSetUpstream @{
                 'feature/FOO-123' = $null
                 'integrate/FOO-123_XYZ-1' = @("feature/XYZ-1-services")
@@ -52,7 +53,7 @@ Describe 'git-refactor-upstream' {
 
         & $PSScriptRoot/git-refactor-upstream.ps1 -source 'feature/FOO-123' -target 'main' -remove
 
-        $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
+        $fw.assertDiagnosticOutput | Should -Contain "WARN: Removing 'main' from upstream branches of 'integrate/FOO-123_XYZ-1'; it is redundant via the following: feature/XYZ-1-services"
         Invoke-VerifyMock $mocks -Times 1
     }
 
@@ -66,7 +67,7 @@ Describe 'git-refactor-upstream' {
             }
             Initialize-AssertValidBranchName 'integrate/FOO-123_XYZ-1'
             Initialize-AssertValidBranchName 'feature/XYZ-1-services'
-            Initialize-LocalActionSimplifyUpstreamBranchesSuccess @('feature/XYZ-1-services') @('feature/XYZ-1-services')
+            Initialize-AssertValidBranchName 'main'
             Initialize-LocalActionSetUpstream @{
                 'feature/FOO-124' = @("feature/XYZ-1-services")
                 'rc/1.1.0' = @("feature/XYZ-1-services")
@@ -94,7 +95,9 @@ Describe 'git-refactor-upstream' {
             }
             Initialize-AssertValidBranchName 'integrate/FOO-100_XYZ-1'
             Initialize-AssertValidBranchName 'integrate/FOO-123_XYZ-1'
-            Initialize-LocalActionSimplifyUpstreamBranchesSuccess @('integrate/FOO-123_XYZ-1') @('integrate/FOO-123_XYZ-1')
+            Initialize-AssertValidBranchName 'main'
+            Initialize-AssertValidBranchName 'feature/FOO-123'
+            Initialize-AssertValidBranchName 'feature/XYZ-1-services'
             Initialize-LocalActionSetUpstream @{
                 'integrate/FOO-123_XYZ-1' = @("feature/FOO-123", "feature/XYZ-1-services")
                 'integrate/FOO-100_XYZ-1' = @()
@@ -110,5 +113,32 @@ Describe 'git-refactor-upstream' {
         
         $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
         Invoke-VerifyMock $mocks -Times 1
+    }
+
+    Describe 'Advanced use-cases' {
+        It 'simplifies other branches' {
+            $mocks = @(
+                Initialize-AllUpstreamBranches @{
+                    'feature/FOO-125' = @("feature/FOO-124", "main")
+                    'feature/FOO-124' = @("feature/FOO-123")
+                }
+                Initialize-AssertValidBranchName 'feature/FOO-123'
+                Initialize-AssertValidBranchName 'feature/FOO-124'
+                Initialize-AssertValidBranchName 'main'
+                Initialize-LocalActionSetUpstream @{
+                    'feature/FOO-123' = $null
+                    'feature/FOO-124' = @("main")
+                    'feature/FOO-125' = @("feature/FOO-124")
+                } -commitish 'new-commit'
+                Initialize-FinalizeActionSetBranches @{
+                    _upstream = 'new-commit'
+                }
+            )
+
+            & $PSScriptRoot/git-refactor-upstream.ps1 -source 'feature/FOO-123' -target 'main' -remove
+            
+            $fw.assertDiagnosticOutput | Should -Contain "WARN: Removing 'main' from upstream branches of 'feature/FOO-125'; it is redundant via the following: feature/FOO-124"
+            Invoke-VerifyMock $mocks -Times 1
+        }
     }
 }

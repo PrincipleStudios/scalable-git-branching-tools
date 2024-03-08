@@ -69,6 +69,11 @@ Describe 'Compress-UpstreamBranches' {
             Should -ActualValue (Get-DiagnosticStrings -diagnostics:$diag) -Be @("WARN: Removing 'feature/XYZ-1-services' from branches; it is redundant via the following: my-branch")
         }
 
+        It 'reduces redundant branches with a named branch' {
+            Compress-UpstreamBranches @("my-branch", "feature/XYZ-1-services") -diagnostics:$diag -branchName:'feature/ABC' | Should -Be @("my-branch")
+            Should -ActualValue (Get-DiagnosticStrings -diagnostics:$diag) -Be @("WARN: Removing 'feature/XYZ-1-services' from upstream branches of 'feature/ABC'; it is redundant via the following: my-branch")
+        }
+
         It 'allows an empty list' {
             Compress-UpstreamBranches @() -diagnostics:$diag | Should -Be @()
             Should -ActualValue (Get-DiagnosticStrings $diag) -Be @()

@@ -16,16 +16,9 @@
             }
         },
         {
-            "id": "simplify",
-            "type": "simplify-upstream",
-            "parameters": {
-                "upstreamBranches": ["$actions.filter.outputs ?? @()"]
-            }
-        },
-        {
             "type": "evaluate",
             "parameters": {
-                "result": "$recursionContext.result.changes[$params.current] = $actions.simplify.outputs"
+                "result": "$recursionContext.result.changes[$params.current] = $actions.filter.outputs"
             }
         }
     ]
