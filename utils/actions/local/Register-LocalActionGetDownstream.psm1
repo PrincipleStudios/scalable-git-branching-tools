@@ -6,11 +6,12 @@ function Register-LocalActionGetDownstream([PSObject] $localActions) {
     $localActions['get-downstream'] = {
         param(
             [Parameter(Mandatory)][string] $target,
+            [Parameter()][AllowNull()] $overrideUpstreams,
             [switch] $recurse,
             [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
         )
 
-        [string[]]$result = Select-DownstreamBranches -branchName $target -recurse:$recurse
+        [string[]]$result = Select-DownstreamBranches -branchName $target -recurse:$recurse -overrideUpstreams:$overrideUpstreams
 
         return $result
     }

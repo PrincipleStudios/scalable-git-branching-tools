@@ -58,4 +58,22 @@ Describe 'local action "get-downstream"' {
         $result | Should -Contain 'feature/FOO-124'
         $result | Should -Contain 'rc/1.1.0'
     }
+
+    It 'gets downstream branches with overrides' {
+        [string[]]$result = Invoke-LocalAction ('{
+            "type": "get-downstream", 
+            "parameters": {
+                "target": "infra/new",
+                "overrideUpstreams": {
+                    "feature/FOO-123": "infra/new",
+                    "infra/new": "main"
+                }
+            }
+        }' | ConvertFrom-Json) -diagnostics $fw.diagnostics
+
+        Invoke-FlushAssertDiagnostic $fw.diagnostics
+        $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
+        $result.Length | Should -Be 1
+        $result | Should -Contain 'feature/FOO-123'
+    }
 }

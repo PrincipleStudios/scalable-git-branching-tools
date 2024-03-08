@@ -73,4 +73,13 @@ Describe 'Select-UpstreamBranches' {
         $results = Select-UpstreamBranches bad-recursive-branch-1 -recurse
         $results | Should -Be @( 'bad-recursive-branch-2' )
     }
+
+    It 'allows overrides' {
+        Initialize-ToolConfiguration
+        Initialize-UpstreamBranches @{
+            'feature/FOO-123' = @("line/1.0")
+        }
+        $results = Select-UpstreamBranches 'feature/FOO-123' -overrideUpstreams @{ 'feature/FOO-123' = @('infra/next') }
+        $results | Should -Be @( 'infra/next' )
+    }
 }

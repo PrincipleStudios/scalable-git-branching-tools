@@ -5,10 +5,11 @@ Import-Module -Scope Local "$PSScriptRoot/../../query-state.psm1"
 function Register-LocalActionGetAllUpstreams([PSObject] $localActions) {
     $localActions['get-all-upstreams'] = {
         param(
+            [Parameter()][AllowNull()] $overrideUpstreams,
             [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
         )
         
-        return Select-AllUpstreamBranches
+        return Select-AllUpstreamBranches -overrideUpstreams:$overrideUpstreams
     }
 }
 

@@ -11,8 +11,13 @@ function Invoke-MockGit([string] $gitCli, [object] $MockWith) {
 function Initialize-LocalActionUpstreamsUpdated(
     [Parameter()][AllowEmptyCollection()][string[]] $upToDate,
     [Parameter()][Hashtable] $outOfDate,
+    [Parameter()][AllowNull()] $overrideUpstreams,
     [switch] $recurse
 ) {
+    $selectStandardParams = @{
+        recurse = $recurse
+        overrideUpstreams = $overrideUpstreams
+    }
 
     $config = Get-Configuration
     $prefix = $config.remote ? "refs/remotes/$($config.remote)" : "refs/heads/"
@@ -20,7 +25,7 @@ function Initialize-LocalActionUpstreamsUpdated(
     $branches = ($upToDate + $outOfDate.Keys) | Where-Object { $_ }
     if ($null -eq $branches) { return }
     foreach ($branch in $branches) {
-        $upstreams = Select-UpstreamBranches -branch $branch -recurse:$recurse
+        $upstreams = Select-UpstreamBranches -branch $branch @selectStandardParams
         $target = "$prefix/$branch"
         $fullyQualifiedUpstreams = $upstreams | ForEach-Object { "$prefix/$_" }
 

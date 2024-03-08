@@ -7,6 +7,7 @@ function Register-LocalActionSimplifyUpstreamBranches([PSObject] $localActions) 
     $localActions['simplify-upstream'] = {
         param(
             [Parameter(Mandatory)][AllowEmptyCollection()][string[]] $upstreamBranches,
+            [Parameter()][AllowNull()] $overrideUpstreams,
             [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
         )
         
@@ -22,7 +23,7 @@ function Register-LocalActionSimplifyUpstreamBranches([PSObject] $localActions) 
             return @( $config.defaultServiceLine )
         }
 
-        $result = Compress-UpstreamBranches $upstreamBranches -diagnostics $diagnostics
+        $result = Compress-UpstreamBranches $upstreamBranches -diagnostics $diagnostics -overrideUpstreams:$overrideUpstreams
         return $result
     }
 }

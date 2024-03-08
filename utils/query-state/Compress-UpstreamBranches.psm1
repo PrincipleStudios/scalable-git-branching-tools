@@ -4,10 +4,11 @@ Import-Module -Scope Local "$PSScriptRoot/Select-UpstreamBranches.psm1"
 
 function Compress-UpstreamBranches(
     [Parameter(Mandatory)][AllowEmptyCollection()][string[]] $originalUpstream,
+    [Parameter()][AllowNull()] $overrideUpstreams,
     [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
 ) {
     $allUpstream = $originalUpstream | ConvertTo-HashMap -getValue {
-        return ([string[]](Select-UpstreamBranches $_ -recurse))
+        return ([string[]](Select-UpstreamBranches $_ -recurse -overrideUpstreams:$overrideUpstreams))
     }
     $resultUpstream = [System.Collections.ArrayList]$originalUpstream
     for ($i = 0; $i -lt $resultUpstream.Count; $i++) {
