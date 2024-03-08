@@ -5,7 +5,7 @@ Import-Module -Scope Local "$PSScriptRoot/../../query-state.psm1"
 function Register-LocalActionEvaluate([PSObject] $localActions) {
     $localActions['evaluate'] = {
         param(
-            [Parameter(Mandatory)][object] $result,
+            [Parameter(Mandatory)][AllowNull()][object] $result,
             [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
         )
         
