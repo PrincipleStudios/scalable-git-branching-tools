@@ -28,10 +28,17 @@
             }
         },
         {
+            "id": "removeRename",
+            "type": "evaluate",
+            "parameters": {
+                "result": "$actions.upstreamResult.outputs + @{ $params.source = $null } + ($params.rename ? @{ $params.target = $actions.originalUpstreams.outputs[$params.source] } : @{})"
+            }
+        },
+        {
             "id": "upstreamHash",
             "type": "set-upstream",
             "parameters": {
-                "upstreamBranches": "$actions.upstreamResult.outputs",
+                "upstreamBranches": "$actions.removeRename.outputs",
                 "message": "Rewrite $($params.source) to $($params.target)$($params.comment -eq '' ? '' : \" for $($params.comment)\")"
             }
         }

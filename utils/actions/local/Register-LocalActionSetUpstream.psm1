@@ -13,6 +13,7 @@ function Register-LocalActionSetUpstream([PSObject] $localActions) {
         $upstreamBranch = Get-UpstreamBranch
         $ht = ConvertTo-Hashtable $upstreamBranches
         $contents = $ht.Keys | ConvertTo-HashMap -getValue {
+            if ($null -eq $ht[$_] -OR $ht[$_].length -eq 0) { return $null }
             "$(($ht[$_] | Where-Object { $_ }) -join "`n")`n"
         }
         

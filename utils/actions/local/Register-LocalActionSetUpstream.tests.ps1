@@ -115,6 +115,22 @@ Describe 'local action "set-upstream"' {
             $result | Assert-ShouldBeObject @{ commit = 'new-COMMIT' }
             Invoke-VerifyMock $mock -Times 1
         }
+
+        It 'allows a branch to be removed from configuration' {
+            $mock = Initialize-LocalActionSetUpstream  @{ 'foobar' = $null } -message 'Remove foobar' -commitish 'new-COMMIT'
+
+            $result = Invoke-LocalAction ('{ 
+                "type": "set-upstream", 
+                "parameters": {
+                    "message": "Remove foobar",
+                    "upstreamBranches": {
+                        "foobar": null
+                    }
+                }
+            }' | ConvertFrom-Json) -diagnostics $diag
+            $result | Assert-ShouldBeObject @{ commit = 'new-COMMIT' }
+            Invoke-VerifyMock $mock -Times 1
+        }
     }
 
     Context 'without remote' {
