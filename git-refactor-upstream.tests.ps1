@@ -15,6 +15,20 @@ Describe 'git-refactor-upstream' {
         Initialize-UpdateGitRemote
     }
 
+    It 'prevents running if neither remove nor rename are provided' {
+        { & $PSScriptRoot/git-refactor-upstream.ps1 -source 'feature/FOO-123' -target 'main' } | Should -Throw
+
+        $fw.assertDiagnosticOutput | Should -Contain 'ERR:  Either -rename or -remove must be specfied.'
+        Invoke-VerifyMock $mocks -Times 1
+    }
+
+    It 'prevents running if both remove and rename are provided' {
+        { & $PSScriptRoot/git-refactor-upstream.ps1 -source 'feature/FOO-123' -target 'main' -remove -rename } | Should -Throw
+
+        $fw.assertDiagnosticOutput | Should -Contain 'ERR:  Only one of -rename and -remove may be specified.'
+        Invoke-VerifyMock $mocks -Times 1
+    }
+
     It 'can consolidate a released branch (feature/FOO-123) into main' {
         $mocks = @(
             Initialize-AllUpstreamBranches @{

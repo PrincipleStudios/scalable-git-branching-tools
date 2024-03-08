@@ -1,16 +1,23 @@
 {
     "local": [
         {
-            "type": "validate-branch-names",
-            "parameters": {
-                "branches": ["$params.source", "$params.target"]
-            }
-        },
-        {
             "type": "add-diagnostic",
             "condition": "$true -AND -not $params.rename -AND -not $params.remove",
             "parameters": {
                 "message": "Either -rename or -remove must be specfied."
+            }
+        },
+        {
+            "type": "add-diagnostic",
+            "condition": "$params.rename -AND $params.remove",
+            "parameters": {
+                "message": "Only one of -rename and -remove may be specified."
+            }
+        },
+        {
+            "type": "validate-branch-names",
+            "parameters": {
+                "branches": ["$params.source", "$params.target"]
             }
         },
         {
