@@ -165,5 +165,28 @@ Describe 'git-refactor-upstream' {
             $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
             Invoke-VerifyMock $mocks -Times 1
         }
+
+        It 'does not create repeat upstreams' {
+            $mocks = @(
+                Initialize-AllUpstreamBranches @{
+                    'feature/FOO-123' = @("main")
+                    'feature/FOO-124' = @("feature/FOO-123", "main")
+                }
+                Initialize-AssertValidBranchName 'feature/FOO-123'
+                Initialize-AssertValidBranchName 'main'
+                Initialize-LocalActionSetUpstream @{
+                    'feature/FOO-123' = $null
+                    'feature/FOO-124' = @("main")
+                } -commitish 'new-commit'
+                Initialize-FinalizeActionSetBranches @{
+                    _upstream = 'new-commit'
+                }
+            )
+
+            & $PSScriptRoot/git-refactor-upstream.ps1 -source 'feature/FOO-123' -target 'main' -remove
+            
+            $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
+            Invoke-VerifyMock $mocks -Times 1
+        }
     }
 }

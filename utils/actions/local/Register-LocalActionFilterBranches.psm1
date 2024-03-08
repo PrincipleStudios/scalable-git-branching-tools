@@ -12,7 +12,7 @@ function Register-LocalActionFilterBranches([PSObject] $localActions) {
         )
 
         
-        [string[]]$result = $include | Where-Object { $_ -notin $exclude }
+        [string[]]$result = $include | Where-Object { $_ -notin $exclude } | Get-Unique
         
         return $result
     }
