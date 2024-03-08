@@ -1,0 +1,32 @@
+{
+    "recursion": {
+        "paramScript": ["@()"],
+        "init": "$recursionContext.result = @{ changes = @{} }",
+        "reduceToOutput": "$recursionContext.result.changes",
+        "actCondition": "[string[]]($params.upstream) -contains $params.source"
+    },
+    "prepare": [],
+    "act": [
+        {
+            "id": "filter",
+            "type": "filter-branches",
+            "parameters": {
+                "include": ["$params.upstream", "$params.target"],
+                "exclude": ["$params.source", "$params.current"]
+            }
+        },
+        {
+            "id": "simplify",
+            "type": "simplify-upstream",
+            "parameters": {
+                "upstreamBranches": ["$actions.filter.outputs ?? @()"]
+            }
+        },
+        {
+            "type": "evaluate",
+            "parameters": {
+                "result": "$recursionContext.result.changes[$params.current] = $actions.simplify.outputs"
+            }
+        }
+    ]
+}
