@@ -22,7 +22,7 @@ function Invoke-Script(
             if ($local.fail) {
                 Add-ErrorDiagnostic $diagnostics "Could not apply parameters to local action $name; see above errors. Evaluation below:"
                 Add-ErrorDiagnostic $diagnostics "$(ConvertTo-Json $local.result -Depth 10)"
-                break
+                Assert-Diagnostics $diagnostics
             }
             try {
                 $outputs = Invoke-LocalAction $local.result -diagnostics $diagnostics
