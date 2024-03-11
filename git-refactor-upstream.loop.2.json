@@ -18,7 +18,7 @@
         },
         {
             "type": "evaluate",
-            "condition": "$true -AND ([string[]]$params.original -join ',') -ne ([string[]]$actions.simplify.outputs -join ',')",
+            "condition": "$params.upstream -AND ([string[]]$params.original -join ',') -ne ([string[]]$actions.simplify.outputs -join ',')",
             "parameters": {
                 "result": "$recursionContext.result.changes[$params.current] = $actions.simplify.outputs"
             }

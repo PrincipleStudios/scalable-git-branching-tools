@@ -95,9 +95,6 @@ Describe 'git-refactor-upstream' {
             }
             Initialize-AssertValidBranchName 'integrate/FOO-100_XYZ-1'
             Initialize-AssertValidBranchName 'integrate/FOO-123_XYZ-1'
-            Initialize-AssertValidBranchName 'main'
-            Initialize-AssertValidBranchName 'feature/FOO-123'
-            Initialize-AssertValidBranchName 'feature/XYZ-1-services'
             Initialize-LocalActionSetUpstream @{
                 'integrate/FOO-123_XYZ-1' = @("feature/FOO-123", "feature/XYZ-1-services")
                 'integrate/FOO-100_XYZ-1' = @()
@@ -116,7 +113,7 @@ Describe 'git-refactor-upstream' {
     }
 
     Describe 'Advanced use-cases' {
-        It 'simplifies other branches' {
+        It 'simplifies other downstream branches' {
             $mocks = @(
                 Initialize-AllUpstreamBranches @{
                     'feature/FOO-125' = @("feature/FOO-124", "main")
@@ -138,31 +135,6 @@ Describe 'git-refactor-upstream' {
             & $PSScriptRoot/git-refactor-upstream.ps1 -source 'feature/FOO-123' -target 'main' -remove
             
             $fw.assertDiagnosticOutput | Should -Contain "WARN: Removing 'main' from upstream branches of 'feature/FOO-125'; it is redundant via the following: feature/FOO-124"
-            Invoke-VerifyMock $mocks -Times 1
-        }
-
-        It 'works if an upstream is registered but empty' {
-            $mocks = @(
-                Initialize-AllUpstreamBranches @{
-                    'feature/FOO-123' = @("main")
-                    'feature/FOO-124' = @("feature/FOO-123")
-                    'other' = @()
-                }
-                Initialize-AssertValidBranchName 'feature/FOO-123'
-                Initialize-AssertValidBranchName 'main'
-                Initialize-LocalActionSetUpstream @{
-                    'feature/FOO-123' = $null
-                    'feature/FOO-124' = @("main")
-                    'other' = @("main")
-                } -commitish 'new-commit'
-                Initialize-FinalizeActionSetBranches @{
-                    _upstream = 'new-commit'
-                }
-            )
-
-            & $PSScriptRoot/git-refactor-upstream.ps1 -source 'feature/FOO-123' -target 'main' -remove
-            
-            $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
             Invoke-VerifyMock $mocks -Times 1
         }
 

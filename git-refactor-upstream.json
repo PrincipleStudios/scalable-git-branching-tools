@@ -26,6 +26,22 @@
             "parameters": {}
         },
         {
+            "type": "get-downstream",
+            "id": "sourceDownstreams",
+            "parameters": {
+                "target": "$params.source",
+                "recurse": true
+            }
+        },
+        {
+            "type": "get-downstream",
+            "id": "targetDownstreams",
+            "parameters": {
+                "target": "$params.target",
+                "recurse": true
+            }
+        },
+        {
             "id": "upstreamResult",
             // This is not truly a recursive script, but a loop to compute the upstream branches that should change
             "type": "recurse",
@@ -35,11 +51,18 @@
             }
         },
         {
+            "type": "evaluate",
+            "id": "affected",
+            "parameters": {
+                "result": ["$params.target", "$actions.sourceDownstreams.outputs", "$actions.targetDownstreams.outputs"]
+            }
+        },
+        {
             "id": "simplifyAll",
             // This is not truly a recursive script, but a loop to compute the upstream branches that should change
             "type": "recurse",
             "parameters": {
-                "inputParameters": "$actions.originalUpstreams.outputs.Keys | ForEach-Object { @{ current = $_; original = $actions.originalUpstreams.outputs[$_]; upstream = $actions.upstreamResult.outputs[$_] ?? $actions.originalUpstreams.outputs[$_]; override = $actions.upstreamResult.outputs } }",
+                "inputParameters": "$actions.affected.outputs | Where-Object { $_ } | ForEach-Object { @{ current = $_; original = $actions.originalUpstreams.outputs[$_]; upstream = $actions.upstreamResult.outputs[$_] ?? $actions.originalUpstreams.outputs[$_]; override = $actions.upstreamResult.outputs } }",
                 "path": "git-refactor-upstream.loop.2.json"
             }
         },
