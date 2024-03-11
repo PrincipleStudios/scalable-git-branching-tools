@@ -5,7 +5,7 @@ Refactor upstream branches to redirect upstreams from "source" to "target".
 Usage:
 
     git-refactor-upstream.ps1 [-source] <string> [-target] <string>
-        (-remove|-rename) [-comment <string>] [-dryRun]
+        (-remove|-rename|-combine) [-comment <string>] [-dryRun]
 
 ## Parameters
 
@@ -24,7 +24,10 @@ Either `-remove` or `-replace` must be specified.
 * `-remove` indicates that the source branch should be removed and old upstream
   branches can be ignored.
 * `-rename` indicates that upstreams from the source branch should be
-  transferred to the target branch.
+  transferred to the target branch; any upstreams of the target should be
+  overwritten.
+* `-combine` indicates that upstreams from both source and target should be
+  combined into upstreams of the target branch.
 
 The source and target branches _will not_ be updated as part of this command.
 

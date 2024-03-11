@@ -4,6 +4,7 @@ Param(
     [Parameter(Mandatory)][string] $source,
     [Parameter(Mandatory)][string] $target,
     [switch] $rename,
+    [switch] $combine,
     [switch] $remove,
     [Parameter()][Alias('message')][Alias('m')][string] $comment,
     [switch] $dryRun
@@ -16,6 +17,7 @@ Invoke-JsonScript -scriptPath "$PSScriptRoot/git-refactor-upstream.json" -params
     source = $source;
     target = $target;
     rename = $rename;
+    combine = $combine;
     remove = $remove;
     comment = $comment ?? '';
 } -dryRun:$dryRun

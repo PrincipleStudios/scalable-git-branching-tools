@@ -22,20 +22,22 @@ Describe 'git-refactor-upstream' {
         Initialize-AssertValidBranchName 'feature/FOO-124'
         Initialize-AssertValidBranchName 'feature/FOO-125'
         Initialize-AssertValidBranchName 'feature/XYZ-1-services'
+        Initialize-AssertValidBranchName 'infra/shared'
+        Initialize-AssertValidBranchName 'infra/other'
         Initialize-AssertValidBranchName 'main'
     }
 
     It 'prevents running if neither remove nor rename are provided' {
         { & $PSScriptRoot/git-refactor-upstream.ps1 -source 'feature/FOO-123' -target 'main' } | Should -Throw
 
-        $fw.assertDiagnosticOutput | Should -Contain 'ERR:  Either -rename or -remove must be specfied.'
+        $fw.assertDiagnosticOutput | Should -Contain 'ERR:  One of -rename, -remove, or -combine must be specfied.'
         Invoke-VerifyMock $mocks -Times 1
     }
 
     It 'prevents running if both remove and rename are provided' {
         { & $PSScriptRoot/git-refactor-upstream.ps1 -source 'feature/FOO-123' -target 'main' -remove -rename } | Should -Throw
 
-        $fw.assertDiagnosticOutput | Should -Contain 'ERR:  Only one of -rename and -remove may be specified.'
+        $fw.assertDiagnosticOutput | Should -Contain 'ERR:  Only one of -rename, -remove, and -combine may be specified.'
         Invoke-VerifyMock $mocks -Times 1
     }
 
@@ -137,6 +139,66 @@ Describe 'git-refactor-upstream' {
         
         $fw.assertDiagnosticOutput | Should -Be @(
             "WARN: Removing 'main' from upstream branches of 'feature/FOO-124'; it is redundant via the following: feature/FOO-123"
+        )
+        Invoke-VerifyMock $mocks -Times 1
+    }
+
+    It 'can replace an incorrectly named branch that already has configurations' {
+        $mocks = @(
+            Initialize-AllUpstreamBranches @{
+                'integrate/FOO-123_XYZ-1' = @("feature/FOO-100", "feature/XYZ-1-services")
+                'feature/FOO-124' = @("feature/FOO-123", "infra/shared")
+                'feature/FOO-123' = @("main", 'infra/other')
+                'feature/FOO-100' = @("infra/shared")
+                'infra/shared' = @('main')
+                'feature/XYZ-1-services' = @("main")
+                'rc/1.1.0' = @("integrate/FOO-123_XYZ-1")
+            }
+            Initialize-LocalActionSetUpstream @{
+                'integrate/FOO-123_XYZ-1' = @("feature/FOO-123", "feature/XYZ-1-services")
+                'feature/FOO-100' = @()
+                'feature/FOO-123' = @('infra/shared')
+                'feature/FOO-124' = @("feature/FOO-123")
+            } -commitish 'new-commit'
+            Initialize-FinalizeActionSetBranches @{
+                _upstream = 'new-commit'
+            }
+        )
+
+        & $PSScriptRoot/git-refactor-upstream.ps1 -source 'feature/FOO-100' -target 'feature/FOO-123' -rename
+        
+        $fw.assertDiagnosticOutput | Should -Be @(
+            "WARN: Removing 'infra/shared' from upstream branches of 'feature/FOO-124'; it is redundant via the following: feature/FOO-123"
+        )
+        Invoke-VerifyMock $mocks -Times 1
+    }
+    It 'can combine an incorrectly named branch that already has configurations' {
+        $mocks = @(
+            Initialize-AllUpstreamBranches @{
+                'integrate/FOO-123_XYZ-1' = @("feature/FOO-100", "feature/XYZ-1-services")
+                'feature/FOO-124' = @("feature/FOO-123", "infra/shared")
+                'feature/FOO-123' = @("main", 'infra/other')
+                'feature/FOO-100' = @("infra/shared")
+                'infra/shared' = @('main')
+                'feature/XYZ-1-services' = @("main")
+                'rc/1.1.0' = @("integrate/FOO-123_XYZ-1")
+            }
+            Initialize-LocalActionSetUpstream @{
+                'integrate/FOO-123_XYZ-1' = @("feature/FOO-123", "feature/XYZ-1-services")
+                'feature/FOO-100' = @()
+                'feature/FOO-123' = @('infra/other', 'infra/shared')
+                'feature/FOO-124' = @("feature/FOO-123")
+            } -commitish 'new-commit'
+            Initialize-FinalizeActionSetBranches @{
+                _upstream = 'new-commit'
+            }
+        )
+
+        & $PSScriptRoot/git-refactor-upstream.ps1 -source 'feature/FOO-100' -target 'feature/FOO-123' -combine
+        
+        $fw.assertDiagnosticOutput | Should -Be @(
+            "WARN: Removing 'main' from upstream branches of 'feature/FOO-123'; it is redundant via the following: infra/shared"
+            "WARN: Removing 'infra/shared' from upstream branches of 'feature/FOO-124'; it is redundant via the following: feature/FOO-123"
         )
         Invoke-VerifyMock $mocks -Times 1
     }

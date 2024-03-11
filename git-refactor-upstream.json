@@ -2,16 +2,16 @@
     "local": [
         {
             "type": "add-diagnostic",
-            "condition": "$true -AND -not $params.rename -AND -not $params.remove",
+            "condition": "$true -AND -not $params.rename -AND -not $params.remove -AND -not $params.combine",
             "parameters": {
-                "message": "Either -rename or -remove must be specfied."
+                "message": "One of -rename, -remove, or -combine must be specfied."
             }
         },
         {
             "type": "add-diagnostic",
-            "condition": "$params.rename -AND $params.remove",
+            "condition": "$true -AND ($params.rename ? 1 : 0) + ($params.remove ? 1 : 0) + ($params.combine ? 1 : 0) -gt 1",
             "parameters": {
-                "message": "Only one of -rename and -remove may be specified."
+                "message": "Only one of -rename, -remove, and -combine may be specified."
             }
         },
         {
@@ -44,9 +44,9 @@
         {
             "id": "filterRename",
             "type": "filter-branches",
-            "condition": "$params.rename",
+            "condition": "$params.rename -OR $params.combine",
             "parameters": {
-                "include": ["$actions.originalUpstreams.outputs[$params.target]", "$actions.originalUpstreams.outputs[$params.source]"],
+                "include": ["$params.combine ? $actions.originalUpstreams.outputs[$params.target] : @()", "$actions.originalUpstreams.outputs[$params.source]"],
                 "exclude": ["$params.source", "$params.target"]
             }
         },
@@ -60,7 +60,7 @@
         {
             "id": "rename",
             "type": "evaluate",
-            "condition": "$params.rename",
+            "condition": "$params.rename -OR $params.combine",
             "parameters": {
                 "result": "$actions.alteredUpstreams.outputs[$params.target] = [string[]]$actions.filterRename.outputs"
             }
@@ -78,7 +78,7 @@
             "type": "evaluate",
             "id": "affected",
             "parameters": {
-                "result": ["$params.target", "$actions.sourceDownstreams.outputs", "$params.rename ? $actions.targetDownstreams.outputs : @()"]
+                "result": ["$params.target", "$actions.sourceDownstreams.outputs", "$params.rename -OR $params.combine ? $actions.targetDownstreams.outputs : @()"]
             }
         },
         {
