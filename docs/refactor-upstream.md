@@ -17,9 +17,9 @@ The name of the old upstream branch.
 
 The name of the new upstream branch.
 
-### `(-remove|-replace)`
+### `(-remove|-replace|-combine)`
 
-Either `-remove` or `-replace` must be specified.
+One of -rename, -remove, or -combine must be specfied.
 
 * `-remove` indicates that the source branch should be removed and old upstream
   branches can be ignored.
