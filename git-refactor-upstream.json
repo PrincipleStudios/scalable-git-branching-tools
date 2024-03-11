@@ -78,7 +78,11 @@
             "type": "evaluate",
             "id": "affected",
             "parameters": {
-                "result": ["$params.target", "$actions.sourceDownstreams.outputs", "$params.rename -OR $params.combine ? $actions.targetDownstreams.outputs : @()"]
+                "result": [
+                    "$params.target",
+                    "$actions.sourceDownstreams.outputs",
+                    "$params.rename -OR $params.combine ? $actions.targetDownstreams.outputs : @()"
+                ]
             }
         },
         {
