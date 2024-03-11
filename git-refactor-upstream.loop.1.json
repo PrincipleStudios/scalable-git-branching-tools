@@ -3,7 +3,7 @@
         "paramScript": ["@()"],
         "init": "$recursionContext.result = @{ changes = @{} }",
         "reduceToOutput": "$recursionContext.result.changes",
-        "actCondition": "[string[]]($params.upstream) -contains $params.source"
+        "actCondition": "$true"
     },
     "prepare": [],
     "act": [
@@ -18,7 +18,7 @@
         {
             "type": "evaluate",
             "parameters": {
-                "result": "$recursionContext.result.changes[$params.current] = $actions.filter.outputs"
+                "result": "$recursionContext.result.changes[$params.current] = ([string[]]($params.upstream) -contains $params.source) ? $actions.filter.outputs : $params.upstream"
             }
         }
     ]

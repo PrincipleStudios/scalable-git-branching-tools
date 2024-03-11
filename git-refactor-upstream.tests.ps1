@@ -13,6 +13,16 @@ Describe 'git-refactor-upstream' {
 
         Initialize-ToolConfiguration
         Initialize-UpdateGitRemote
+        
+        # These are all valid branch names; tehy don't need to be defined each time:
+        Initialize-AssertValidBranchName 'integrate/FOO-100_XYZ-1'
+        Initialize-AssertValidBranchName 'integrate/FOO-123_XYZ-1'
+        Initialize-AssertValidBranchName 'feature/FOO-100'
+        Initialize-AssertValidBranchName 'feature/FOO-123'
+        Initialize-AssertValidBranchName 'feature/FOO-124'
+        Initialize-AssertValidBranchName 'feature/FOO-125'
+        Initialize-AssertValidBranchName 'feature/XYZ-1-services'
+        Initialize-AssertValidBranchName 'main'
     }
 
     It 'prevents running if neither remove nor rename are provided' {
@@ -38,10 +48,6 @@ Describe 'git-refactor-upstream' {
                 'feature/XYZ-1-services' = @("main")
                 'rc/1.1.0' = @("integrate/FOO-123_XYZ-1")
             }
-            Initialize-AssertValidBranchName 'integrate/FOO-123_XYZ-1'
-            Initialize-AssertValidBranchName 'feature/FOO-123'
-            Initialize-AssertValidBranchName 'main'
-            Initialize-AssertValidBranchName 'feature/XYZ-1-services'
             Initialize-LocalActionSetUpstream @{
                 'feature/FOO-123' = $null
                 'integrate/FOO-123_XYZ-1' = @("feature/XYZ-1-services")
@@ -65,9 +71,6 @@ Describe 'git-refactor-upstream' {
                 'feature/XYZ-1-services' = @("main")
                 'rc/1.1.0' = @("integrate/FOO-123_XYZ-1")
             }
-            Initialize-AssertValidBranchName 'integrate/FOO-123_XYZ-1'
-            Initialize-AssertValidBranchName 'feature/XYZ-1-services'
-            Initialize-AssertValidBranchName 'main'
             Initialize-LocalActionSetUpstream @{
                 'feature/FOO-124' = @("feature/XYZ-1-services")
                 'rc/1.1.0' = @("feature/XYZ-1-services")
@@ -93,8 +96,6 @@ Describe 'git-refactor-upstream' {
                 'feature/XYZ-1-services' = @("main")
                 'rc/1.1.0' = @("integrate/FOO-100_XYZ-1")
             }
-            Initialize-AssertValidBranchName 'integrate/FOO-100_XYZ-1'
-            Initialize-AssertValidBranchName 'integrate/FOO-123_XYZ-1'
             Initialize-LocalActionSetUpstream @{
                 'integrate/FOO-123_XYZ-1' = @("feature/FOO-123", "feature/XYZ-1-services")
                 'integrate/FOO-100_XYZ-1' = @()
@@ -112,6 +113,34 @@ Describe 'git-refactor-upstream' {
         Invoke-VerifyMock $mocks -Times 1
     }
 
+    It 'can rename an incorrectly named branch already used correctly sometimes' {
+        $mocks = @(
+            Initialize-AllUpstreamBranches @{
+                'integrate/FOO-123_XYZ-1' = @("feature/FOO-100", "feature/XYZ-1-services")
+                'feature/FOO-124' = @("feature/FOO-123", "main")
+                'feature/FOO-100' = @("main")
+                'feature/XYZ-1-services' = @("main")
+                'rc/1.1.0' = @("integrate/FOO-123_XYZ-1")
+            }
+            Initialize-LocalActionSetUpstream @{
+                'integrate/FOO-123_XYZ-1' = @("feature/FOO-123", "feature/XYZ-1-services")
+                'feature/FOO-100' = @()
+                'feature/FOO-123' = @('main')
+                'feature/FOO-124' = @("feature/FOO-123")
+            } -commitish 'new-commit'
+            Initialize-FinalizeActionSetBranches @{
+                _upstream = 'new-commit'
+            }
+        )
+
+        & $PSScriptRoot/git-refactor-upstream.ps1 -source 'feature/FOO-100' -target 'feature/FOO-123' -rename
+        
+        $fw.assertDiagnosticOutput | Should -Be @(
+            "WARN: Removing 'main' from upstream branches of 'feature/FOO-124'; it is redundant via the following: feature/FOO-123"
+        )
+        Invoke-VerifyMock $mocks -Times 1
+    }
+
     Describe 'Advanced use-cases' {
         It 'simplifies other downstream branches' {
             $mocks = @(
@@ -119,9 +148,6 @@ Describe 'git-refactor-upstream' {
                     'feature/FOO-125' = @("feature/FOO-124", "main")
                     'feature/FOO-124' = @("feature/FOO-123")
                 }
-                Initialize-AssertValidBranchName 'feature/FOO-123'
-                Initialize-AssertValidBranchName 'feature/FOO-124'
-                Initialize-AssertValidBranchName 'main'
                 Initialize-LocalActionSetUpstream @{
                     'feature/FOO-123' = $null
                     'feature/FOO-124' = @("main")
@@ -144,8 +170,6 @@ Describe 'git-refactor-upstream' {
                     'feature/FOO-123' = @("main")
                     'feature/FOO-124' = @("feature/FOO-123", "main")
                 }
-                Initialize-AssertValidBranchName 'feature/FOO-123'
-                Initialize-AssertValidBranchName 'main'
                 Initialize-LocalActionSetUpstream @{
                     'feature/FOO-123' = $null
                     'feature/FOO-124' = @("main")

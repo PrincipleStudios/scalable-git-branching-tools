@@ -42,11 +42,35 @@
             }
         },
         {
+            "id": "filterRename",
+            "type": "filter-branches",
+            "condition": "$params.rename",
+            "parameters": {
+                "include": ["$actions.originalUpstreams.outputs[$params.target]", "$actions.originalUpstreams.outputs[$params.source]"],
+                "exclude": ["$params.source", "$params.target"]
+            }
+        },
+        {
+            "id": "alteredUpstreams",
+            "type": "evaluate",
+            "parameters": {
+                "result": "$actions.originalUpstreams.outputs + @{}"
+            }
+        },
+        {
+            "id": "rename",
+            "type": "evaluate",
+            "condition": "$params.rename",
+            "parameters": {
+                "result": "$actions.alteredUpstreams.outputs[$params.target] = [string[]]$actions.filterRename.outputs"
+            }
+        },
+        {
             "id": "upstreamResult",
             // This is not truly a recursive script, but a loop to compute the upstream branches that should change
             "type": "recurse",
             "parameters": {
-                "inputParameters": "$actions.originalUpstreams.outputs.Keys | ForEach-Object { @{ target = $params.target; source = $params.source; current = $_; upstream = $actions.originalUpstreams.outputs[$_] } }",
+                "inputParameters": "$actions.alteredUpstreams.outputs.Keys | ForEach-Object { @{ target = $params.target; source = $params.source; current = $_; upstream = $actions.alteredUpstreams.outputs[$_] } }",
                 "path": "git-refactor-upstream.loop.1.json"
             }
         },
@@ -54,7 +78,7 @@
             "type": "evaluate",
             "id": "affected",
             "parameters": {
-                "result": ["$params.target", "$actions.sourceDownstreams.outputs", "$actions.targetDownstreams.outputs"]
+                "result": ["$params.target", "$actions.sourceDownstreams.outputs", "$params.rename ? $actions.targetDownstreams.outputs : @()"]
             }
         },
         {
@@ -62,22 +86,22 @@
             // This is not truly a recursive script, but a loop to compute the upstream branches that should change
             "type": "recurse",
             "parameters": {
-                "inputParameters": "$actions.affected.outputs | Where-Object { $_ } | ForEach-Object { @{ current = $_; original = $actions.originalUpstreams.outputs[$_]; upstream = $actions.upstreamResult.outputs[$_] ?? $actions.originalUpstreams.outputs[$_]; override = $actions.upstreamResult.outputs } }",
+                "inputParameters": "$actions.affected.outputs | Where-Object { $_ } | ForEach-Object { @{ current = $_; original = $actions.originalUpstreams.outputs[$_]; upstream = $actions.upstreamResult.outputs[$_] ?? $actions.alteredUpstreams.outputs[$_]; override = $actions.upstreamResult.outputs } }",
                 "path": "git-refactor-upstream.loop.2.json"
             }
         },
         {
-            "id": "removeRename",
+            "id": "remove",
             "type": "evaluate",
             "parameters": {
-                "result": "$actions.simplifyAll.outputs + @{ $params.source = $null } + ($params.rename ? @{ $params.target = $actions.originalUpstreams.outputs[$params.source] } : @{})"
+                "result": "$actions.simplifyAll.outputs[$params.source] = $null"
             }
         },
         {
             "id": "upstreamHash",
             "type": "set-upstream",
             "parameters": {
-                "upstreamBranches": "$actions.removeRename.outputs",
+                "upstreamBranches": "$actions.simplifyAll.outputs",
                 "message": "Rewrite $($params.source) to $($params.target)$($params.comment -eq '' ? '' : \" for $($params.comment)\")"
             }
         }
