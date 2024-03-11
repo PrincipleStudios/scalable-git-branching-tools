@@ -25,6 +25,8 @@ Describe 'git-refactor-upstream' {
         Initialize-AssertValidBranchName 'infra/shared'
         Initialize-AssertValidBranchName 'infra/other'
         Initialize-AssertValidBranchName 'main'
+        Initialize-AssertValidBranchName 'bad-recursive-branch-1'
+        Initialize-AssertValidBranchName 'bad-recursive-branch-2'
     }
 
     It 'prevents running if neither remove nor rename are provided' {
@@ -223,6 +225,48 @@ Describe 'git-refactor-upstream' {
             & $PSScriptRoot/git-refactor-upstream.ps1 -source 'feature/FOO-123' -target 'main' -remove
             
             $fw.assertDiagnosticOutput | Should -Contain "WARN: Removing 'main' from upstream branches of 'feature/FOO-125'; it is redundant via the following: feature/FOO-124"
+            Invoke-VerifyMock $mocks -Times 1
+        }
+
+        It 'can be used to fix recursive branches' {
+            $mocks = @(
+                Initialize-AllUpstreamBranches @{
+                    'bad-recursive-branch-1' = @('bad-recursive-branch-2', 'main')
+                    'bad-recursive-branch-2' = @('bad-recursive-branch-1')
+                }
+                Initialize-LocalActionSetUpstream @{
+                    'bad-recursive-branch-1' = @("main")
+                    'bad-recursive-branch-2' = @()
+                } -commitish 'new-commit'
+                Initialize-FinalizeActionSetBranches @{
+                    _upstream = 'new-commit'
+                }
+            )
+
+            & $PSScriptRoot/git-refactor-upstream.ps1 -source 'bad-recursive-branch-2' -target 'bad-recursive-branch-1' -remove
+            
+            $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
+            Invoke-VerifyMock $mocks -Times 1
+        }
+
+        It 'can be used to fix recursive branches via combine' {
+            $mocks = @(
+                Initialize-AllUpstreamBranches @{
+                    'bad-recursive-branch-1' = @('bad-recursive-branch-2', 'main')
+                    'bad-recursive-branch-2' = @('bad-recursive-branch-1')
+                }
+                Initialize-LocalActionSetUpstream @{
+                    'bad-recursive-branch-1' = @("main")
+                    'bad-recursive-branch-2' = @()
+                } -commitish 'new-commit'
+                Initialize-FinalizeActionSetBranches @{
+                    _upstream = 'new-commit'
+                }
+            )
+
+            & $PSScriptRoot/git-refactor-upstream.ps1 -source 'bad-recursive-branch-2' -target 'bad-recursive-branch-1' -combine
+            
+            $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
             Invoke-VerifyMock $mocks -Times 1
         }
 
