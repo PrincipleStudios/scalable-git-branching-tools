@@ -1,0 +1,27 @@
+{
+    "recursion": {
+        "paramScript": ["@()"],
+        "init": "$recursionContext.result = @{ changes = @{} }",
+        "reduceToOutput": "$recursionContext.result.changes",
+        "actCondition": "$true"
+    },
+    "prepare": [],
+    "act": [
+        {
+            "id": "simplify",
+            "type": "simplify-upstream",
+            "parameters": {
+                "upstreamBranches": ["$params.upstream"],
+                "overrideUpstreams": "$params.override",
+                "branchName": "$params.current"
+            }
+        },
+        {
+            "type": "evaluate",
+            "condition": "$params.upstream -AND ([string[]]$params.original -join ',') -ne ([string[]]$actions.simplify.outputs -join ',')",
+            "parameters": {
+                "result": "$recursionContext.result.changes[$params.current] = $actions.simplify.outputs"
+            }
+        }
+    ]
+}

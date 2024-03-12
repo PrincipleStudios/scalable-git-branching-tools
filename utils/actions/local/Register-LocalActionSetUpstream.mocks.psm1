@@ -15,7 +15,7 @@ function Initialize-LocalActionSetUpstream([PSObject] $upstreamBranches, [string
         $null -ne $upstreamBranches ? @(
             "`$files.Keys.Count -eq $($upstreamBranches.Keys.Count)"
             ($upstreamBranches.Keys | ForEach-Object {
-                if ($null -eq $upstreamBranches[$_]) {
+                if ($null -eq $upstreamBranches[$_] -OR $upstreamBranches[$_].length -eq 0) {
                     "`$files['$_'] -eq `$null"
                 } else {
                     "`$files['$_'].split(`"``n`").Count -eq $($upstreamBranches[$_].Count + 1)"

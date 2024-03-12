@@ -1,9 +1,15 @@
 Import-Module -Scope Local "$PSScriptRoot/Select-AllUpstreamBranches.psm1"
 Import-Module -Scope Local "$PSScriptRoot/Configuration.psm1"
 
-function Select-UpstreamBranches([String]$branchName, [switch] $includeRemote, [switch] $recurse, [string[]] $exclude) {
+function Select-UpstreamBranches(
+    [String]$branchName, 
+    [switch] $includeRemote, 
+    [switch] $recurse, 
+    [string[]] $exclude, 
+    [Parameter()][AllowNull()] $overrideUpstreams
+) {
     $config = Get-Configuration
-    $all = Select-AllUpstreamBranches
+    $all = Select-AllUpstreamBranches -overrideUpstreams:$overrideUpstreams
     $parentBranches = [string[]]($all[$branchName])
 
     $parentBranches = $parentBranches | Where-Object { $exclude -notcontains $_ }

@@ -165,6 +165,30 @@ Describe 'local action "upstreams-updated"' {
         }
 
         Add-StandardTests
+
+        It 'allows for overrides' {
+            $script = ('{ 
+                "type": "upstreams-updated", 
+                "parameters": {
+                    "branches": ["feature/FOO-123"],
+                    "overrideUpstreams": {
+                        "feature/FOO-123": ["main"]
+                    }
+                }
+            }' | ConvertFrom-Json)
+            
+            $mocks = Initialize-LocalActionUpstreamsUpdated @('feature/FOO-123') -recurse -overrideUpstreams:@{
+                "feature/FOO-123" = @("main")
+            }
+        
+            $outputs = Invoke-LocalAction $script -diagnostics $fw.diagnostics
+    
+            $outputs.needsUpdate.Keys | Should -BeNullOrEmpty
+            $outputs.isUpdated | Should -Contain 'feature/FOO-123'
+            Invoke-FlushAssertDiagnostic $fw.diagnostics
+            $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
+            Invoke-VerifyMock $mocks -Times 1
+        }
     }
 
     Context 'without remote' {

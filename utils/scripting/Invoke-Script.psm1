@@ -18,11 +18,17 @@ function Invoke-Script(
         for ($i = 0; $i -lt $script.local.Count; $i++) {
             $name = $script.local[$i].id ?? "#$($i + 1) (1-based)";
             $variables = @{ config=$config; params=$params; actions=$actions }
+            if ($script.local[$i].condition) {
+                $condition = ConvertFrom-ParameterizedAnything -script $script.local[$i].condition -variables $variables -diagnostics $diagnostics
+                if (-not $condition.fail -AND -not $condition.result) {
+                    continue;
+                }
+            }
             $local = ConvertFrom-ParameterizedAnything -script $script.local[$i] -variables $variables -diagnostics $diagnostics
             if ($local.fail) {
                 Add-ErrorDiagnostic $diagnostics "Could not apply parameters to local action $name; see above errors. Evaluation below:"
                 Add-ErrorDiagnostic $diagnostics "$(ConvertTo-Json $local.result -Depth 10)"
-                break
+                Assert-Diagnostics $diagnostics
             }
             try {
                 $outputs = Invoke-LocalAction $local.result -diagnostics $diagnostics

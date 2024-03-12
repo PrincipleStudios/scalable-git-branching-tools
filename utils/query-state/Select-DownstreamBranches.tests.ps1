@@ -58,4 +58,9 @@ Describe 'Select-DownstreamBranches' {
         $results = Select-DownstreamBranches bad-recursive-branch-1 -recurse
         $results | Should -Be @( 'bad-recursive-branch-2' )
     }
+
+    It 'allows overrides' {
+        $results = Select-DownstreamBranches infra/next -overrideUpstreams @{ 'feature/FOO-123' = 'infra/next' }
+        $results | Should -Be @( 'feature/FOO-123' )
+    }
 }

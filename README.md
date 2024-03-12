@@ -38,6 +38,8 @@ Note: if you have an older version installed, such as .NET 7, you can [install a
 
 [`git pull-upstream`](./docs/pull-upstream.md)
 
+[`git show-downstream`](./docs/show-downstream.md)
+
 [`git show-upstream`](./docs/show-upstream.md)
 
 [`git add-upstream`](./docs/add-upstream.md)
@@ -48,8 +50,9 @@ Note: if you have an older version installed, such as .NET 7, you can [install a
 
 [`git verify-updated`](./docs/verify-updated.md)
 
-[`git release`](./docs/release.md)
+[`git refactor-upstream`](./docs/refactor-upstream.md)
 
+[`git release`](./docs/release.md)
 
 ## Development
 
