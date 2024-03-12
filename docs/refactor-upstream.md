@@ -1,6 +1,9 @@
 # `git refactor-upstream`
 
-Refactor upstream branches to redirect upstreams from "source" to "target".
+Refactor upstream branches to redirect upstreams from "source" to "target". This
+command only alters the upstream configuration of branches; put another way, it
+does not merge any changes from new upstreams, etc. into affected branches, nor
+does it actually delete a "removed" source.
 
 Usage:
 
@@ -28,8 +31,6 @@ One of -rename, -remove, or -combine must be specfied.
   overwritten.
 * `-combine` indicates that upstreams from both source and target should be
   combined into upstreams of the target branch.
-
-The source and target branches _will not_ be updated as part of this command.
 
 ### `-comment <string>` (Optional)
 
