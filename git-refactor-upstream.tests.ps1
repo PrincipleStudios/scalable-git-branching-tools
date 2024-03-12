@@ -205,6 +205,22 @@ Describe 'git-refactor-upstream' {
         Invoke-VerifyMock $mocks -Times 1
     }
 
+    It 'errors if no changes are made' {
+        $mocks = @(
+            Initialize-AllUpstreamBranches @{
+                'integrate/FOO-123_XYZ-1' = @("feature/XYZ-1-services")
+                'feature/FOO-124' = @("integrate/FOO-123_XYZ-1")
+                'feature/XYZ-1-services' = @("main")
+                'rc/1.1.0' = @("integrate/FOO-123_XYZ-1")
+            }
+        )
+
+        { & $PSScriptRoot/git-refactor-upstream.ps1 -source 'feature/FOO-123' -target 'main' -remove } | Should -Throw
+
+        $fw.assertDiagnosticOutput | Should -Contain "ERR:  No changes were found."
+        Invoke-VerifyMock $mocks -Times 1
+    }
+
     Describe 'Advanced use-cases' {
         It 'simplifies other downstream branches' {
             $mocks = @(
@@ -213,7 +229,6 @@ Describe 'git-refactor-upstream' {
                     'feature/FOO-124' = @("feature/FOO-123")
                 }
                 Initialize-LocalActionSetUpstream @{
-                    'feature/FOO-123' = $null
                     'feature/FOO-124' = @("main")
                     'feature/FOO-125' = @("feature/FOO-124")
                 } -commitish 'new-commit'
