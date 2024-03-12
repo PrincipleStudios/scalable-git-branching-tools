@@ -1,9 +1,11 @@
 # `git refactor-upstream`
 
-Refactor upstream branches to redirect upstreams from "source" to "target". This
-command only alters the upstream configuration of branches; put another way, it
-does not merge any changes from new upstreams, etc. into affected branches, nor
-does it actually delete a "removed" source.
+Refactor upstream branches to redirect upstreams from "source" to "target".
+* _All_ branches that previously used "source" as an upstream will now use
+  "target" as an upstream instead.
+* This command only alters the upstream configuration of branches. Put another
+  way, it does not merge any changes from new upstreams, etc. into affected
+  branches, nor does it actually delete a "removed" source.
 
 Usage:
 
