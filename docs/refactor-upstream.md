@@ -20,7 +20,7 @@ The name of the old upstream branch.
 
 The name of the new upstream branch.
 
-### `(-remove|-replace|-combine)`
+### `(-remove|-rename|-combine)`
 
 One of -rename, -remove, or -combine must be specfied.
 
