@@ -101,8 +101,16 @@
         {
             "id": "remove",
             "type": "evaluate",
+            "condition": "$actions.simplifyAll.outputs[$params.source] -OR $actions.upstreamResult.outputs[$params.source]",
             "parameters": {
                 "result": "$actions.simplifyAll.outputs[$params.source] = $null"
+            }
+        },
+        {
+            "type": "add-diagnostic",
+            "condition": "$actions.simplifyAll.outputs.Keys.Count -eq 0",
+            "parameters": {
+                "message": "No changes were found."
             }
         },
         {
