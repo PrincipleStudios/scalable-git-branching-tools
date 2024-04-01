@@ -47,29 +47,40 @@ Describe 'Compress-UpstreamBranches' {
         Compress-UpstreamBranches @('bad-recursive-branch-1', 'bad-recursive-branch-2') | Should -Be @('bad-recursive-branch-2')
     }
 
+    It 'allows overrides' {
+        Compress-UpstreamBranches @("feature/FOO-123", "feature/XYZ-1-services") -overrideUpstreams @{
+            'feature/FOO-123' = 'feature/XYZ-1-services'
+        } | Should -Be @("feature/FOO-123")
+    }
+
     Context 'with diagnostics' {
         It 'can handle a flat string' {
-            Compress-UpstreamBranches my-branch $diag | Should -Be @( 'my-branch' )
+            Compress-UpstreamBranches my-branch -diagnostics:$diag | Should -Be @( 'my-branch' )
             Should -ActualValue (Get-DiagnosticStrings $diag) -Be @()
         }
 
         It 'does not reduce any if none can be reduced' {
-            Compress-UpstreamBranches @("feature/FOO-123", "feature/XYZ-1-services") $diag | Should -Be @("feature/FOO-123", "feature/XYZ-1-services")
+            Compress-UpstreamBranches @("feature/FOO-123", "feature/XYZ-1-services") -diagnostics:$diag | Should -Be @("feature/FOO-123", "feature/XYZ-1-services")
             Should -ActualValue (Get-DiagnosticStrings $diag) -Be @()
         }
 
         It 'reduces redundant branches' {
-            Compress-UpstreamBranches @("my-branch", "feature/XYZ-1-services") $diag | Should -Be @("my-branch")
-            Should -ActualValue (Get-DiagnosticStrings $diag) -Be @("WARN: Removing 'feature/XYZ-1-services' from branches; it is redundant via the following: my-branch")
+            Compress-UpstreamBranches @("my-branch", "feature/XYZ-1-services") -diagnostics:$diag | Should -Be @("my-branch")
+            Should -ActualValue (Get-DiagnosticStrings -diagnostics:$diag) -Be @("WARN: Removing 'feature/XYZ-1-services' from branches; it is redundant via the following: my-branch")
+        }
+
+        It 'reduces redundant branches with a named branch' {
+            Compress-UpstreamBranches @("my-branch", "feature/XYZ-1-services") -diagnostics:$diag -branchName:'feature/ABC' | Should -Be @("my-branch")
+            Should -ActualValue (Get-DiagnosticStrings -diagnostics:$diag) -Be @("WARN: Removing 'feature/XYZ-1-services' from upstream branches of 'feature/ABC'; it is redundant via the following: my-branch")
         }
 
         It 'allows an empty list' {
-            Compress-UpstreamBranches @() $diag | Should -Be @()
+            Compress-UpstreamBranches @() -diagnostics:$diag | Should -Be @()
             Should -ActualValue (Get-DiagnosticStrings $diag) -Be @()
         }
 
         It 'does not eliminate all recursive branches' {
-            Compress-UpstreamBranches @('bad-recursive-branch-1', 'bad-recursive-branch-2') $diag | Should -Be @('bad-recursive-branch-2')
+            Compress-UpstreamBranches @('bad-recursive-branch-1', 'bad-recursive-branch-2') -diagnostics:$diag | Should -Be @('bad-recursive-branch-2')
             Should -ActualValue (Get-DiagnosticStrings $diag) -Be @("WARN: Removing 'bad-recursive-branch-1' from branches; it is redundant via the following: bad-recursive-branch-2")
         }
 

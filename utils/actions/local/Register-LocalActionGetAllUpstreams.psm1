@@ -2,15 +2,15 @@ Import-Module -Scope Local "$PSScriptRoot/../../core.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../framework.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../query-state.psm1"
 
-function Register-LocalActionEvaluate([PSObject] $localActions) {
-    $localActions['evaluate'] = {
+function Register-LocalActionGetAllUpstreams([PSObject] $localActions) {
+    $localActions['get-all-upstreams'] = {
         param(
-            [Parameter(Mandatory)][AllowNull()][object] $result,
+            [Parameter()][AllowNull()] $overrideUpstreams,
             [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
         )
         
-        return $result
+        return Select-AllUpstreamBranches -overrideUpstreams:$overrideUpstreams
     }
 }
 
-Export-ModuleMember -Function Register-LocalActionEvaluate
+Export-ModuleMember -Function Register-LocalActionGetAllUpstreams

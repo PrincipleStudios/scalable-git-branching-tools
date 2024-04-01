@@ -24,7 +24,7 @@ function ConvertFrom-ParameterizedAnything(
             $targetScript = New-Closure ([ScriptBlock]::Create('
                 Set-StrictMode -Version 3.0; 
                 try {
-                    @{ result = ' + $script.replace('`', '``').replace('{', '`{').replace('}', '`}').replace(';', '`;') + '; fail = $false }
+                    @{ result = ' + $script + '; fail = $false }
                 } catch {
                     $null
                 }

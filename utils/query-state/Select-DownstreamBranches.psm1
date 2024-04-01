@@ -1,18 +1,17 @@
 Import-Module -Scope Local "$PSScriptRoot/Select-AllUpstreamBranches.psm1"
 Import-Module -Scope Local "$PSScriptRoot/Configuration.psm1"
 
-function Select-UpstreamBranches(
-    [String]$branchName, 
-    [switch] $includeRemote, 
-    [switch] $recurse, 
+function Select-DownstreamBranches(
+    [String]$branchName,
+    [switch] $recurse,
     [string[]] $exclude, 
-    [Parameter()][AllowNull()] $overrideUpstreams
-) {
-    $config = Get-Configuration
+    [Parameter()][AllowNull()] $overrideUpstreams) {
     $all = Select-AllUpstreamBranches -overrideUpstreams:$overrideUpstreams
-    $parentBranches = [string[]]($all[$branchName])
-
-    $parentBranches = $parentBranches | Where-Object { $exclude -notcontains $_ }
+    $parentBranches = $all.Keys | Where-Object {
+        $exclude -notcontains $_
+    } | Where-Object {
+        $all[$_] -contains $branchName
+    }
 
     if ($parentBranches -eq $nil -OR $parentBranches.length -eq 0) {
         return [string[]](@())
@@ -21,7 +20,7 @@ function Select-UpstreamBranches(
     if ($recurse) {
         $currentExclude = [string[]]( @($branchName, $exclude) | ForEach-Object { $_ } )
         $finalParents = [string[]]( $parentBranches | ForEach-Object {
-            $newParents = [string[]](Select-UpstreamBranches $_ -recurse -exclude $currentExclude)
+            $newParents = [string[]](Select-DownstreamBranches $_ -recurse -exclude $currentExclude)
             if ($newParents -eq $nil) {
                 return @()
             }
@@ -30,11 +29,6 @@ function Select-UpstreamBranches(
         } | ForEach-Object { $_ } )
         $parentBranches = [string[]]( @( $parentBranches, $finalParents ) | ForEach-Object { $_ } | Where-Object { $_ -ne $nil} )
     }
-
-    if ($includeRemote) {
-        return $parentBranches | ForEach-Object { $config.remote -eq $nil ? $_ : "$($config.remote)/$_" }
-    } else {
-        return $parentBranches
-    }
+    return $parentBranches
 }
-Export-ModuleMember -Function Select-UpstreamBranches
+Export-ModuleMember -Function Select-DownstreamBranches

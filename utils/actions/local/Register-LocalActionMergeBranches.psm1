@@ -39,7 +39,7 @@ function Register-LocalActionMergeBranches([PSObject] $localActions) {
             -messageTemplate $mergeMessageTemplate `
             -commitMappingOverride $commitMappingOverride `
             -diagnostics $diagnostics `
-            -asWarnings:$(-not $errorOnFailure)
+            -noFailureMessages:$(-not $errorOnFailure)
         $commit = $mergeResult.result
         if ($null -eq $commit) {
             if ($source -notin $mergeResult.failed) {

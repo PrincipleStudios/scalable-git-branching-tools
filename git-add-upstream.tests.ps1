@@ -338,7 +338,7 @@ Describe 'git-add-upstream' {
             )
 
             & ./git-add-upstream.ps1 'feature/FOO-76' -m ""
-            $fw.assertDiagnosticOutput | Should -Be @('WARN: Could not merge the following branches: origin/feature/FOO-76')
+            $fw.assertDiagnosticOutput | Should -Be @('WARN: rc/2022-07-14 has incoming conflicts from feature/FOO-76. Be sure to manually merge.')
             Invoke-VerifyMock $mocks -Times 1
         }
 
