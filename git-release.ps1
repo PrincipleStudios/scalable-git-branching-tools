@@ -5,8 +5,10 @@ Param(
     [Parameter(Mandatory)][String] $target,
     [Parameter()][Alias('message')][Alias('m')][string] $comment,
     [Parameter()][String[]] $preserve,
-    [switch] $dryRun,
-    [switch] $cleanupOnly
+    [switch] $cleanupOnly,
+    [switch] $noFetch,
+    [switch] $quiet,
+    [switch] $dryRun
 )
 
 . $PSScriptRoot/config/core/coalesce.ps1
@@ -15,9 +17,26 @@ Import-Module -Scope Local "$PSScriptRoot/utils/query-state.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Get-GitFileNames.psm1"
 Import-Module -Scope Local "$PSScriptRoot/config/git/Set-MultipleUpstreamBranches.psm1"
 
-$config = Get-Configuration
+$diagnostics = New-Diagnostics
+if (-not $noFetch) {
+    Update-GitRemote -quiet:$quiet
+}
 
-Update-GitRemote
+# Assert up-to-date
+# a) if $cleanupOnly, ensure no commits are in source that are not in target
+# b) otherwise, ensure no commits are in target that are not in source
+#
+# $toRemove = (git show-upstream $source -recurse) without ($target, git show-upstream $target -recurse)
+#
+# For all branches:
+#    1. Replace $toRemove branches with $target
+#    2. Simplify (new)
+#
+# Finalize:
+#    1. Push the following:
+#        - Delete $toRemove branches
+#        - Update _upstream
+#        - If not $cleanupOnly, push $source commitish to $target
 
 if ($cleanupOnly) {
     # Verify that $target already has all of $sourceBranch
