@@ -3,7 +3,8 @@
 Usage:
 
     git-release.ps1 [-source] <string> [-target] <string>
-        [-comment <string>] [-preserve <string[]>] [-noFetch] [-dryRun] [-quiet] [-cleanupOnly]
+        [-comment <string>] [-preserve <string[]>] [-cleanupOnly] [-force]
+        [-noFetch] [-dryRun] [-quiet]
 
 ## Parameters
 
@@ -30,6 +31,11 @@ A comma delimited list of branches to preserve in addition to those upstream
 
 Use this flag when the released branch (from `-branchName`) was already merged
 to the target branch (`-target`) to clean up the included branches.
+
+### `-force` (Optional)
+
+Bypasses up-to-date checks for the source, target, and all branches being
+removed.
 
 ## `-noFetch` (Optional)
 

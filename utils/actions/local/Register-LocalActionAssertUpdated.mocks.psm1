@@ -5,6 +5,12 @@ Import-Module -Scope Local "$PSScriptRoot/../../git.mocks.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../testing.psm1"
 Import-Module -Scope Local "$PSScriptRoot/Register-LocalActionAssertUpdated.psm1"
 
+function Get-CommitsWithRemote(
+    [Parameter()][Hashtable] $initialCommits
+) {
+    return $initialCommits.Keys | ConvertTo-HashMap -getKey { Get-RemoteBranchRef $_ } -getValue { $initialCommits[$_] }
+}
+
 function Initialize-LocalActionAssertUpdatedSuccess(
     [Parameter()][string] $downstream,
     [Parameter()][string] $upstream,
@@ -18,7 +24,7 @@ function Initialize-LocalActionAssertUpdatedSuccess(
         -allBranches @($upstream) `
         -successfulBranches @() `
         -noChangeBranches @($upstream) `
-        -initialCommits (ConvertTo-HashMap -getKey { Get-RemoteBranchRef $_ } -input $initialCommits) `
+        -initialCommits (Get-CommitsWithRemote $initialCommits) `
         -source $downstream `
         -messageTemplate 'Verification Only' `
         -resultCommitish $resultCommit
@@ -37,7 +43,7 @@ function Initialize-LocalActionAssertUpdatedFailure(
     $base = @{
         allBranches = @($upstream)
         noChangeBranches = @()
-        initialCommits = (ConvertTo-HashMap -getKey { Get-RemoteBranchRef $_ } -input $initialCommits)
+        initialCommits = (Get-CommitsWithRemote $initialCommits)
         source = $downstream
         messageTemplate = 'Verification Only'
         resultCommitish = $resultCommit
@@ -48,7 +54,6 @@ function Initialize-LocalActionAssertUpdatedFailure(
             -successfulBranches @()
     } else {
         Initialize-MergeTogether @base `
-            -allBranches @($upstream) `
             -successfulBranches @($upstream)
     }
 }

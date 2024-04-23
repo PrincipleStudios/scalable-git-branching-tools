@@ -6,6 +6,7 @@ Param(
     [Parameter()][Alias('message')][Alias('m')][string] $comment,
     [Parameter()][String[]] $preserve = @(),
     [switch] $cleanupOnly,
+    [switch] $force,
     [switch] $noFetch,
     [switch] $quiet,
     [switch] $dryRun
@@ -28,13 +29,15 @@ $commonParams = @{
 # Assert up-to-date
 # a) if $cleanupOnly, ensure no commits are in source that are not in target
 # b) otherwise, ensure no commits are in target that are not in source
-Invoke-LocalAction @commonParams @{
-    type = 'assert-updated'
-    parameters = $cleanupOnly `
-        ? @{ downstream = $target; upstream = $source }
-        : @{ downstream = $source; upstream = $target }
+if (-not $force) {
+    Invoke-LocalAction @commonParams @{
+        type = 'assert-updated'
+        parameters = $cleanupOnly `
+            ? @{ downstream = $target; upstream = $source }
+            : @{ downstream = $source; upstream = $target }
+    }
+    Assert-Diagnostics $diagnostics
 }
-Assert-Diagnostics $diagnostics
 
 # $toRemove = (git show-upstream $source -recurse) without ($target, git show-upstream $target -recurse)
 $sourceUpstream = Invoke-LocalAction @commonParams @{
@@ -51,6 +54,18 @@ Assert-Diagnostics $diagnostics
 
 $keep = @($target) + $targetUpstream
 [string[]]$toRemove = (@($source) + $sourceUpstream) | Where-Object { $_ -notin $keep -and $_ -notin $preserve }
+
+# Assert all branches removed are up-to-date, unless $force is set
+if (-not $force) {
+    foreach ($branch in $toRemove) {
+        if ($branch -eq $source) { continue }
+        Invoke-LocalAction @commonParams @{
+            type = 'assert-updated'
+            parameters = @{ downstream = $cleanupOnly ? $target : $source; upstream = $branch }
+        }
+        Assert-Diagnostics $diagnostics
+    }
+}
 
 # For all branches:
 #    1. Replace $toRemove branches with $target
