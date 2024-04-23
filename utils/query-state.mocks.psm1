@@ -17,6 +17,9 @@ Export-ModuleMember -Function `
     , Initialize-OtherGitFilesAsBlank, Initialize-GitFile `
     , Initialize-MergeTree `
 
+Import-Module -Scope Local "$PSScriptRoot/query-state/Get-BranchCommit.mocks.psm1"
+Export-ModuleMember -Function Initialize-GetBranchCommit
+    
 Import-Module -Scope Local "$PSScriptRoot/query-state/Get-BranchSyncState.mocks.psm1"
 Export-ModuleMember -Function Initialize-RemoteBranchBehind, Initialize-RemoteBranchAhead, Initialize-RemoteBranchNotTracked, Initialize-RemoteBranchInSync, Initialize-RemoteBranchAheadAndBehind
 

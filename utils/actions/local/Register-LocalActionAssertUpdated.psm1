@@ -13,15 +13,8 @@ function Register-LocalActionAssertUpdated([PSObject] $localActions) {
             [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
         )
 
-        $config = Get-Configuration
-        if ($null -ne $config.remote) {
-            if ($null -ne $downstream -AND '' -ne $downstream) {
-                $downstream = "$($config.remote)/$downstream"
-            }
-            if ($null -ne $upstream -AND '' -ne $upstream) {
-                $upstream = "$($config.remote)/$upstream"
-            }
-        }
+        $downstream = Get-RemoteBranchRef $downstream
+        $upstream = Get-RemoteBranchRef $upstream
 
         # Verifies that everything in "upstream" is in "downstream". Asserts if not.
         $mergeResult = Invoke-MergeTogether `
