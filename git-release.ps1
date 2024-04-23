@@ -4,7 +4,7 @@ Param(
     [Parameter(Mandatory)][Alias('sourceBranch')][String] $source,
     [Parameter(Mandatory)][Alias('targetBranch')][String] $target,
     [Parameter()][Alias('message')][Alias('m')][string] $comment,
-    [Parameter()][String[]] $preserve,
+    [Parameter()][String[]] $preserve = @(),
     [switch] $cleanupOnly,
     [switch] $noFetch,
     [switch] $quiet,
@@ -50,7 +50,7 @@ $targetUpstream = Invoke-LocalAction @commonParams @{
 Assert-Diagnostics $diagnostics
 
 $keep = @($target) + $targetUpstream
-[string[]]$toRemove = (@($source) + $sourceUpstream) | Where-Object { $_ -notin $keep }
+[string[]]$toRemove = (@($source) + $sourceUpstream) | Where-Object { $_ -notin $keep -and $_ -notin $preserve }
 
 # For all branches:
 #    1. Replace $toRemove branches with $target

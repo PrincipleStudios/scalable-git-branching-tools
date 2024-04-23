@@ -3,7 +3,7 @@
 Usage:
 
     git-release.ps1 [-source] <string> [-target] <string>
-        [-comment <string>] [-preserve <string[]>] [-dryRun] [-cleanupOnly]
+        [-comment <string>] [-preserve <string[]>] [-noFetch] [-dryRun] [-quiet] [-cleanupOnly]
 
 ## Parameters
 
@@ -26,12 +26,22 @@ branch.
 
 A comma delimited list of branches to preserve in addition to those upstream
 
+### `-cleanupOnly` (Optional)
+
+Use this flag when the released branch (from `-branchName`) was already merged
+to the target branch (`-target`) to clean up the included branches.
+
+## `-noFetch` (Optional)
+
+By default, all scripts fetch the latest before processing. To skip this (which
+was the old behavior), include `-noFetch`.
+
 ### `-dryRun` (Optional)
 
 If specified, changes to branches will be displayed but no actual changes will
 be applied.
 
-### `-cleanupOnly` (Optional)
+## `-quiet` (Optional)
 
-Use this flag when the released branch (from `-branchName`) was already merged
-to the target branch (`-target`) to clean up the included branches.
+Suppress unnecessary output. Useful when a tool is designed to consume the
+output of this script via git rather than via PowerShell.

@@ -109,6 +109,37 @@ Describe 'git-release' {
             $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
         }
 
+        It 'can preserve some branches' {
+            Initialize-AllUpstreamBranches @{
+                'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services")
+                'feature/FOO-123' = @('main')
+                'feature/XYZ-1-services' = @('main')
+                'feature/FOO-124-comment' = @('main')
+                'feature/FOO-124_FOO-125' = @("feature/FOO-124-comment")
+                'feature/FOO-76' = @('main')
+                'integrate/FOO-125_XYZ-1' = @("feature/FOO-124_FOO-125","feature/XYZ-1-services")
+                'main' = @()
+            }
+            Initialize-LocalActionAssertUpdatedSuccess 'rc/2022-07-14' 'main' -initialCommits @{
+                'rc/2022-07-14' = 'result-commitish'
+                'main' = 'old-main'
+            }
+            Initialize-LocalActionSimplifyUpstreamBranchesSuccess `
+                -from @("feature/FOO-124_FOO-125", "main") `
+                -to @("feature/FOO-124_FOO-125")
+            Initialize-LocalActionSetUpstream @{
+                'feature/FOO-123' = $null;
+                'rc/2022-07-14' = $null;
+            } 'Release rc/2022-07-14 to main' 'new-commit'
+            Initialize-FinalizeActionSetBranches @{
+                '_upstream' = 'new-commit'
+                'main' = 'result-commitish'
+            }
+
+            & $PSScriptRoot/git-release.ps1 rc/2022-07-14 main -preserve feature/XYZ-1-services
+            $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
+        }
+
         It 'handles a single upstream branch' {
             Initialize-AllUpstreamBranches @{
                 'feature/FOO-123' = @('main')
