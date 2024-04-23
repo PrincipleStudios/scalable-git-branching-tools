@@ -1,4 +1,3 @@
-Import-Module -Scope Local "$PSScriptRoot/../core.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../testing.psm1"
 Import-Module -Scope Local "$PSScriptRoot/Get-BranchCommit.psm1"
 

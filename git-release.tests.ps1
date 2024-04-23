@@ -1,40 +1,21 @@
-BeforeAll {
-    . "$PSScriptRoot/utils/testing.ps1"
-    Import-Module -Scope Local "$PSScriptRoot/utils/framework.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/utils/query-state.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/utils/git.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/config/git/Get-GitFileNames.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/config/git/Set-MultipleUpstreamBranches.mocks.psm1"
-
-    # User-interface commands are a bit noisy; TODO: add quiet option and test it by making this throw
-    Mock -CommandName Write-Host {}
-
-    Lock-SetMultipleUpstreamBranches
-}
-
-
 Describe 'git-release' {
-    BeforeEach {
-        Register-Framework
+    BeforeAll {
+        . "$PSScriptRoot/utils/testing.ps1"
+        Import-Module -Scope Local "$PSScriptRoot/utils/framework.mocks.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/utils/input.mocks.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/utils/query-state.mocks.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/utils/git.mocks.psm1"
+        Import-Module -Scope Local "$PSScriptRoot/utils/actions.mocks.psm1"
     }
     
-    Context 'without a remote' {
-        BeforeAll {
-            Initialize-ToolConfiguration -noRemote -defaultServiceLine $nil
+    BeforeEach {
+        [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
+        $fw = Register-Framework
+    }
 
-            $noRemoteBranches = @(
-                @{ remote = $nil; branch='feature/FOO-123' }
-                @{ remote = $nil; branch='feature/FOO-124-comment' }
-                @{ remote = $nil; branch='feature/FOO-124_FOO-125' }
-                @{ remote = $nil; branch='feature/FOO-76' }
-                @{ remote = $nil; branch='feature/XYZ-1-services' }
-                @{ remote = $nil; branch='main' }
-                @{ remote = $nil; branch='rc/2022-07-14' }
-                @{ remote = $nil; branch='integrate/FOO-125_XYZ-1' }
-            )
-
-            Initialize-GitFileNames '_upstream' $($noRemoteBranches | ForEach-Object { $_.branch })
-            Initialize-UpstreamBranches @{
+    function Add-StandardTests {
+        It 'handles standard functionality' {
+            Initialize-AllUpstreamBranches @{
                 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services")
                 'feature/FOO-123' = @('main')
                 'feature/XYZ-1-services' = @('main')
@@ -44,111 +25,60 @@ Describe 'git-release' {
                 'integrate/FOO-125_XYZ-1' = @("feature/FOO-124_FOO-125","feature/XYZ-1-services")
                 'main' = @()
             }
-        }
-        It 'handles standard functionality' {
-
-            Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list main ^rc/2022-07-14 --count'} {
-                "0"
+            Initialize-LocalActionAssertUpdatedSuccess 'rc/2022-07-14' 'main' -initialCommits @{
+                'rc/2022-07-14' = 'result-commitish'
+                'main' = 'old-main'
             }
-            Initialize-SetMultipleUpstreamBranches @{
-                'feature/FOO-123' = $nil;
-                'integrate/FOO-125_XYZ-1' = @("feature/FOO-124_FOO-125", "main");
-                'rc/2022-07-14' = $nil;
-                'feature/XYZ-1-services' = $nil;
+            Initialize-LocalActionSimplifyUpstreamBranchesSuccess `
+                -from @("feature/FOO-124_FOO-125", "main") `
+                -to @("feature/FOO-124_FOO-125")
+            Initialize-LocalActionSetUpstream @{
+                'feature/FOO-123' = $null;
+                'integrate/FOO-125_XYZ-1' = @("feature/FOO-124_FOO-125");
+                'rc/2022-07-14' = $null;
+                'feature/XYZ-1-services' = $null;
             } 'Release rc/2022-07-14 to main' 'new-commit'
-
-            $updateBranchFilters = @(
-                {($args -join ' ') -eq 'branch -f _upstream new-commit'}
-                {($args -join ' ') -eq 'branch -f rc/2022-07-14 main'}
-                {($args -join ' ') -eq 'branch -D feature/FOO-123'}
-                {($args -join ' ') -eq 'branch -D feature/XYZ-1-services'}
-                {($args -join ' ') -eq 'branch -D rc/2022-07-14'}
-            )
-            $updateBranchFilters | ForEach-Object { Mock git -ParameterFilter $_ {} -Verifiable }
+            Initialize-FinalizeActionSetBranches @{
+                '_upstream' = 'new-commit'
+                'main' = 'result-commitish'
+            }
 
             & $PSScriptRoot/git-release.ps1 rc/2022-07-14 main
-
-            $updateBranchFilters | ForEach-Object { Should -Invoke -CommandName git -Times 1 -ParameterFilter $_ }
+            $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
         }
-    }
-
-    Context 'with a remote' {
-        BeforeAll {
-            $defaultBranches = @(
-                @{ remote = 'origin'; branch='feature/FOO-123' }
-                @{ remote = 'origin'; branch='feature/FOO-124-comment' }
-                @{ remote = 'origin'; branch='feature/FOO-124_FOO-125' }
-                @{ remote = 'origin'; branch='feature/FOO-76' }
-                @{ remote = 'origin'; branch='feature/XYZ-1-services' }
-                @{ remote = 'origin'; branch='main' }
-                @{ remote = 'origin'; branch='rc/2022-07-14' }
-                @{ remote = 'origin'; branch='integrate/FOO-125_XYZ-1' }
-            )
-
-            Initialize-ToolConfiguration -defaultServiceLine $nil
-
-            Initialize-GitFileNames 'origin/_upstream' $($defaultBranches | ForEach-Object { $_.branch })
-            Initialize-UpstreamBranches @{
+        
+        It 'can issue a dry run' {
+            Initialize-AllUpstreamBranches @{
+                'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services")
                 'feature/FOO-123' = @('main')
                 'feature/XYZ-1-services' = @('main')
                 'feature/FOO-124-comment' = @('main')
                 'feature/FOO-124_FOO-125' = @("feature/FOO-124-comment")
                 'feature/FOO-76' = @('main')
                 'integrate/FOO-125_XYZ-1' = @("feature/FOO-124_FOO-125","feature/XYZ-1-services")
-                'main' = {}
-                'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services")
+                'main' = @()
             }
-        }
-
-        It 'handles standard functionality' {
-            Initialize-UpdateGitRemote
-
-            Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list origin/main ^origin/rc/2022-07-14 --count'} {
-                "0"
+            Initialize-LocalActionAssertUpdatedSuccess 'rc/2022-07-14' 'main' -initialCommits @{
+                'rc/2022-07-14' = 'result-commitish'
+                'main' = 'old-main'
             }
+            Initialize-LocalActionSimplifyUpstreamBranchesSuccess `
+                -from @("feature/FOO-124_FOO-125", "main") `
+                -to @("feature/FOO-124_FOO-125")
+            Initialize-LocalActionSetUpstream @{
+                'feature/FOO-123' = $null;
+                'integrate/FOO-125_XYZ-1' = @("feature/FOO-124_FOO-125");
+                'rc/2022-07-14' = $null;
+                'feature/XYZ-1-services' = $null;
+            } 'Release rc/2022-07-14 to main' 'new-commit'
+            Initialize-AssertValidBranchName '_upstream'
 
-            Initialize-SetMultipleUpstreamBranches @{
-                'feature/FOO-123' = $nil
-                'integrate/FOO-125_XYZ-1' = @("feature/FOO-124_FOO-125", "main")
-                'rc/2022-07-14' = $nil
-                'feature/XYZ-1-services' = $nil
-            } -commitMessage 'Release rc/2022-07-14 to main' -commitish 'new-commit'
-
-            $pushParameterFilter = {($args -join ' ') -eq 'push --atomic origin origin/rc/2022-07-14:main :feature/FOO-123 :feature/XYZ-1-services :rc/2022-07-14 new-commit:refs/heads/_upstream'}
-            Mock git -ParameterFilter $pushParameterFilter {} -Verifiable
-
-            & $PSScriptRoot/git-release.ps1 rc/2022-07-14 main
-
-            Should -Invoke -CommandName git -Times 1 -ParameterFilter $pushParameterFilter
-        }
-
-        It 'can issue a dry run' {
-            Initialize-UpdateGitRemote
-
-            Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list origin/main ^origin/rc/2022-07-14 --count'} {
-                "0"
-            }
-
-            Initialize-SetMultipleUpstreamBranches @{
-                'feature/FOO-123' = $nil
-                'integrate/FOO-125_XYZ-1' = @("feature/FOO-124_FOO-125", "main")
-                'rc/2022-07-14' = $nil
-                'feature/XYZ-1-services' = $nil
-            } -commitMessage 'Release rc/2022-07-14 to main' -commitish 'new-commit'
-
-            $pushParameterFilter = {($args -join ' ') -eq 'push --atomic origin origin/rc/2022-07-14:main :feature/FOO-123 :feature/XYZ-1-services :rc/2022-07-14 new-commit:refs/heads/_upstream'}
-            Mock git -ParameterFilter $pushParameterFilter {} -Verifiable
-
-            & $PSScriptRoot/git-release.ps1 rc/2022-07-14 main -dryrun
+            & $PSScriptRoot/git-release.ps1 rc/2022-07-14 main -dryRun
+            $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
         }
 
         It 'handles integration branches recursively' {
-            Initialize-UpdateGitRemote
-
-            Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list origin/main ^origin/rc/2022-07-14 --count'} {
-                "0"
-            }
-            Initialize-UpstreamBranches @{
+            Initialize-AllUpstreamBranches @{
                 'feature/FOO-123' = @('main')
                 'feature/XYZ-1-services' = @('main')
                 'feature/FOO-124-comment' = @('main')
@@ -158,31 +88,29 @@ Describe 'git-release' {
                 'main' = {}
                 'rc/2022-07-14' = @("feature/FOO-123", "integrate/FOO-125_XYZ-1")
             }
-
-            Initialize-SetMultipleUpstreamBranches @{
-                'feature/FOO-123' = $nil
-                'integrate/FOO-125_XYZ-1' = $nil
-                'rc/2022-07-14' = $nil
-                'feature/XYZ-1-services' = $nil
-                'feature/FOO-124_FOO-125' = $nil
-                'feature/FOO-124-comment' = $nil
+            Initialize-LocalActionAssertUpdatedSuccess 'rc/2022-07-14' 'main' -initialCommits @{
+                'rc/2022-07-14' = 'result-commitish'
+                'main' = 'old-main'
+            }
+            Initialize-LocalActionSetUpstream @{
+                'feature/FOO-123' = $null
+                'integrate/FOO-125_XYZ-1' = $null
+                'rc/2022-07-14' = $null
+                'feature/XYZ-1-services' = $null
+                'feature/FOO-124_FOO-125' = $null
+                'feature/FOO-124-comment' = $null
             } -commitMessage 'Release rc/2022-07-14 to main' -commitish 'new-commit'
-
-            $pushParameterFilter = {($args -join ' ') -eq 'push --atomic origin origin/rc/2022-07-14:main :feature/FOO-123 :integrate/FOO-125_XYZ-1 :feature/FOO-124_FOO-125 :feature/XYZ-1-services :feature/FOO-124-comment :rc/2022-07-14 new-commit:refs/heads/_upstream'}
-            Mock git -ParameterFilter $pushParameterFilter {} -Verifiable
+            Initialize-FinalizeActionSetBranches @{
+                '_upstream' = 'new-commit'
+                'main' = 'result-commitish'
+            }
 
             & $PSScriptRoot/git-release.ps1 rc/2022-07-14 main
-
-            Should -Invoke -CommandName git -Times 1 -ParameterFilter $pushParameterFilter
+            $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
         }
 
         It 'handles a single upstream branch' {
-            Initialize-UpdateGitRemote
-
-            Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list origin/main ^origin/feature/FOO-123 --count'} {
-                "0"
-            }
-            Initialize-UpstreamBranches @{
+            Initialize-AllUpstreamBranches @{
                 'feature/FOO-123' = @('main')
                 'feature/XYZ-1-services' = @('main')
                 'feature/FOO-124-comment' = @('main')
@@ -192,58 +120,81 @@ Describe 'git-release' {
                 'main' = {}
                 'rc/2022-07-14' = @("feature/XYZ-1-services")
             }
-
-            Initialize-SetMultipleUpstreamBranches @{
-                'feature/FOO-123' = $nil
+            Initialize-LocalActionAssertUpdatedSuccess 'feature/FOO-123' 'main' -initialCommits @{
+                'feature/FOO-123' = 'result-commitish'
+                'main' = 'old-main'
+            }
+            Initialize-LocalActionSetUpstream @{
+                'feature/FOO-123' = $null
             } -commitMessage 'Release feature/FOO-123 to main' -commitish 'new-commit'
-            $pushParameterFilter = {($args -join ' ') -eq 'push --atomic origin origin/feature/FOO-123:main :feature/FOO-123 new-commit:refs/heads/_upstream'}
-            Mock git -ParameterFilter $pushParameterFilter {} -Verifiable
+            Initialize-FinalizeActionSetBranches @{
+                '_upstream' = 'new-commit'
+                'main' = 'result-commitish'
+            }
 
             & $PSScriptRoot/git-release.ps1 feature/FOO-123 main
-
-            Should -Invoke -CommandName git -Times 1 -ParameterFilter $pushParameterFilter
+            $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
         }
 
         It 'aborts if not a fast-forward' {
-            Initialize-UpdateGitRemote
-
-            Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list origin/main ^origin/rc/2022-07-14 --count'} {
-                "1"
-            }
+            Initialize-LocalActionAssertUpdatedFailure 'rc/2022-07-14' 'main'
 
             { & $PSScriptRoot/git-release.ps1 rc/2022-07-14 main } | Should -Throw
+            $fw.assertDiagnosticOutput | Should -Be 'ERR:  The branch main has changes that are not in rc/2022-07-14'
         }
 
         It 'can clean up if already released' {
-            Initialize-UpdateGitRemote
-
-            Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list origin/rc/2022-07-14 ^origin/main --count'} {
-                "0"
+            Initialize-AllUpstreamBranches @{
+                'feature/FOO-123' = @('main')
+                'feature/XYZ-1-services' = @('main')
+                'feature/FOO-124-comment' = @('main')
+                'feature/FOO-124_FOO-125' = @("feature/FOO-124-comment")
+                'feature/FOO-76' = @('main')
+                'integrate/FOO-125_XYZ-1' = @("feature/FOO-124_FOO-125","feature/XYZ-1-services")
+                'main' = {}
+                'rc/2022-07-14' = @("feature/XYZ-1-services")
             }
-
-            Initialize-SetMultipleUpstreamBranches @{
-                'feature/FOO-123' = $nil
-                'integrate/FOO-125_XYZ-1' = @("feature/FOO-124_FOO-125", "main")
-                'rc/2022-07-14' = $nil
-                'feature/XYZ-1-services' = $nil
+            Initialize-LocalActionAssertUpdatedSuccess 'main' 'rc/2022-07-14' -initialCommits @{
+                'rc/2022-07-14' = 'released-rc'
+                'main' = 'result-commitish'
+            }
+            Initialize-LocalActionSetUpstream @{
+                'integrate/FOO-125_XYZ-1' = @("feature/FOO-124_FOO-125")
+                'rc/2022-07-14' = $null
+                'feature/XYZ-1-services' = $null
             } -commitMessage 'Release rc/2022-07-14 to main' -commitish 'new-commit'
-
-            $pushParameterFilter = {($args -join ' ') -eq 'push --atomic origin :feature/FOO-123 :feature/XYZ-1-services :rc/2022-07-14 new-commit:refs/heads/_upstream'}
-            Mock git -ParameterFilter $pushParameterFilter {} -Verifiable
+            Initialize-FinalizeActionSetBranches @{
+                '_upstream' = 'new-commit'
+            }
+            Initialize-AssertValidBranchName 'main'
+            Initialize-AssertValidBranchName 'feature/FOO-124_FOO-125'
 
             & $PSScriptRoot/git-release.ps1 rc/2022-07-14 main -cleanupOnly
-
-            Should -Invoke -CommandName git -Times 1 -ParameterFilter $pushParameterFilter
+            $fw.assertDiagnosticOutput | Should -Be "WARN: Removing 'main' from upstream branches of 'integrate/FOO-125_XYZ-1'; it is redundant via the following: feature/FOO-124_FOO-125"
         }
 
         It 'aborts clean up if not already released' {
-            Initialize-UpdateGitRemote
-
-            Mock git -ParameterFilter {($args -join ' ') -eq 'rev-list origin/rc/2022-07-14 ^origin/main --count'} {
-                "1"
-            }
+            Initialize-LocalActionAssertUpdatedFailure 'main' 'rc/2022-07-14'
 
             { & $PSScriptRoot/git-release.ps1 rc/2022-07-14 main -cleanupOnly } | Should -Throw
+            $fw.assertDiagnosticOutput | Should -Be 'ERR:  The branch rc/2022-07-14 has changes that are not in main'
         }
+    }
+    
+    Context 'without a remote' {
+        BeforeEach {
+            Initialize-ToolConfiguration -noRemote
+            Initialize-NoCurrentBranch
+        }
+        Add-StandardTests
+    }
+
+    Context 'with a remote' {
+        BeforeEach {
+            Initialize-ToolConfiguration
+            Initialize-UpdateGitRemote
+            Initialize-NoCurrentBranch
+        }
+        Add-StandardTests
     }
 }

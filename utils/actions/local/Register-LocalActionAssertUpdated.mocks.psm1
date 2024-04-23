@@ -1,3 +1,4 @@
+Import-Module -Scope Local "$PSScriptRoot/../../core.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../query-state.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../query-state.mocks.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../git.mocks.psm1"
@@ -6,59 +7,49 @@ Import-Module -Scope Local "$PSScriptRoot/Register-LocalActionAssertUpdated.psm1
 
 function Initialize-LocalActionAssertUpdatedSuccess(
     [Parameter()][string] $downstream,
-    [Parameter()][string] $upstream
+    [Parameter()][string] $upstream,
+    [Parameter()][Hashtable] $initialCommits = @{}
 ) {
-    $config = Get-Configuration
-    if ($null -ne $config.remote) {
-        if ($null -ne $downstream -AND '' -ne $downstream) {
-            $downstream = "$($config.remote)/$downstream"
-        }
-        if ($null -ne $upstream -AND '' -ne $upstream) {
-            $upstream = "$($config.remote)/$upstream"
-        }
-    }
+    $resultCommit = $initialCommits[$downstream] ?? 'result-commitish'
+    $downstream = Get-RemoteBranchRef $downstream
+    $upstream = Get-RemoteBranchRef $upstream
 
     Initialize-MergeTogether `
         -allBranches @($upstream) `
         -successfulBranches @() `
         -noChangeBranches @($upstream) `
+        -initialCommits (ConvertTo-HashMap -getKey { Get-RemoteBranchRef $_ } -input $initialCommits) `
         -source $downstream `
         -messageTemplate 'Verification Only' `
-        -resultCommitish 'result-commitish'
+        -resultCommitish $resultCommit
 }
 
 function Initialize-LocalActionAssertUpdatedFailure(
     [Parameter()][string] $downstream,
     [Parameter()][string] $upstream,
+    [Parameter()][Hashtable] $initialCommits = @{},
     [switch] $withConflict
 ) {
-    
-    $config = Get-Configuration
-    if ($null -ne $config.remote) {
-        if ($null -ne $downstream -AND '' -ne $downstream) {
-            $downstream = "$($config.remote)/$downstream"
-        }
-        if ($null -ne $upstream -AND '' -ne $upstream) {
-            $upstream = "$($config.remote)/$upstream"
-        }
+    $resultCommit = $initialCommits[$downstream] ?? 'result-commitish'
+    $downstream = Get-RemoteBranchRef $downstream
+    $upstream = Get-RemoteBranchRef $upstream
+
+    $base = @{
+        allBranches = @($upstream)
+        noChangeBranches = @()
+        initialCommits = (ConvertTo-HashMap -getKey { Get-RemoteBranchRef $_ } -input $initialCommits)
+        source = $downstream
+        messageTemplate = 'Verification Only'
+        resultCommitish = $resultCommit
     }
 
     if ($withConflict) {
-        Initialize-MergeTogether `
-            -allBranches @($upstream) `
-            -successfulBranches @() `
-            -noChangeBranches @() `
-            -source $downstream `
-            -messageTemplate 'Verification Only' `
-            -resultCommitish 'result-commitish'
+        Initialize-MergeTogether @base `
+            -successfulBranches @()
     } else {
-        Initialize-MergeTogether `
+        Initialize-MergeTogether @base `
             -allBranches @($upstream) `
-            -successfulBranches @($upstream) `
-            -noChangeBranches @() `
-            -source $downstream `
-            -messageTemplate 'Verification Only' `
-            -resultCommitish 'result-commitish'
+            -successfulBranches @($upstream)
     }
 }
 

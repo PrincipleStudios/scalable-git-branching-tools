@@ -70,7 +70,7 @@ foreach ($branch in $originalUpstreams.Keys) {
     }
     
     if ($originalUpstreams[$branch] | Where-Object { $_ -in $toRemove }) {
-        $resultUpstreams = Invoke-LocalAction @commonParams @{
+        $resultUpstreams[$branch] = Invoke-LocalAction @commonParams @{
             type = 'filter-branches'
             parameters = @{
                 include = @($target) + $originalUpstreams[$branch]
@@ -81,7 +81,8 @@ foreach ($branch in $originalUpstreams.Keys) {
     }
 }
 
-foreach ($branch in $resultUpstreams.Keys) {
+$keys = @() + $resultUpstreams.Keys
+foreach ($branch in $keys) {
     if (-not $resultUpstreams[$branch]) { continue }
     $resultUpstreams[$branch] = Invoke-LocalAction @commonParams @{
         type = 'simplify-upstream'
@@ -101,9 +102,9 @@ $upstreamHash = Invoke-LocalAction @commonParams @{
         message = "Release $($source) to $($target)$($comment -eq '' ? '' : " for $($params.comment)")"
     }
 }
+Assert-Diagnostics $diagnostics
 
 $sourceHash = Get-BranchCommit (Get-RemoteBranchRef $source)
-
 
 # Finalize:
 #    1. Push the following:

@@ -13,13 +13,10 @@ function Register-LocalActionAssertUpdated([PSObject] $localActions) {
             [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
         )
 
-        $downstream = Get-RemoteBranchRef $downstream
-        $upstream = Get-RemoteBranchRef $upstream
-
         # Verifies that everything in "upstream" is in "downstream". Asserts if not.
         $mergeResult = Invoke-MergeTogether `
-            -source $downstream `
-            -commitishes @($upstream) `
+            -source (Get-RemoteBranchRef $downstream) `
+            -commitishes @(Get-RemoteBranchRef $upstream) `
             -messageTemplate 'Verification Only' `
             -commitMappingOverride $commitMappingOverride `
             -diagnostics $diagnostics `
