@@ -74,10 +74,12 @@ Describe 'git-release' {
             } -initialCommits $initialCommits
             Initialize-LocalActionAssertUpdatedSuccess 'rc/2022-07-14' 'main' -initialCommits $initialCommits
             Initialize-LocalActionAssertUpdatedFailure 'rc/2022-07-14' 'feature/XYZ-1-services' -initialCommits $initialCommits
-            Initialize-LocalActionAssertUpdatedSuccess 'rc/2022-07-14' 'feature/FOO-123' -initialCommits $initialCommits
+            Initialize-LocalActionAssertUpdatedFailure 'rc/2022-07-14' 'feature/FOO-123' -initialCommits $initialCommits
 
             { & $PSScriptRoot/git-release.ps1 rc/2022-07-14 main } | Should -Throw
-            $fw.assertDiagnosticOutput | Should -Be 'ERR:  The branch feature/XYZ-1-services has changes that are not in rc/2022-07-14'
+            $fw.assertDiagnosticOutput.Count | Should -Be 2
+            $fw.assertDiagnosticOutput | Should -Contain 'ERR:  The branch feature/XYZ-1-services has changes that are not in rc/2022-07-14'
+            $fw.assertDiagnosticOutput | Should -Contain 'ERR:  The branch feature/FOO-123 has changes that are not in rc/2022-07-14'
         }
         
         It 'allows forced removal even if an intermediate branches were not fully released' {

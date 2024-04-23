@@ -63,8 +63,8 @@ if (-not $force) {
             type = 'assert-updated'
             parameters = @{ downstream = $cleanupOnly ? $target : $source; upstream = $branch }
         }
-        Assert-Diagnostics $diagnostics
     }
+    Assert-Diagnostics $diagnostics
 }
 
 # For all branches:
