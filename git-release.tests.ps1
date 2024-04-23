@@ -41,6 +41,9 @@ Describe 'git-release' {
             Initialize-FinalizeActionSetBranches @{
                 '_upstream' = 'new-commit'
                 'main' = 'result-commitish'
+                'feature/FOO-123' = $null
+                'feature/XYZ-1-services' = $null
+                'rc/2022-07-14' = $null
             }
 
             & $PSScriptRoot/git-release.ps1 rc/2022-07-14 main
@@ -72,6 +75,9 @@ Describe 'git-release' {
                 'feature/XYZ-1-services' = $null;
             } 'Release rc/2022-07-14 to main' 'new-commit'
             Initialize-AssertValidBranchName '_upstream'
+            Initialize-AssertValidBranchName 'feature/FOO-123'
+            Initialize-AssertValidBranchName 'feature/XYZ-1-services'
+            Initialize-AssertValidBranchName 'rc/2022-07-14'
 
             & $PSScriptRoot/git-release.ps1 rc/2022-07-14 main -dryRun
             $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
@@ -103,6 +109,12 @@ Describe 'git-release' {
             Initialize-FinalizeActionSetBranches @{
                 '_upstream' = 'new-commit'
                 'main' = 'result-commitish'
+                'feature/FOO-123' = $null
+                'integrate/FOO-125_XYZ-1' = $null
+                'rc/2022-07-14' = $null
+                'feature/XYZ-1-services' = $null
+                'feature/FOO-124_FOO-125' = $null
+                'feature/FOO-124-comment' = $null
             }
 
             & $PSScriptRoot/git-release.ps1 rc/2022-07-14 main
@@ -111,14 +123,14 @@ Describe 'git-release' {
 
         It 'can preserve some branches' {
             Initialize-AllUpstreamBranches @{
-                'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services")
                 'feature/FOO-123' = @('main')
                 'feature/XYZ-1-services' = @('main')
                 'feature/FOO-124-comment' = @('main')
                 'feature/FOO-124_FOO-125' = @("feature/FOO-124-comment")
                 'feature/FOO-76' = @('main')
                 'integrate/FOO-125_XYZ-1' = @("feature/FOO-124_FOO-125","feature/XYZ-1-services")
-                'main' = @()
+                'main' = {}
+                'rc/2022-07-14' = @("feature/FOO-123", "integrate/FOO-125_XYZ-1")
             }
             Initialize-LocalActionAssertUpdatedSuccess 'rc/2022-07-14' 'main' -initialCommits @{
                 'rc/2022-07-14' = 'result-commitish'
@@ -127,16 +139,27 @@ Describe 'git-release' {
             Initialize-LocalActionSimplifyUpstreamBranchesSuccess `
                 -from @("feature/FOO-124_FOO-125", "main") `
                 -to @("feature/FOO-124_FOO-125")
+            Initialize-LocalActionSimplifyUpstreamBranchesSuccess `
+                -from @("main") `
+                -to @("main")
             Initialize-LocalActionSetUpstream @{
-                'feature/FOO-123' = $null;
-                'rc/2022-07-14' = $null;
-            } 'Release rc/2022-07-14 to main' 'new-commit'
+                'feature/FOO-123' = $null
+                'rc/2022-07-14' = $null
+                'integrate/FOO-125_XYZ-1' = @("feature/FOO-124_FOO-125")
+                'feature/FOO-124_FOO-125' = @("main")
+                'feature/FOO-124-comment' = $null
+                'feature/XYZ-1-services' = $null
+            } -commitMessage 'Release rc/2022-07-14 to main' -commitish 'new-commit'
             Initialize-FinalizeActionSetBranches @{
                 '_upstream' = 'new-commit'
                 'main' = 'result-commitish'
+                'feature/FOO-123' = $null
+                'rc/2022-07-14' = $null
+                'feature/FOO-124-comment' = $null
+                'feature/XYZ-1-services' = $null
             }
 
-            & $PSScriptRoot/git-release.ps1 rc/2022-07-14 main -preserve feature/XYZ-1-services
+            & $PSScriptRoot/git-release.ps1 rc/2022-07-14 main -preserve integrate/FOO-125_XYZ-1,feature/FOO-124_FOO-125
             $fw.assertDiagnosticOutput | Should -BeNullOrEmpty
         }
 
@@ -161,6 +184,7 @@ Describe 'git-release' {
             Initialize-FinalizeActionSetBranches @{
                 '_upstream' = 'new-commit'
                 'main' = 'result-commitish'
+                'feature/FOO-123' = $null
             }
 
             & $PSScriptRoot/git-release.ps1 feature/FOO-123 main
@@ -196,6 +220,8 @@ Describe 'git-release' {
             } -commitMessage 'Release rc/2022-07-14 to main' -commitish 'new-commit'
             Initialize-FinalizeActionSetBranches @{
                 '_upstream' = 'new-commit'
+                'rc/2022-07-14' = $null
+                'feature/XYZ-1-services' = $null
             }
             Initialize-AssertValidBranchName 'main'
             Initialize-AssertValidBranchName 'feature/FOO-124_FOO-125'

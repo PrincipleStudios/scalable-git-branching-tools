@@ -108,8 +108,8 @@ $sourceHash = Get-BranchCommit (Get-RemoteBranchRef $source)
 
 # Finalize:
 #    1. Push the following:
-#        - Delete $toRemove branches
 #        - Update _upstream
+#        - Delete $toRemove branches
 #        - If not $cleanupOnly, push $source commitish to $target
 
 $commonParams = @{
@@ -119,6 +119,9 @@ $commonParams = @{
 
 $resultBranches = @{
     "$($config.upstreamBranch)" = $upstreamHash.commit
+}
+foreach ($branch in $toRemove) {
+    $resultBranches[$branch] = $null
 }
 if (-not $cleanupOnly) {
     $resultBranches[$target] = $sourceHash
