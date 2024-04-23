@@ -39,7 +39,7 @@ Describe 'local action "assert-updated"' {
         Invoke-LocalAction $standardScript -diagnostics $fw.diagnostics
 
         Invoke-FlushAssertDiagnostic $fw.diagnostics
-        $fw.assertDiagnosticOutput | Should -Contain 'ERR:  The branch origin/rc/next conflicts with origin/main'
+        $fw.assertDiagnosticOutput | Should -Contain 'ERR:  The branch origin/main conflicts with origin/rc/next'
     }
 
     It 'reports an error if there are changes' {
@@ -48,6 +48,6 @@ Describe 'local action "assert-updated"' {
         Invoke-LocalAction $standardScript -diagnostics $fw.diagnostics
 
         Invoke-FlushAssertDiagnostic $fw.diagnostics
-        $fw.assertDiagnosticOutput | Should -Contain 'ERR:  The branch origin/rc/next has changes that are not in origin/main'
+        $fw.assertDiagnosticOutput | Should -Contain 'ERR:  The branch origin/main has changes that are not in origin/rc/next'
     }
 }

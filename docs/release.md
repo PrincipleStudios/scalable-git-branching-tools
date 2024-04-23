@@ -2,12 +2,12 @@
 
 Usage:
 
-    git-release.ps1 [-sourceBranch] <string> [-target] <string>
+    git-release.ps1 [-source] <string> [-target] <string>
         [-comment <string>] [-preserve <string[]>] [-dryRun] [-cleanupOnly]
 
 ## Parameters
 
-### `[-sourceBranch] <string>` (Mandatory)
+### `[-source] <string>` (Mandatory)
 
 The name of the branch to "release".
 

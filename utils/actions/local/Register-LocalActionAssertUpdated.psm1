@@ -32,9 +32,9 @@ function Register-LocalActionAssertUpdated([PSObject] $localActions) {
             -diagnostics $diagnostics `
             -noFailureMessages
         if ($mergeResult.failed) {
-            Add-ErrorDiagnostic $diagnostics "The branch $downstream conflicts with $upstream"
+            Add-ErrorDiagnostic $diagnostics "The branch $upstream conflicts with $downstream"
         } elseif ($mergeResult.hasChanges) {
-            Add-ErrorDiagnostic $diagnostics "The branch $downstream has changes that are not in $upstream"
+            Add-ErrorDiagnostic $diagnostics "The branch $upstream has changes that are not in $downstream"
         }
         
         return @{}
