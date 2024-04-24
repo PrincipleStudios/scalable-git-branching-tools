@@ -1,6 +1,7 @@
 Import-Module -Scope Local "$PSScriptRoot/Invoke-LocalAction.internal.psm1"
 Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionAddDiagnostic.psm1"
 Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionAssertPushed.psm1"
+Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionAssertUpdated.psm1"
 Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionEvaluate.psm1"
 Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionGetAllUpstreams.psm1"
 Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionGetUpstream.psm1"
@@ -17,6 +18,7 @@ Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionAssertExiste
 $localActions = Get-LocalActionsRegistry
 Register-LocalActionAddDiagnostic $localActions
 Register-LocalActionAssertPushed $localActions
+Register-LocalActionAssertUpdated $localActions
 Register-LocalActionEvaluate $localActions
 Register-LocalActionGetAllUpstreams $localActions
 Register-LocalActionGetUpstream $localActions
