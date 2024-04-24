@@ -3,7 +3,6 @@ Import-Module -Scope Local "$PSScriptRoot/git/Invoke-WriteTree.mocks.psm1"
 Import-Module -Scope Local "$PSScriptRoot/git/Invoke-PreserveBranch.mocks.psm1"
 Import-Module -Scope Local "$PSScriptRoot/git/Invoke-CheckoutBranch.mocks.psm1"
 Import-Module -Scope Local "$PSScriptRoot/git/Invoke-CreateBranch.mocks.psm1"
-Import-Module -Scope Local "$PSScriptRoot/git/Invoke-MergeBranches.mocks.psm1"
 Import-Module -Scope Local "$PSScriptRoot/git/Set-GitFiles.mocks.psm1"
 Import-Module -Scope Local "$PSScriptRoot/git/Set-RemoteTracking.mocks.psm1"
 
