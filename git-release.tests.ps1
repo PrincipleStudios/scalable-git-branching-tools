@@ -82,7 +82,7 @@ Describe 'git-release' {
             $fw.assertDiagnosticOutput | Should -Contain 'ERR:  The branch feature/FOO-123 has changes that are not in rc/2022-07-14'
         }
         
-        It 'allows forced removal even if an intermediate branches were not fully released' {
+        It 'allows forced removal even if a intermediate branches were not fully released' {
             Initialize-AllUpstreamBranches @{
                 'rc/2022-07-14' = @("feature/FOO-123","feature/XYZ-1-services")
                 'feature/FOO-123' = @('main')

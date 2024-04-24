@@ -39,7 +39,7 @@ if (-not $force) {
     Assert-Diagnostics $diagnostics
 }
 
-# $toRemove = (git show-upstream $source -recurse) without ($target, git show-upstream $target -recurse)
+# $toRemove = (git show-upstream $source -recurse) without ($target, git show-upstream $target -recurse, $preserve)
 $sourceUpstream = Invoke-LocalAction @commonParams @{
     type = 'get-upstream'
     parameters = @{ target = $source; recurse = $true }
@@ -52,8 +52,8 @@ $targetUpstream = Invoke-LocalAction @commonParams @{
 }
 Assert-Diagnostics $diagnostics
 
-$keep = @($target) + $targetUpstream
-[string[]]$toRemove = (@($source) + $sourceUpstream) | Where-Object { $_ -notin $keep -and $_ -notin $preserve }
+[string[]]$keep = @($target) + $targetUpstream + $preserve
+[string[]]$toRemove = (@($source) + $sourceUpstream) | Where-Object { $_ -notin $keep }
 
 # Assert all branches removed are up-to-date, unless $force is set
 if (-not $force) {
