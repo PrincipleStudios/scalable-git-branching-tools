@@ -45,7 +45,8 @@ git config alias.refactor-upstream "!$dir/git-refactor-upstream.ps1"
 git config alias.release "!$dir/git-release.ps1"
 
 # Get the git version and warn about older versions
-[double]$ver = ((((git version) -split ' ')[2]) -split '\.',3 | Select-Object -First 2) -join '.'
+$fullVersion = git version
+[double]$ver = ((($fullVersion -split ' ')[2]) -split '\.',3 | Select-Object -First 2) -join '.'
 if ($ver -lt 2.41) {
-    throw 'Git version installed should be at least 2.41; unexpected issues may occur. Please update git.'
+    throw "Git version installed should be at least 2.41 (found '$fullVersion'); unexpected issues may occur. Please update git."
 }
