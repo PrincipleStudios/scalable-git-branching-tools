@@ -3,7 +3,6 @@ BeforeAll {
     Import-Module -Scope Local "$PSScriptRoot/utils/framework.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/utils/query-state.psm1"
     Import-Module -Scope Local "$PSScriptRoot/utils/query-state.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/config/git/Assert-BranchPushed.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/utils/input.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/utils/actions.mocks.psm1"
 
