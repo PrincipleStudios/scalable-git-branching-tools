@@ -11,29 +11,11 @@ function Get-CommitsWithRemote(
     return $initialCommits.Keys | ConvertTo-HashMap -getKey { Get-RemoteBranchRef $_ } -getValue { $initialCommits[$_] }
 }
 
-function Initialize-LocalActionAssertUpdatedSuccess(
-    [Parameter()][string] $downstream,
-    [Parameter()][string] $upstream,
-    [Parameter()][Hashtable] $initialCommits = @{}
-) {
-    $resultCommit = $initialCommits[$downstream] ?? 'result-commitish'
-    $downstream = Get-RemoteBranchRef $downstream
-    $upstream = Get-RemoteBranchRef $upstream
-
-    Initialize-MergeTogether `
-        -allBranches @($upstream) `
-        -successfulBranches @() `
-        -noChangeBranches @($upstream) `
-        -initialCommits (Get-CommitsWithRemote $initialCommits) `
-        -source $downstream `
-        -messageTemplate 'Verification Only' `
-        -resultCommitish $resultCommit
-}
-
-function Initialize-LocalActionAssertUpdatedFailure(
+function Initialize-LocalActionAssertUpdated(
     [Parameter()][string] $downstream,
     [Parameter()][string] $upstream,
     [Parameter()][Hashtable] $initialCommits = @{},
+    [switch] $withChanges,
     [switch] $withConflict
 ) {
     $resultCommit = $initialCommits[$downstream] ?? 'result-commitish'
@@ -42,7 +24,6 @@ function Initialize-LocalActionAssertUpdatedFailure(
 
     $base = @{
         allBranches = @($upstream)
-        noChangeBranches = @()
         initialCommits = (Get-CommitsWithRemote $initialCommits)
         source = $downstream
         messageTemplate = 'Verification Only'
@@ -51,11 +32,17 @@ function Initialize-LocalActionAssertUpdatedFailure(
 
     if ($withConflict) {
         Initialize-MergeTogether @base `
-            -successfulBranches @()
+            -successfulBranches @() `
+            -noChangeBranches @()
+    } elseif ($withChanges) {
+        Initialize-MergeTogether @base `
+            -successfulBranches @($upstream) `
+            -noChangeBranches @()
     } else {
         Initialize-MergeTogether @base `
-            -successfulBranches @($upstream)
+            -successfulBranches @() `
+            -noChangeBranches @($upstream)
     }
 }
 
-Export-ModuleMember -Function Initialize-LocalActionAssertUpdatedSuccess, Initialize-LocalActionAssertUpdatedFailure
+Export-ModuleMember -Function Initialize-LocalActionAssertUpdated

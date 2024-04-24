@@ -25,7 +25,7 @@ Describe 'local action "assert-updated"' {
     }
 
     It 'handles successful cases' {
-        Initialize-LocalActionAssertUpdatedSuccess -downstream 'rc/next' -upstream 'main'
+        Initialize-LocalActionAssertUpdated -downstream 'rc/next' -upstream 'main'
 
         Invoke-LocalAction $standardScript -diagnostics $fw.diagnostics
 
@@ -34,7 +34,7 @@ Describe 'local action "assert-updated"' {
     }
 
     It 'reports an error for conflicts' {
-        Initialize-LocalActionAssertUpdatedFailure -downstream 'rc/next' -upstream 'main' -withConflict
+        Initialize-LocalActionAssertUpdated -downstream 'rc/next' -upstream 'main' -withConflict
 
         Invoke-LocalAction $standardScript -diagnostics $fw.diagnostics
 
@@ -43,7 +43,7 @@ Describe 'local action "assert-updated"' {
     }
 
     It 'reports an error if there are changes' {
-        Initialize-LocalActionAssertUpdatedFailure -downstream 'rc/next' -upstream 'main'
+        Initialize-LocalActionAssertUpdated -downstream 'rc/next' -upstream 'main' -withChanges
 
         Invoke-LocalAction $standardScript -diagnostics $fw.diagnostics
 

@@ -37,9 +37,9 @@ Describe 'git-release' {
                 'integrate/FOO-125_XYZ-1' = @("feature/FOO-124_FOO-125","feature/XYZ-1-services")
                 'main' = @()
             } -initialCommits $initialCommits
-            Initialize-LocalActionAssertUpdatedSuccess 'rc/2022-07-14' 'main' -initialCommits $initialCommits
-            Initialize-LocalActionAssertUpdatedSuccess 'rc/2022-07-14' 'feature/XYZ-1-services' -initialCommits $initialCommits
-            Initialize-LocalActionAssertUpdatedSuccess 'rc/2022-07-14' 'feature/FOO-123' -initialCommits $initialCommits
+            Initialize-LocalActionAssertUpdated 'rc/2022-07-14' 'main' -initialCommits $initialCommits
+            Initialize-LocalActionAssertUpdated 'rc/2022-07-14' 'feature/XYZ-1-services' -initialCommits $initialCommits
+            Initialize-LocalActionAssertUpdated 'rc/2022-07-14' 'feature/FOO-123' -initialCommits $initialCommits
             Initialize-LocalActionSimplifyUpstreamBranchesSuccess `
                 -from @("feature/FOO-124_FOO-125", "main") `
                 -to @("feature/FOO-124_FOO-125")
@@ -72,9 +72,9 @@ Describe 'git-release' {
                 'integrate/FOO-125_XYZ-1' = @("feature/FOO-124_FOO-125","feature/XYZ-1-services")
                 'main' = @()
             } -initialCommits $initialCommits
-            Initialize-LocalActionAssertUpdatedSuccess 'rc/2022-07-14' 'main' -initialCommits $initialCommits
-            Initialize-LocalActionAssertUpdatedFailure 'rc/2022-07-14' 'feature/XYZ-1-services' -initialCommits $initialCommits
-            Initialize-LocalActionAssertUpdatedFailure 'rc/2022-07-14' 'feature/FOO-123' -initialCommits $initialCommits
+            Initialize-LocalActionAssertUpdated 'rc/2022-07-14' 'main' -initialCommits $initialCommits
+            Initialize-LocalActionAssertUpdated -withChanges 'rc/2022-07-14' 'feature/XYZ-1-services' -initialCommits $initialCommits
+            Initialize-LocalActionAssertUpdated -withChanges 'rc/2022-07-14' 'feature/FOO-123' -initialCommits $initialCommits
 
             { & $PSScriptRoot/git-release.ps1 rc/2022-07-14 main } | Should -Throw
             $fw.assertDiagnosticOutput.Count | Should -Be 2
@@ -93,9 +93,9 @@ Describe 'git-release' {
                 'integrate/FOO-125_XYZ-1' = @("feature/FOO-124_FOO-125","feature/XYZ-1-services")
                 'main' = @()
             } -initialCommits $initialCommits
-            Initialize-LocalActionAssertUpdatedFailure 'rc/2022-07-14' 'main' -initialCommits $initialCommits
-            Initialize-LocalActionAssertUpdatedFailure 'rc/2022-07-14' 'feature/XYZ-1-services' -initialCommits $initialCommits
-            Initialize-LocalActionAssertUpdatedFailure 'rc/2022-07-14' 'feature/FOO-123' -initialCommits $initialCommits
+            Initialize-LocalActionAssertUpdated -withChanges 'rc/2022-07-14' 'main' -initialCommits $initialCommits
+            Initialize-LocalActionAssertUpdated -withChanges 'rc/2022-07-14' 'feature/XYZ-1-services' -initialCommits $initialCommits
+            Initialize-LocalActionAssertUpdated -withChanges 'rc/2022-07-14' 'feature/FOO-123' -initialCommits $initialCommits
             Initialize-LocalActionSimplifyUpstreamBranchesSuccess `
                 -from @("feature/FOO-124_FOO-125", "main") `
                 -to @("feature/FOO-124_FOO-125")
@@ -128,9 +128,9 @@ Describe 'git-release' {
                 'integrate/FOO-125_XYZ-1' = @("feature/FOO-124_FOO-125","feature/XYZ-1-services")
                 'main' = @()
             } -initialCommits $initialCommits
-            Initialize-LocalActionAssertUpdatedSuccess 'rc/2022-07-14' 'main' -initialCommits $initialCommits
-            Initialize-LocalActionAssertUpdatedSuccess 'rc/2022-07-14' 'feature/XYZ-1-services' -initialCommits $initialCommits
-            Initialize-LocalActionAssertUpdatedSuccess 'rc/2022-07-14' 'feature/FOO-123' -initialCommits $initialCommits
+            Initialize-LocalActionAssertUpdated 'rc/2022-07-14' 'main' -initialCommits $initialCommits
+            Initialize-LocalActionAssertUpdated 'rc/2022-07-14' 'feature/XYZ-1-services' -initialCommits $initialCommits
+            Initialize-LocalActionAssertUpdated 'rc/2022-07-14' 'feature/FOO-123' -initialCommits $initialCommits
             Initialize-LocalActionSimplifyUpstreamBranchesSuccess `
                 -from @("feature/FOO-124_FOO-125", "main") `
                 -to @("feature/FOO-124_FOO-125")
@@ -160,12 +160,12 @@ Describe 'git-release' {
                 'main' = {}
                 'rc/2022-07-14' = @("feature/FOO-123", "integrate/FOO-125_XYZ-1")
             } -initialCommits $initialCommits
-            Initialize-LocalActionAssertUpdatedSuccess 'rc/2022-07-14' 'main' -initialCommits $initialCommits
-            Initialize-LocalActionAssertUpdatedSuccess 'rc/2022-07-14' 'feature/FOO-124-comment' -initialCommits $initialCommits
-            Initialize-LocalActionAssertUpdatedSuccess 'rc/2022-07-14' 'feature/XYZ-1-services' -initialCommits $initialCommits
-            Initialize-LocalActionAssertUpdatedSuccess 'rc/2022-07-14' 'feature/FOO-124_FOO-125' -initialCommits $initialCommits
-            Initialize-LocalActionAssertUpdatedSuccess 'rc/2022-07-14' 'integrate/FOO-125_XYZ-1' -initialCommits $initialCommits
-            Initialize-LocalActionAssertUpdatedSuccess 'rc/2022-07-14' 'feature/FOO-123' -initialCommits $initialCommits
+            Initialize-LocalActionAssertUpdated 'rc/2022-07-14' 'main' -initialCommits $initialCommits
+            Initialize-LocalActionAssertUpdated 'rc/2022-07-14' 'feature/FOO-124-comment' -initialCommits $initialCommits
+            Initialize-LocalActionAssertUpdated 'rc/2022-07-14' 'feature/XYZ-1-services' -initialCommits $initialCommits
+            Initialize-LocalActionAssertUpdated 'rc/2022-07-14' 'feature/FOO-124_FOO-125' -initialCommits $initialCommits
+            Initialize-LocalActionAssertUpdated 'rc/2022-07-14' 'integrate/FOO-125_XYZ-1' -initialCommits $initialCommits
+            Initialize-LocalActionAssertUpdated 'rc/2022-07-14' 'feature/FOO-123' -initialCommits $initialCommits
             Initialize-LocalActionSetUpstream @{
                 'feature/FOO-123' = $null
                 'integrate/FOO-125_XYZ-1' = $null
@@ -200,10 +200,10 @@ Describe 'git-release' {
                 'main' = {}
                 'rc/2022-07-14' = @("feature/FOO-123", "integrate/FOO-125_XYZ-1")
             } -initialCommits $initialCommits
-            Initialize-LocalActionAssertUpdatedSuccess 'rc/2022-07-14' 'main' -initialCommits $initialCommits
-            Initialize-LocalActionAssertUpdatedSuccess 'rc/2022-07-14' 'feature/FOO-124-comment' -initialCommits $initialCommits
-            Initialize-LocalActionAssertUpdatedSuccess 'rc/2022-07-14' 'feature/XYZ-1-services' -initialCommits $initialCommits
-            Initialize-LocalActionAssertUpdatedSuccess 'rc/2022-07-14' 'feature/FOO-123' -initialCommits $initialCommits
+            Initialize-LocalActionAssertUpdated 'rc/2022-07-14' 'main' -initialCommits $initialCommits
+            Initialize-LocalActionAssertUpdated 'rc/2022-07-14' 'feature/FOO-124-comment' -initialCommits $initialCommits
+            Initialize-LocalActionAssertUpdated 'rc/2022-07-14' 'feature/XYZ-1-services' -initialCommits $initialCommits
+            Initialize-LocalActionAssertUpdated 'rc/2022-07-14' 'feature/FOO-123' -initialCommits $initialCommits
             Initialize-LocalActionSimplifyUpstreamBranchesSuccess `
                 -from @("feature/FOO-124_FOO-125", "main") `
                 -to @("feature/FOO-124_FOO-125")
@@ -242,7 +242,7 @@ Describe 'git-release' {
                 'main' = {}
                 'rc/2022-07-14' = @("feature/XYZ-1-services")
             } -initialCommits $initialCommits
-            Initialize-LocalActionAssertUpdatedSuccess 'feature/FOO-123' 'main' -initialCommits $initialCommits
+            Initialize-LocalActionAssertUpdated 'feature/FOO-123' 'main' -initialCommits $initialCommits
             Initialize-LocalActionSetUpstream @{
                 'feature/FOO-123' = $null
             } -commitMessage 'Release feature/FOO-123 to main' -commitish 'new-commit'
@@ -257,7 +257,7 @@ Describe 'git-release' {
         }
 
         It 'aborts if not a fast-forward' {
-            Initialize-LocalActionAssertUpdatedFailure 'rc/2022-07-14' 'main'
+            Initialize-LocalActionAssertUpdated -withChanges 'rc/2022-07-14' 'main'
 
             { & $PSScriptRoot/git-release.ps1 rc/2022-07-14 main } | Should -Throw
             $fw.assertDiagnosticOutput | Should -Be 'ERR:  The branch main has changes that are not in rc/2022-07-14'
@@ -274,8 +274,8 @@ Describe 'git-release' {
                 'main' = {}
                 'rc/2022-07-14' = @("feature/XYZ-1-services")
             } -initialCommits $initialCommits
-            Initialize-LocalActionAssertUpdatedSuccess 'main' 'rc/2022-07-14' -initialCommits $initialCommits
-            Initialize-LocalActionAssertUpdatedSuccess 'main' 'feature/XYZ-1-services' -initialCommits $initialCommits
+            Initialize-LocalActionAssertUpdated 'main' 'rc/2022-07-14' -initialCommits $initialCommits
+            Initialize-LocalActionAssertUpdated 'main' 'feature/XYZ-1-services' -initialCommits $initialCommits
             Initialize-LocalActionSetUpstream @{
                 'integrate/FOO-125_XYZ-1' = @("feature/FOO-124_FOO-125")
                 'rc/2022-07-14' = $null
@@ -294,7 +294,7 @@ Describe 'git-release' {
         }
 
         It 'aborts clean up if not already released' {
-            Initialize-LocalActionAssertUpdatedFailure 'main' 'rc/2022-07-14'
+            Initialize-LocalActionAssertUpdated -withChanges 'main' 'rc/2022-07-14'
 
             { & $PSScriptRoot/git-release.ps1 rc/2022-07-14 main -cleanupOnly } | Should -Throw
             $fw.assertDiagnosticOutput | Should -Be 'ERR:  The branch rc/2022-07-14 has changes that are not in main'
