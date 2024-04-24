@@ -11,14 +11,7 @@ function Invoke-MergeTogether(
     [switch] $noFailureMessages
 ) {
     function ResolveCommit($commitish) {
-        if ($commitMappingOverride[$commitish]) {
-            return $commitMappingOverride[$commitish]
-        }
-        $result = Invoke-ProcessLogs "git rev-parse --verify $target" {
-            git rev-parse --verify $target
-        } -allowSuccessOutput
-        if ($global:LASTEXITCODE -ne 0) { return $null }
-        return $result
+        return Get-BranchCommit $commitish -commitMappingOverride:$commitMappingOverride
     }
 
     [String[]]$remaining = $commitishes

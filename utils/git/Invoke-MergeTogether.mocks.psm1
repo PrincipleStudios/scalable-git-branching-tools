@@ -28,7 +28,7 @@ function Initialize-MergeTogetherAllFailed(
     [AllowEmptyCollection()][string[]] $allBranches
 ) {
     foreach ($branch in $allBranches) {
-        Invoke-MockGit "rev-parse --verify $branch" -MockWith { $global:LASTEXITCODE = 1 }
+        Initialize-GetBranchCommit $branch $null
     }
 }
 
@@ -77,7 +77,7 @@ function Initialize-MergeTogether(
 
         $currentCommit = $resultCommitishes[$initialSuccessfulBranch]
         if ($initialSuccessfulBranch -notin $skipRevParse) {
-            Invoke-MockGit "rev-parse --verify $initialSuccessfulBranch" -MockWith { $commitish[$initialSuccessfulBranch] }.GetNewClosure()
+            Initialize-GetBranchCommit $initialSuccessfulBranch $commitish[$initialSuccessfulBranch]
         }
     }
 
@@ -87,7 +87,7 @@ function Initialize-MergeTogether(
             $success += $current
             if ($current -eq $initialSuccessfulBranch) { continue }
             if ($current -notin $skipRevParse) {
-                Invoke-MockGit "rev-parse --verify $current" -MockWith $commitish[$current]
+                Initialize-GetBranchCommit $current $commitish[$current]
             }
 
             Invoke-MockGit "rev-list --count ^$currentCommit $($commitish[$current])" -MockWith "0"
@@ -95,7 +95,7 @@ function Initialize-MergeTogether(
             $success += $current
             if ($current -eq $initialSuccessfulBranch) { continue }
             if ($current -notin $skipRevParse) {
-                Invoke-MockGit "rev-parse --verify $current" -MockWith $commitish[$current]
+                Initialize-GetBranchCommit $current $commitish[$current]
             }
 
             Invoke-MockGit "rev-list --count ^$currentCommit $($commitish[$current])" -MockWith "1"
@@ -114,10 +114,10 @@ function Initialize-MergeTogether(
         } else {
             if ($success.Count -eq 0) {
                 # If everything fails, that means we weren't able to resolve a single commitish
-                Invoke-MockGit "rev-parse --verify $current" -MockWith { $global:LASTEXITCODE = 1 }
+                Initialize-GetBranchCommit $current $null
             } else {
                 if ($current -notin $skipRevParse) {
-                    Invoke-MockGit "rev-parse --verify $current" -MockWith $commitish[$current]
+                    Initialize-GetBranchCommit $current $commitish[$current]
                 }
                 Invoke-MockGit "rev-list --count ^$currentCommit $($commitish[$current])" -MockWith "1"
                 $treeish = "$current-tree"
