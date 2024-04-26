@@ -116,12 +116,12 @@ Describe 'git-tool-audit-simplify' {
         Add-StandardTests
     }
 
-#     Context 'with a remote' {
-#         BeforeEach {
-#             Initialize-ToolConfiguration
-#             Initialize-UpdateGitRemote
-#             Initialize-NoCurrentBranch
-#         }
-#         Add-StandardTests
-#     }
+    Context 'with a remote' {
+        BeforeEach {
+            Initialize-ToolConfiguration
+            Initialize-UpdateGitRemote
+            Initialize-NoCurrentBranch
+        }
+        Add-StandardTests
+    }
 }
