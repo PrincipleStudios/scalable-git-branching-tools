@@ -6,10 +6,42 @@ BeforeAll {
 }
 
 Describe 'Select-Branches' {
-    Context 'With a remote branch specified' {
+
+    function Add-StandardTests {
+        It 'excludes feature FOO-100' {
+            $branches | Where-Object { $_ -eq 'feature/FOO-100' }
+                | Should -Be $nil
+        }
+        It 'includes feature FOO-123' {
+            $branches | Where-Object { $_ -eq 'feature/FOO-123' }
+                | Should -Be 'feature/FOO-123'
+        }
+        It 'includes feature FOO-124' {
+            $branches | Where-Object { $_ -eq 'feature/FOO-124-comment' }
+                | Should -Be 'feature/FOO-124-comment'
+        }
+        It 'includes feature FOO-125' {
+            $branches | Where-Object { $_ -eq 'feature/FOO-124_FOO-125' }
+                | Should -Be 'feature/FOO-124_FOO-125'
+        }
+        It 'includes rc 2022-07-14' {
+            $branches | Where-Object { $_ -eq 'rc/2022-07-14' }
+                | Should -Be 'rc/2022-07-14'
+        }
+        It 'includes main' {
+            $branches | Where-Object { $_ -eq 'main' }
+                | Should -Be 'main'
+        }
+        It 'includes integrate/FOO-125_XYZ-1' {
+            $branches | Where-Object { $_ -eq 'integrate/FOO-125_XYZ-1' }
+                | Should -Be 'integrate/FOO-125_XYZ-1'
+        }
+    }
+
+    Context 'With two remotes specified' {
         BeforeEach{
             Initialize-ToolConfiguration
-            Initialize-SelectBranches @(
+            Invoke-MockGitModule -ModuleName 'Select-Branches' 'branch -r' -MockWith @(
                 'origin/feature/FOO-123'
                 'origin/feature/FOO-124-comment'
                 'origin/feature/FOO-124_FOO-125'
@@ -23,34 +55,26 @@ Describe 'Select-Branches' {
             $branches = Select-Branches
         }
 
-        It 'excludes feature FOO-100' {
-            $branches | Where-Object { $_.branch -eq 'feature/FOO-100' }
-                | Should -Be $nil
+        Add-StandardTests
+    }
+
+    Context 'With a remote specified uses local branches' {
+        BeforeEach{
+            Initialize-ToolConfiguration -noRemote
+            Initialize-SelectBranches @(
+                'feature/FOO-123'
+                'feature/FOO-124-comment'
+                'feature/FOO-124_FOO-125'
+                'main'
+                'rc/2022-07-14'
+                'integrate/FOO-125_XYZ-1'
+            )
+
+            [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
+            $branches = Select-Branches
         }
-        It 'includes feature FOO-123' {
-            $branches | Where-Object { $_.branch -eq 'feature/FOO-123' }
-                | Assert-ShouldBeObject @{ branch = 'feature/FOO-123'; remote = 'origin' }
-        }
-        It 'includes feature FOO-124' {
-            $branches | Where-Object { $_.branch -eq 'feature/FOO-124-comment' }
-                | Assert-ShouldBeObject @{ branch = 'feature/FOO-124-comment'; remote = 'origin' }
-        }
-        It 'includes feature FOO-125' {
-            $branches | Where-Object { $_.branch -eq 'feature/FOO-124_FOO-125' }
-                | Assert-ShouldBeObject @{ branch = 'feature/FOO-124_FOO-125'; remote = 'origin' }
-        }
-        It 'includes rc 2022-07-14' {
-            $branches | Where-Object { $_.branch -eq 'rc/2022-07-14' }
-                | Assert-ShouldBeObject @{ branch = 'rc/2022-07-14'; remote = 'origin' }
-        }
-        It 'includes main' {
-            $branches | Where-Object { $_.branch -eq 'main' }
-                | Assert-ShouldBeObject @{ branch = 'main'; remote = 'origin' }
-        }
-        It 'includes integrate/FOO-125_XYZ-1' {
-            $branches | Where-Object { $_.branch -eq 'integrate/FOO-125_XYZ-1' }
-                | Assert-ShouldBeObject @{ branch = 'integrate/FOO-125_XYZ-1'; remote = 'origin' }
-        }
+        
+        Add-StandardTests
     }
 
     Context 'Without a remote specified uses local branches' {
@@ -69,29 +93,6 @@ Describe 'Select-Branches' {
             $branches = Select-Branches
         }
 
-        It 'includes feature FOO-123' {
-            $branches | Where-Object { $_.branch -eq 'feature/FOO-123' }
-                | Assert-ShouldBeObject @{ branch = 'feature/FOO-123'; remote = $nil }
-        }
-        It 'includes feature FOO-124' {
-            $branches | Where-Object { $_.branch -eq 'feature/FOO-124-comment' }
-                | Assert-ShouldBeObject @{ branch = 'feature/FOO-124-comment'; remote = $nil }
-        }
-        It 'includes feature FOO-125' {
-            $branches | Where-Object { $_.branch -eq 'feature/FOO-124_FOO-125' }
-                | Assert-ShouldBeObject @{ branch = 'feature/FOO-124_FOO-125'; remote = $nil }
-        }
-        It 'includes rc 2022-07-14' {
-            $branches | Where-Object { $_.branch -eq 'rc/2022-07-14' }
-                | Assert-ShouldBeObject @{ branch = 'rc/2022-07-14'; remote = $nil }
-        }
-        It 'includes main' {
-            $branches | Where-Object { $_.branch -eq 'main' }
-                | Assert-ShouldBeObject @{ branch = 'main'; remote = $nil }
-        }
-        It 'includes integrate/FOO-125_XYZ-1' {
-            $branches | Where-Object { $_.branch -eq 'integrate/FOO-125_XYZ-1' }
-                | Assert-ShouldBeObject @{ branch = 'integrate/FOO-125_XYZ-1'; remote = $nil }
-        }
+        Add-StandardTests
     }
 }

@@ -6,10 +6,10 @@ function Invoke-MockGit([string] $gitCli, [object] $MockWith) {
     return Invoke-MockGitModule -ModuleName 'Select-Branches' @PSBoundParameters
 }
 
-function Initialize-SelectBranches($branches) {
+function Initialize-SelectBranches([string[]] $branches) {
     $remote = $(Get-Configuration).remote
     if ($remote -ne $nil) {
-        Invoke-MockGit 'branch -r' -MockWith $branches
+        Invoke-MockGit 'branch -r' -MockWith ($branches | Select-Object { "$remote/$_" })
     } else {
         Invoke-MockGit 'branch' -MockWith $branches
     }

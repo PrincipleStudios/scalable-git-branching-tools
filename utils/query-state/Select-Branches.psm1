@@ -17,7 +17,7 @@ function Select-Branches() {
             }
         }
 
-        return @{ remote = $remote; branch = $branchName }
+        return $branchName
     } | Where-Object { $_ -ne $nil }
 }
 Export-ModuleMember -Function Select-Branches
