@@ -1,6 +1,6 @@
 BeforeAll {
-    . "$PSScriptRoot/../../utils/testing.ps1"
-    Import-Module -Scope Local "$PSScriptRoot/../../utils/query-state.mocks.psm1"
+    . "$PSScriptRoot/..//testing.ps1"
+    Import-Module -Scope Local "$PSScriptRoot/Configuration.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/Select-Branches.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/Select-Branches.psm1"
 }
@@ -19,6 +19,7 @@ Describe 'Select-Branches' {
                 'other/feature/FOO-100'
             )
 
+            [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
             $branches = Select-Branches
         }
 
@@ -64,6 +65,7 @@ Describe 'Select-Branches' {
                 'integrate/FOO-125_XYZ-1'
             )
 
+            [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUserDeclaredVarsMoreThanAssignments', '', Justification='This is put in scope and used in the tests below')]
             $branches = Select-Branches
         }
 

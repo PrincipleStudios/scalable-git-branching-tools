@@ -28,3 +28,6 @@ Export-ModuleMember -Function Initialize-GetLocalBranchForRemote
 
 Import-Module -Scope Local "$PSScriptRoot/query-state/Select-AllUpstreamBranches.mocks.psm1"
 Export-ModuleMember -Function Initialize-AllUpstreamBranches
+
+Import-Module -Scope Local "$PSScriptRoot/query-state/Select-Branches.mocks.psm1"
+Export-ModuleMember -Function Initialize-SelectBranches

@@ -1,4 +1,4 @@
-Import-Module -Scope Local "$PSScriptRoot/../../utils/query-state.psm1"
+Import-Module -Scope Local "$PSScriptRoot/Configuration.psm1"
 
 function Select-Branches() {
     $remote = $(Get-Configuration).remote
