@@ -8,9 +8,6 @@ git config alias.tool-config "!$dir/git-tool-config.ps1"
 # Allow self-updating on the current branch
 git config alias.tool-update "!$dir/git-tool-update.ps1"
 
-# Check the tool configuration for issues
-git config alias.tool-audit "!$dir/git-tool-audit.ps1"
-
 # Check the upstream branch configuration for branches that no longer exist
 git config alias.tool-audit-prune "!$dir/git-tool-audit-prune.ps1"
 
