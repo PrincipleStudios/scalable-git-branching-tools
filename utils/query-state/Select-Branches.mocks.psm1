@@ -9,7 +9,8 @@ function Invoke-MockGit([string] $gitCli, [object] $MockWith) {
 function Initialize-SelectBranches([string[]] $branches) {
     $remote = $(Get-Configuration).remote
     if ($remote -ne $nil) {
-        Invoke-MockGit 'branch -r' -MockWith ($branches | Select-Object { "$remote/$_" })
+        $result = ($branches | ForEach-Object { "$remote/$_" })
+        Invoke-MockGit 'branch -r' -MockWith $result
     } else {
         Invoke-MockGit 'branch' -MockWith $branches
     }

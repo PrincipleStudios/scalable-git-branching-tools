@@ -52,8 +52,6 @@ foreach ($branch in $configuredBranches) {
     }
 }
 
-Write-Host (ConvertTo-Json $resultUpstreams)
-
 
 # For all keys (downstream) in the upstreams:
 #    - Remove entire branch configuration if the branch does not exist
@@ -89,8 +87,6 @@ foreach ($branch in $configuredBranches) {
 }
 Assert-Diagnostics $diagnostics
 
-Write-Host (ConvertTo-Json $resultUpstreams)
-
 # Set upstream branch
 
 if ($resultUpstreams.Count -ne 0) {
@@ -98,7 +94,7 @@ if ($resultUpstreams.Count -ne 0) {
         type = 'set-upstream'
         parameters = @{
             upstreamBranches = $resultUpstreams
-            message = "Applied changes from 'simplify' audit"
+            message = "Applied changes from 'prune' audit"
         }
     }
     Assert-Diagnostics $diagnostics
