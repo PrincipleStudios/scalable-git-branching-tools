@@ -1,5 +1,5 @@
 BeforeAll {
-    . "$PSScriptRoot/..//testing.ps1"
+    . "$PSScriptRoot/../testing.ps1"
     Import-Module -Scope Local "$PSScriptRoot/Configuration.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/Select-Branches.mocks.psm1"
     Import-Module -Scope Local "$PSScriptRoot/Select-Branches.psm1"
