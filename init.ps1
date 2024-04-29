@@ -29,9 +29,6 @@ git config alias.add-upstream "!$dir/git-add-upstream.ps1"
 # Build a release candidate from other branches
 git config alias.rc "!$dir/git-rc.ps1"
 
-# Build a release candidate from other branches using interactive prompts
-git config alias.rci "!$dir/git-rci.ps1"
-
 # Rebuild a branch from its upstreams
 git config alias.rebuild-rc "!$dir/git-rebuild-rc.ps1"
 
@@ -45,7 +42,8 @@ git config alias.refactor-upstream "!$dir/git-refactor-upstream.ps1"
 git config alias.release "!$dir/git-release.ps1"
 
 # Get the git version and warn about older versions
-[double]$ver = ((((git version) -split ' ')[2]) -split '\.',3 | Select-Object -First 2) -join '.'
+$fullVersion = git version
+[double]$ver = ((($fullVersion -split ' ')[2]) -split '\.',3 | Select-Object -First 2) -join '.'
 if ($ver -lt 2.41) {
-    throw 'Git version installed should be at least 2.41; unexpected issues may occur. Please update git.'
+    throw "Git version installed should be at least 2.41 (found '$fullVersion'); unexpected issues may occur. Please update git."
 }
