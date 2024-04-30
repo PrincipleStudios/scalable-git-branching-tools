@@ -30,26 +30,20 @@ $commonParams = @{
 # a) if $cleanupOnly, ensure no commits are in source that are not in target
 # b) otherwise, ensure no commits are in target that are not in source
 if (-not $force) {
-    Invoke-LocalAction @commonParams @{
-        type = 'assert-updated'
-        parameters = $cleanupOnly `
+    $upToDateParams = $commonParams + (
+        $cleanupOnly `
             ? @{ downstream = $target; upstream = $source }
             : @{ downstream = $source; upstream = $target }
-    }
+    )
+    Invoke-AssertBranchUpToDateLocalAction @upToDateParams
     Assert-Diagnostics $diagnostics
 }
 
 # $toRemove = (git show-upstream $source -recurse) without ($target, git show-upstream $target -recurse, $preserve)
-$sourceUpstream = Invoke-LocalAction @commonParams @{
-    type = 'get-upstream'
-    parameters = @{ target = $source; recurse = $true }
-}
+$sourceUpstream = Invoke-GetUpstreamLocalAction @commonParams -target:$source -recurse
 Assert-Diagnostics $diagnostics
 
-$targetUpstream = Invoke-LocalAction @commonParams @{
-    type = 'get-upstream'
-    parameters = @{ target = $target; recurse = $true }
-}
+$targetUpstream = Invoke-GetUpstreamLocalAction @commonParams -target:$target -recurse
 Assert-Diagnostics $diagnostics
 
 [string[]]$keep = @($target) + $targetUpstream + $preserve
@@ -59,10 +53,7 @@ Assert-Diagnostics $diagnostics
 if (-not $force) {
     foreach ($branch in $toRemove) {
         if ($branch -eq $source) { continue }
-        Invoke-LocalAction @commonParams @{
-            type = 'assert-updated'
-            parameters = @{ downstream = $cleanupOnly ? $target : $source; upstream = $branch }
-        }
+        Invoke-AssertBranchUpToDateLocalAction @commonParams -downstream:($cleanupOnly ? $target : $source) -upstream:$branch
     }
     Assert-Diagnostics $diagnostics
 }
@@ -71,10 +62,7 @@ if (-not $force) {
 #    1. Replace $toRemove branches with $target
 #    2. Simplify (new)
 
-$originalUpstreams = Invoke-LocalAction @commonParams @{
-    type = 'get-all-upstreams'
-    parameters= @{}
-}
+$originalUpstreams = Invoke-GetAllUpstreamsLocalAction @commonParams
 Assert-Diagnostics $diagnostics
 
 $resultUpstreams = @{}
@@ -84,14 +72,12 @@ foreach ($branch in $originalUpstreams.Keys) {
         continue
     }
     
+    $filterParams = $commonParams + @{
+        exclude = $toRemove
+    }
     if ($originalUpstreams[$branch] | Where-Object { $_ -in $toRemove }) {
-        $resultUpstreams[$branch] = Invoke-LocalAction @commonParams @{
-            type = 'filter-branches'
-            parameters = @{
-                include = @($target) + $originalUpstreams[$branch]
-                exclude = $toRemove
-            }
-        }
+        $include = (@($target) + $originalUpstreams[$branch])
+        $resultUpstreams[$branch] = Invoke-FilterBranchesLocalAction @filterParams -include:$include
         Assert-Diagnostics $diagnostics
     }
 }
@@ -99,24 +85,13 @@ foreach ($branch in $originalUpstreams.Keys) {
 $keys = @() + $resultUpstreams.Keys
 foreach ($branch in $keys) {
     if (-not $resultUpstreams[$branch]) { continue }
-    $resultUpstreams[$branch] = Invoke-LocalAction @commonParams @{
-        type = 'simplify-upstream'
-        parameters = @{
-            upstreamBranches = $resultUpstreams[$branch]
-            overrideUpstreams = $resultUpstreams
-            branchName = $branch
-        }
-    }
+    $resultUpstreams[$branch] = Invoke-SimplifyUpstreamLocalAction @commonParams -upstreamBranches:$resultUpstreams[$branch] -overrideUpstreams:$resultUpstreams -branchName:$branch
     Assert-Diagnostics $diagnostics
 }
 
-$upstreamHash = Invoke-LocalAction @commonParams @{
-    type = 'set-upstream'
-    parameters = @{
-        upstreamBranches = $resultUpstreams
-        message = "Release $($source) to $($target)$($comment -eq '' ? '' : " for $($params.comment)")"
-    }
-}
+$upstreamHash = Invoke-SetUpstreamLocalAction @commonParams `
+    -upstreamBranches:$resultUpstreams `
+    -message:"Release $($source) to $($target)$($comment -eq '' ? '' : " for $($params.comment)")"
 Assert-Diagnostics $diagnostics
 
 $sourceHash = Get-BranchCommit (Get-RemoteBranchRef $source)
@@ -142,10 +117,5 @@ if (-not $cleanupOnly) {
     $resultBranches[$target] = $sourceHash
 }
 
-Invoke-FinalizeAction @commonParams @{
-    type = 'set-branches'
-    parameters = @{
-        branches = $resultBranches
-    }
-}
+Invoke-SetBranchesFinalizeAction @commonParams -branches:$resultBranches
 Assert-Diagnostics $diagnostics
