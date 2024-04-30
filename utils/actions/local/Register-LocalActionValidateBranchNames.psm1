@@ -3,10 +3,10 @@ Import-Module -Scope Local "$PSScriptRoot/../../framework.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../input.psm1"
 
 function Register-LocalActionValidateBranchNames([PSObject] $localActions) {
-    $localActions['validate-branch-names'] = ${function:Assert-ValidBranchNames}
+    $localActions['validate-branch-names'] = ${function:Invoke-AssertBranchNamesLocalAction}
 }
 
-function Assert-ValidBranchNames {
+function Invoke-AssertBranchNamesLocalAction {
         param(
             [string[]] $branches,
             [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics

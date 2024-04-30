@@ -3,10 +3,10 @@ Import-Module -Scope Local "$PSScriptRoot/../../framework.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../query-state.psm1"
 
 function Register-LocalActionFilterBranches([PSObject] $localActions) {
-    $localActions['filter-branches'] = ${function:Invoke-FilterBranches}
+    $localActions['filter-branches'] = ${function:Invoke-FilterBranchesLocalAction}
 }
 
-function Invoke-FilterBranches {
+function Invoke-FilterBranchesLocalAction {
     param(
         [Parameter()][AllowEmptyCollection()][string[]] $include,
         [Parameter()][AllowEmptyCollection()][string[]] $exclude,

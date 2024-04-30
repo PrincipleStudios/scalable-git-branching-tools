@@ -3,10 +3,10 @@ Import-Module -Scope Local "$PSScriptRoot/../../framework.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../query-state.psm1"
 
 function Register-LocalActionGetUpstream([PSObject] $localActions) {
-    $localActions['get-upstream'] = ${function:Get-Upstream}
+    $localActions['get-upstream'] = ${function:Invoke-GetUpstreamLocalAction}
 }
 
-function Get-Upstream {
+function Invoke-GetUpstreamLocalAction {
     param(
         [Parameter(Mandatory)][string] $target,
         [Parameter()][AllowNull()] $overrideUpstreams,
