@@ -7,7 +7,7 @@ Import-Module -Scope Local "$PSScriptRoot/../Invoke-LocalAction.internal.psm1"
 function New-SafeScript([string] $header, [string[]] $script) {
     return [ScriptBlock]::Create("
         $header
-        Set-StrictMode -Version 3.0; 
+        Set-StrictMode -Version 3.0;
         try {
             $($script -join "`n")
         } catch {
@@ -16,107 +16,107 @@ function New-SafeScript([string] $header, [string[]] $script) {
 }
 
 function Invoke-RecursiveScriptLocalAction {
-        param(
-            [Parameter(Mandatory)][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $inputParameters,
-            [Parameter(Mandatory)][string] $path,
-            
-            [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
-        )
+    param(
+        [Parameter(Mandatory)][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $inputParameters,
+        [Parameter(Mandatory)][string] $path,
 
-        $config = Get-Configuration
-        $commonParams = @{
-            config = $config
-            diagnostics = $diagnostics
+        [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
+    )
+
+    $config = Get-Configuration
+    $commonParams = @{
+        config = $config
+        diagnostics = $diagnostics
+    }
+    $recursionContext = @{}
+
+    $instructions = Get-Content "$PSScriptRoot/../../../$path" | ConvertFrom-Json
+    $depthFirst = $instructions.recursion.mode -eq 'depth-first'
+
+    $addDepthParam = ($inputParameters | Where-Object { $null -ne $_.depth }).Count -eq 0
+    if ($addDepthParam) {
+        $inputParameters = @($inputParameters | ForEach-Object { (ConvertTo-Hashtable $_) + @{ depth = 0 } })
+    }
+    [System.Collections.ArrayList]$allInputs = @() + $inputParameters
+    [System.Collections.ArrayList]$inputStack = @() + $inputParameters
+    [System.Collections.ArrayList]$pendingAct = @()
+
+    $init = New-SafeScript -header 'param($recursionContext)' `
+        -script ($instructions.recursion.init ?? '$null')
+    $paramScript = New-SafeScript -header 'param($actions, $params, $previous, $recursionContext)' `
+        -script $instructions.recursion.paramScript
+    $canActScript = New-SafeScript -header 'param($actions, $params, $recursionContext)' `
+        -script ($instructions.recursion.actCondition ?? '$true')
+    $mapScript = New-SafeScript -header 'param($actions, $params, $recursionContext)' `
+        -script ($instructions.recursion.map ?? '$null')
+    $reduceToOutput = New-SafeScript -header 'param($mapped, $recursionContext)' `
+        -script ($instructions.recursion.reduceToOutput ?? '$null')
+
+    (& $init -recursionContext $recursionContext) > $null
+
+    # depth first with a stack requires an extra check to revisit the item
+    # an extra time. This hashmap allows an object as the key and tracks
+    # which parameters are in the stack a second time, meaning their
+    # children have already been processed.
+    $depthFirstComplete = @{}
+
+    while ($inputStack.Count -gt 0) {
+        $params = $inputStack[0];
+        $inputStack.RemoveAt(0);
+        $actions = @{}
+        $inputs = @{
+            params = $params;
+            actions = $actions;
+            recursionContext = $recursionContext;
         }
-        $recursionContext = @{}
-
-        $instructions = Get-Content "$PSScriptRoot/../../../$path" | ConvertFrom-Json
-        $depthFirst = $instructions.recursion.mode -eq 'depth-first'
-
-        $addDepthParam = ($inputParameters | Where-Object { $null -ne $_.depth }).Count -eq 0
-        if ($addDepthParam) {
-            $inputParameters = @($inputParameters | ForEach-Object { (ConvertTo-Hashtable $_) + @{ depth = 0 } })
+        if ($depthFirst -AND $depthFirstComplete[$params]) {
+            $pendingAct.Add($params) > $null
+            continue
         }
-        [System.Collections.ArrayList]$allInputs = @() + $inputParameters
-        [System.Collections.ArrayList]$inputStack = @() + $inputParameters
-        [System.Collections.ArrayList]$pendingAct = @()
-
-        $init = New-SafeScript -header 'param($recursionContext)' `
-            -script ($instructions.recursion.init ?? '$null')
-        $paramScript = New-SafeScript -header 'param($actions, $params, $previous, $recursionContext)' `
-            -script $instructions.recursion.paramScript 
-        $canActScript = New-SafeScript -header 'param($actions, $params, $recursionContext)' `
-            -script ($instructions.recursion.actCondition ?? '$true')
-        $mapScript = New-SafeScript -header 'param($actions, $params, $recursionContext)' `
-            -script ($instructions.recursion.map ?? '$null')
-        $reduceToOutput = New-SafeScript -header 'param($mapped, $recursionContext)' `
-            -script ($instructions.recursion.reduceToOutput ?? '$null')
-
-        (& $init -recursionContext $recursionContext) > $null
-
-        # depth first with a stack requires an extra check to revisit the item
-        # an extra time. This hashmap allows an object as the key and tracks
-        # which parameters are in the stack a second time, meaning their
-        # children have already been processed.
-        $depthFirstComplete = @{}
-
-        while ($inputStack.Count -gt 0) {
-            $params = $inputStack[0];
-            $inputStack.RemoveAt(0);
-            $actions = @{}
-            $inputs = @{
-                params = $params;
-                actions = $actions;
-                recursionContext = $recursionContext;
-            }
-            if ($depthFirst -AND $depthFirstComplete[$params]) {
-                $pendingAct.Add($params) > $null
-                continue
-            }
-            $inputs.actions = Invoke-Prepare -prepareScripts $instructions.prepare @inputs @commonParams
-            [array]$newParams = (& $paramScript -actions $inputs.actions -params $inputs.params -previous $allInputs -recursionContext $recursionContext)
-            if ($addDepthParam -AND $null -ne $newParams) {
-                [array]$newParams = $newParams | ForEach-Object { (ConvertTo-Hashtable $_) + @{ depth = $params.depth + 1 } }
-            }
-            $canAct = (& $canActScript -actions $inputs.actions -params $inputs.params -recursionContext $recursionContext)
-            if ($depthFirst) {
-                if ($canAct) {
-                    $inputStack.Insert(0, $inputs) > $null
-                    $depthFirstComplete[$inputs] = $true
-                }
-                if ($null -ne $newParams) {
-                    [array]$newParams = @() + [array]$newParams
-                    $inputStack.InsertRange(0, $newParams)
-                }
-            } else {
-                if ($canAct) {
-                    $pendingAct.Add($inputs) > $null
-                }
-                if ($null -ne $newParams) {
-                    $inputStack.AddRange($newParams)
-                }
+        $inputs.actions = Invoke-Prepare -prepareScripts $instructions.prepare @inputs @commonParams
+        [array]$newParams = (& $paramScript -actions $inputs.actions -params $inputs.params -previous $allInputs -recursionContext $recursionContext)
+        if ($addDepthParam -AND $null -ne $newParams) {
+            [array]$newParams = $newParams | ForEach-Object { (ConvertTo-Hashtable $_) + @{ depth = $params.depth + 1 } }
+        }
+        $canAct = (& $canActScript -actions $inputs.actions -params $inputs.params -recursionContext $recursionContext)
+        if ($depthFirst) {
+            if ($canAct) {
+                $inputStack.Insert(0, $inputs) > $null
+                $depthFirstComplete[$inputs] = $true
             }
             if ($null -ne $newParams) {
-                $allInputs += $newParams
+                [array]$newParams = @() + [array]$newParams
+                $inputStack.InsertRange(0, $newParams)
             }
-            if (Get-HasErrorDiagnostic $diagnostics) {
-                return $null
+        } else {
+            if ($canAct) {
+                $pendingAct.Add($inputs) > $null
             }
-        }
-
-        [System.Collections.ArrayList]$mapped = @()
-        while ($pendingAct.Count -gt 0) {
-            $inputs = $pendingAct[0]
-            $pendingAct.RemoveAt(0);
-            $inputs.actions = Invoke-Act -actScripts $instructions.act @inputs @commonParams
-            $mapResult = & $mapScript -actions $inputs.actions -params $inputs.params -recursionContext $recursionContext
-            $mapped.Add($mapResult) > $null
-            if (Get-HasErrorDiagnostic $diagnostics) {
-                return $null
+            if ($null -ne $newParams) {
+                $inputStack.AddRange($newParams)
             }
         }
+        if ($null -ne $newParams) {
+            $allInputs += $newParams
+        }
+        if (Get-HasErrorDiagnostic $diagnostics) {
+            return $null
+        }
+    }
 
-        return & $reduceToOutput -mapped $mapped -recursionContext $recursionContext
+    [System.Collections.ArrayList]$mapped = @()
+    while ($pendingAct.Count -gt 0) {
+        $inputs = $pendingAct[0]
+        $pendingAct.RemoveAt(0);
+        $inputs.actions = Invoke-Act -actScripts $instructions.act @inputs @commonParams
+        $mapResult = & $mapScript -actions $inputs.actions -params $inputs.params -recursionContext $recursionContext
+        $mapped.Add($mapResult) > $null
+        if (Get-HasErrorDiagnostic $diagnostics) {
+            return $null
+        }
+    }
+
+    return & $reduceToOutput -mapped $mapped -recursionContext $recursionContext
 }
 
 function Invoke-Prepare(
@@ -128,7 +128,7 @@ function Invoke-Prepare(
 
     [Parameter(Mandatory)][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
 ) {
-    
+
     for ($i = 0; $i -lt $prepareScripts.Count; $i++) {
         $name = $prepareScripts[$i].id ?? "#$($i + 1) (1-based)";
         $variables = @{ config=$config; params=$params; actions=$actions; recursionContext=$recursionContext }
@@ -171,7 +171,7 @@ function Invoke-Act(
 
     [Parameter(Mandatory)][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
 ) {
-    
+
     for ($i = 0; $i -lt $actScripts.Count; $i++) {
         $name = $actScripts[$i].id ?? "#$($i + 1) (1-based)";
         $variables = @{ config=$config; params=$params; actions=$actions; recursionContext=$recursionContext }

@@ -12,7 +12,7 @@ function Invoke-GetUpstreamLocalAction {
     )
 
     [string[]]$result = Select-UpstreamBranches -branchName $target -recurse:$recurse -includeRemote:$includeRemote -overrideUpstreams:$overrideUpstreams
-    
+
     return $result
 }
 

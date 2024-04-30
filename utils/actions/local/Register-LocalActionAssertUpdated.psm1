@@ -25,7 +25,7 @@ function Invoke-AssertBranchUpToDateLocalAction {
     } elseif ($mergeResult.hasChanges) {
         Add-ErrorDiagnostic $diagnostics "The branch $upstream has changes that are not in $downstream"
     }
-    
+
     return @{}
 }
 

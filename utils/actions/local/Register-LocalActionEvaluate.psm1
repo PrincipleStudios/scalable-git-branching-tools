@@ -8,7 +8,7 @@ function Register-LocalActionEvaluate([PSObject] $localActions) {
             [Parameter(Mandatory)][AllowNull()][object] $result,
             [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
         )
-        
+
         return $result
     }
 }

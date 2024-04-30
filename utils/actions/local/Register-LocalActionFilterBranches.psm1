@@ -6,12 +6,12 @@ function Invoke-FilterBranchesLocalAction {
     param(
         [Parameter()][AllowEmptyCollection()][string[]] $include,
         [Parameter()][AllowEmptyCollection()][string[]] $exclude,
-        
+
         [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
     )
 
     [string[]]$result = $include | Where-Object { $_ } | Where-Object { $_ -notin $exclude } | Get-Unique
-    
+
     return $result
 }
 

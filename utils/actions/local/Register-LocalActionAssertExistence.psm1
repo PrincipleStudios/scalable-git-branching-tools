@@ -10,7 +10,7 @@ function Invoke-AssertBranchExistenceLocalAction {
     )
 
     $remote = $(Get-Configuration).remote
-    
+
     foreach ($branch in $branches) {
         $actualBranch = ($remote) ? "$remote/$branch" : $branch
         Invoke-ProcessLogs "git rev-parse --verify $actualBranch" {

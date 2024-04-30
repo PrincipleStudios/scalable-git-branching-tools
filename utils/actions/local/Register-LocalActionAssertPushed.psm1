@@ -17,7 +17,7 @@ function Invoke-AssertBranchPushedLocalAction {
     } elseif ($remoteMustExist -AND -not $state) {
         Add-ErrorDiagnostic $diagnostics "The local branch for $target does not exist on the remote"
     }
-    
+
     return @{}
 }
 
