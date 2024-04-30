@@ -3,18 +3,20 @@ Import-Module -Scope Local "$PSScriptRoot/../../framework.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../query-state.psm1"
 
 function Register-LocalActionGetDownstream([PSObject] $localActions) {
-    $localActions['get-downstream'] = {
-        param(
-            [Parameter(Mandatory)][string] $target,
-            [Parameter()][AllowNull()] $overrideUpstreams,
-            [switch] $recurse,
-            [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
-        )
+    $localActions['get-downstream'] = ${function:Get-Downstream}
+}
 
-        [string[]]$result = Select-DownstreamBranches -branchName $target -recurse:$recurse -overrideUpstreams:$overrideUpstreams
+function Get-Downstream {
+    param(
+        [Parameter(Mandatory)][string] $target,
+        [Parameter()][AllowNull()] $overrideUpstreams,
+        [switch] $recurse,
+        [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
+    )
 
-        return $result
-    }
+    [string[]]$result = Select-DownstreamBranches -branchName $target -recurse:$recurse -overrideUpstreams:$overrideUpstreams
+
+    return $result
 }
 
 Export-ModuleMember -Function Register-LocalActionGetDownstream
