@@ -5,7 +5,10 @@ Import-Module -Scope Local "$PSScriptRoot/../../query-state.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../git.psm1"
 
 function Register-FinalizeActionTrack([PSObject] $finalizeActions) {
-    $finalizeActions['track'] = {
+    $finalizeActions['track'] = ${function:Invoke-TrackFinalizeAction}
+}
+
+function Invoke-TrackFinalizeAction {
         param(
             [Parameter()][AllowEmptyCollection()][string[]] $branches,
             [Parameter()][bool] $createIfNotTracked,
@@ -66,7 +69,6 @@ function Register-FinalizeActionTrack([PSObject] $finalizeActions) {
         if (-not $dryRun) {
             return $tracked
         }
-    }
 }
 
 Export-ModuleMember -Function Register-FinalizeActionTrack

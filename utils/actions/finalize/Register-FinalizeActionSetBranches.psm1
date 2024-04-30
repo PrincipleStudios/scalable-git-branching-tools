@@ -15,7 +15,9 @@ function ConvertTo-PushBranchList([Parameter(Mandatory)][Hashtable] $branches) {
 Export-ModuleMember -Function ConvertTo-PushBranchList
 
 function Register-FinalizeActionSetBranches([PSObject] $finalizeActions) {
-    $finalizeActions['set-branches'] = {
+    $finalizeActions['set-branches'] = ${function:Invoke-SetBranchesFinalizeAction}
+}
+function Invoke-SetBranchesFinalizeAction {
         param(
             [Parameter()] $branches,
             [Parameter()] $force = $false,
@@ -73,7 +75,6 @@ function Register-FinalizeActionSetBranches([PSObject] $finalizeActions) {
                 }
             }
         }
-    }
 }
 
 Export-ModuleMember -Function Register-FinalizeActionSetBranches
