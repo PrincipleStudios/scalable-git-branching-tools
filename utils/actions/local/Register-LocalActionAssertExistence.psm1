@@ -2,10 +2,6 @@ Import-Module -Scope Local "$PSScriptRoot/../../core.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../framework.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../query-state.psm1"
 
-function Register-LocalActionAssertExistence([PSObject] $localActions) {
-    $localActions['assert-existence'] = ${function:Invoke-AssertBranchExistenceLocalAction}
-}
-
 function Invoke-AssertBranchExistenceLocalAction {
     param(
         [Parameter(Mandatory)][AllowEmptyCollection()] $branches,
@@ -30,4 +26,4 @@ function Invoke-AssertBranchExistenceLocalAction {
     return @{}
 }
 
-Export-ModuleMember -Function Register-LocalActionAssertExistence
+Export-ModuleMember -Function Invoke-AssertBranchExistenceLocalAction

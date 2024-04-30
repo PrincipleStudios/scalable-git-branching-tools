@@ -4,10 +4,6 @@ Import-Module -Scope Local "$PSScriptRoot/../../input.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../query-state.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../git.psm1"
 
-function Register-FinalizeActionTrack([PSObject] $finalizeActions) {
-    $finalizeActions['track'] = ${function:Invoke-TrackFinalizeAction}
-}
-
 function Invoke-TrackFinalizeAction {
         param(
             [Parameter()][AllowEmptyCollection()][string[]] $branches,
@@ -71,4 +67,4 @@ function Invoke-TrackFinalizeAction {
         }
 }
 
-Export-ModuleMember -Function Register-FinalizeActionTrack
+Export-ModuleMember -Function Invoke-TrackFinalizeAction

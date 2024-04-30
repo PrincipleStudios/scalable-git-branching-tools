@@ -3,10 +3,6 @@ Import-Module -Scope Local "$PSScriptRoot/../../framework.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../query-state.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../git.psm1"
 
-function Register-LocalActionSetUpstream([PSObject] $localActions) {
-    $localActions['set-upstream'] = ${function:Invoke-SetUpstreamLocalAction}
-}
-
 function Invoke-SetUpstreamLocalAction {
         param(
             [PSObject] $upstreamBranches,
@@ -29,4 +25,4 @@ function Invoke-SetUpstreamLocalAction {
         }
 }
 
-Export-ModuleMember -Function Register-LocalActionSetUpstream
+Export-ModuleMember -Function Invoke-SetUpstreamLocalAction

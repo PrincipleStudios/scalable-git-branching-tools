@@ -14,9 +14,6 @@ function ConvertTo-PushBranchList([Parameter(Mandatory)][Hashtable] $branches) {
 # Not to be re-exported; used for testing
 Export-ModuleMember -Function ConvertTo-PushBranchList
 
-function Register-FinalizeActionSetBranches([PSObject] $finalizeActions) {
-    $finalizeActions['set-branches'] = ${function:Invoke-SetBranchesFinalizeAction}
-}
 function Invoke-SetBranchesFinalizeAction {
         param(
             [Parameter()] $branches,
@@ -77,4 +74,4 @@ function Invoke-SetBranchesFinalizeAction {
         }
 }
 
-Export-ModuleMember -Function Register-FinalizeActionSetBranches
+Export-ModuleMember -Function Invoke-SetBranchesFinalizeAction

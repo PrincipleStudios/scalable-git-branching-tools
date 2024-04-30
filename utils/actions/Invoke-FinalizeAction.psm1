@@ -4,10 +4,11 @@ Import-Module -Scope Local "$PSScriptRoot/finalize/Register-FinalizeActionChecko
 Import-Module -Scope Local "$PSScriptRoot/finalize/Register-FinalizeActionSetBranches.psm1"
 Import-Module -Scope Local "$PSScriptRoot/finalize/Register-FinalizeActionTrack.psm1"
 
-$finalizeActions = @{}
-Register-FinalizeActionCheckout $finalizeActions
-Register-FinalizeActionSetBranches $finalizeActions
-Register-FinalizeActionTrack $finalizeActions
+$finalizeActions = @{
+    'checkout' = ${function:Invoke-CheckoutFinalizeAction}
+    'set-branches' = ${function:Invoke-SetBranchesFinalizeAction}
+    'track' = ${function:Invoke-TrackFinalizeAction}
+}
 
 function Invoke-FinalizeAction(
     [PSObject] $actionDefinition,

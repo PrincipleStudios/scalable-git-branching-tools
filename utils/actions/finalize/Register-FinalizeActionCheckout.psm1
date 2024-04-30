@@ -3,10 +3,6 @@ Import-Module -Scope Local "$PSScriptRoot/../../query-state.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../git.psm1"
 
 # TODO: should check out the branch from remote as a local tracking branch
-function Register-FinalizeActionCheckout([PSObject] $finalizeActions) {
-    $finalizeActions['checkout'] = ${function:Invoke-CheckoutFinalizeAction}
-}
-
 function Invoke-CheckoutFinalizeAction{
         param(
             [string] $HEAD,
@@ -24,4 +20,4 @@ function Invoke-CheckoutFinalizeAction{
         }
 }
 
-Export-ModuleMember -Function Register-FinalizeActionCheckout
+Export-ModuleMember -Function Invoke-CheckoutFinalizeAction

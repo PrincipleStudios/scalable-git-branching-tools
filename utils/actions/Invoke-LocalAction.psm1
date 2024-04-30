@@ -16,20 +16,20 @@ Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionValidateBran
 Import-Module -Scope Local "$PSScriptRoot/local/Register-LocalActionAssertExistence.psm1"
 
 $localActions = Get-LocalActionsRegistry
-Register-LocalActionAddDiagnostic $localActions
-Register-LocalActionAssertPushed $localActions
-Register-LocalActionAssertUpdated $localActions
+$localActions['add-diagnostic'] = ${function:Invoke-AddDiagnosticLocalAction}
+$localActions['assert-existence'] = ${function:Invoke-AssertBranchExistenceLocalAction}
+$localActions['assert-pushed'] = ${function:Invoke-AssertBranchPushedLocalAction}
+$localActions['assert-updated'] = ${function:Invoke-AssertBranchUpToDateLocalAction}
 Register-LocalActionEvaluate $localActions
-Register-LocalActionGetAllUpstreams $localActions
-Register-LocalActionGetUpstream $localActions
-Register-LocalActionGetDownstream $localActions
-Register-LocalActionFilterBranches $localActions
-Register-LocalActionMergeBranches $localActions
-Register-LocalActionRecurse $localActions
-Register-LocalActionSetUpstream $localActions
-Register-LocalActionSimplifyUpstreamBranches $localActions
-Register-LocalActionUpstreamsUpdated $localActions
-Register-LocalActionValidateBranchNames $localActions
-Register-LocalActionAssertExistence $localActions
+$localActions['filter-branches'] = ${function:Invoke-FilterBranchesLocalAction}
+$localActions['get-all-upstreams'] = ${function:Invoke-GetAllUpstreamsLocalAction}
+$localActions['get-downstream'] = ${function:Invoke-GetDownstreamLocalAction}
+$localActions['get-upstream'] = ${function:Invoke-GetUpstreamLocalAction}
+$localActions['merge-branches'] = ${function:Invoke-MergeBranchesLocalAction}
+$localActions['recurse'] = ${function:Invoke-RecursiveScriptLocalAction}
+$localActions['set-upstream'] = ${function:Invoke-SetUpstreamLocalAction}
+$localActions['simplify-upstream'] = ${function:Invoke-SimplifyUpstreamLocalAction}
+$localActions['upstreams-updated'] = ${function:Invoke-UpstreamsUpdatedLocalAction}
+$localActions['validate-branch-names'] = ${function:Invoke-AssertBranchNamesLocalAction}
 
 Export-ModuleMember -Function Invoke-LocalAction

@@ -15,10 +15,6 @@ function New-SafeScript([string] $header, [string[]] $script) {
     ")
 }
 
-function Register-LocalActionRecurse([PSObject] $localActions) {
-    $localActions['recurse'] = ${function:Invoke-RecursiveScriptLocalAction}
-}
-
 function Invoke-RecursiveScriptLocalAction {
         param(
             [Parameter(Mandatory)][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $inputParameters,
@@ -209,4 +205,4 @@ function Invoke-Act(
     return $actions
 }
 
-Export-ModuleMember -Function Register-LocalActionRecurse
+Export-ModuleMember -Function Invoke-RecursiveScriptLocalAction

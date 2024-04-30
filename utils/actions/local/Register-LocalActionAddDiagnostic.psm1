@@ -1,10 +1,6 @@
 Import-Module -Scope Local "$PSScriptRoot/../../core.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../framework.psm1"
 
-function Register-LocalActionAddDiagnostic([PSObject] $localActions) {
-    $localActions['add-diagnostic'] = ${function:Invoke-AddDiagnosticLocalAction}
-}
-
 function Invoke-AddDiagnosticLocalAction {
     param(
         [Parameter()][string] $message,
@@ -21,4 +17,4 @@ function Invoke-AddDiagnosticLocalAction {
     return @{}
 }
 
-Export-ModuleMember -Function Register-LocalActionAddDiagnostic
+Export-ModuleMember -Function Invoke-AddDiagnosticLocalAction

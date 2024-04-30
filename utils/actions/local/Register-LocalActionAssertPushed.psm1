@@ -2,10 +2,6 @@ Import-Module -Scope Local "$PSScriptRoot/../../core.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../framework.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../query-state.psm1"
 
-function Register-LocalActionAssertPushed([PSObject] $localActions) {
-    $localActions['assert-pushed'] = ${function:Invoke-AssertBranchPushedLocalAction}
-}
-
 function Invoke-AssertBranchPushedLocalAction {
     param(
         [Parameter()][string] $target,
@@ -25,4 +21,4 @@ function Invoke-AssertBranchPushedLocalAction {
     return @{}
 }
 
-Export-ModuleMember -Function Register-LocalActionAssertPushed
+Export-ModuleMember -Function Invoke-AssertBranchPushedLocalAction

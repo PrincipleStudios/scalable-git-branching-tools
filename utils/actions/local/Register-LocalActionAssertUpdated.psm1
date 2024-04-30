@@ -3,10 +3,6 @@ Import-Module -Scope Local "$PSScriptRoot/../../framework.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../query-state.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../git.psm1"
 
-function Register-LocalActionAssertUpdated([PSObject] $localActions) {
-    $localActions['assert-updated'] = ${function:Invoke-AssertBranchUpToDateLocalAction}
-}
-
 function Invoke-AssertBranchUpToDateLocalAction {
     param(
         [Parameter()][string] $downstream,
@@ -33,4 +29,4 @@ function Invoke-AssertBranchUpToDateLocalAction {
     return @{}
 }
 
-Export-ModuleMember -Function Register-LocalActionAssertUpdated
+Export-ModuleMember -Function Invoke-AssertBranchUpToDateLocalAction

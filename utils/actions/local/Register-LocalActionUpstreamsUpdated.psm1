@@ -2,12 +2,7 @@ Import-Module -Scope Local "$PSScriptRoot/../../core.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../framework.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../query-state.psm1"
 
-function Register-LocalActionUpstreamsUpdated([PSObject] $localActions) {
-    # Checks to see if the upstreams are up-to-date
-    $localActions['upstreams-updated'] = ${function:Invoke-UpstreamsUpdatedLocalAction}
- }
- 
- function Invoke-UpstreamsUpdatedLocalAction {
+function Invoke-UpstreamsUpdatedLocalAction {
         param(
             [Parameter()][AllowEmptyCollection()][string[]] $branches,
             [Parameter()][AllowNull()] $overrideUpstreams,
@@ -51,4 +46,4 @@ function Register-LocalActionUpstreamsUpdated([PSObject] $localActions) {
         }
 }
 
-Export-ModuleMember -Function Register-LocalActionUpstreamsUpdated
+Export-ModuleMember -Function Invoke-UpstreamsUpdatedLocalAction
