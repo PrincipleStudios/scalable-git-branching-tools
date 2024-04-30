@@ -304,7 +304,7 @@ Describe 'git-new' {
             )
 
             { & $PSScriptRoot/git-new.ps1 feature/PS-100-some-work -u 'feature/homepage-redesign,infra/update-dependencies' -m 'some work' } | Should -Not -Throw
-            $fw.assertDiagnosticOutput | Should -Contain 'WARN: Could not merge the following branches: origin/infra/update-dependencies'
+            $fw.assertDiagnosticOutput | Should -Contain 'WARN: feature/PS-100-some-work has incoming conflicts from infra/update-dependencies. Be sure to manually merge.'
             Invoke-VerifyMock $mocks -Times 1
         }
     }

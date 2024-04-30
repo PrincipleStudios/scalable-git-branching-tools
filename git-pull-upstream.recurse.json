@@ -1,0 +1,87 @@
+{
+    "recursion": {
+        "mode": "depth-first",
+        "paramScript": [
+            "if (-not $params.recurse) { return @() }",
+            "($actions['get-upstream'].outputs | Where-Object { $null -ne $_ -AND $_ -notin ($previous | ForEach-Object { $_.target }) } | ForEach-Object { @{ target = $_; recurse = $params.recurse } })"
+        ],
+        "init": "$recursionContext.result = @{ hasChanges = $false; hasFailures = $false; push = @{}; override = @{}; track = @(); failures = @{} }",
+        "reduceToOutput": "$recursionContext.result",
+        "actCondition": "$null -ne $actions['get-upstream'].outputs"
+    },
+    "prepare": [
+        {
+            "type": "assert-pushed",
+            "parameters": {
+                "target": "$params.target"
+            }
+        },
+        {
+            "id": "get-upstream",
+            "type": "get-upstream",
+            "parameters": {
+                "target": "$params.target"
+            }
+        }
+    ],
+    "act": [
+        {
+            "id": "mergeBranches",
+            "type": "merge-branches",
+            "parameters": {
+                "source": "$params.target",
+                "upstreamBranches": ["$actions['get-upstream'].outputs"],
+                "mergeMessageTemplate": "Merge '{}' to $($params.target)",
+                "commitMappingOverride": "$recursionContext.result.override"
+            }
+        },
+        { 
+            "type": "add-diagnostic",
+            "condition": "$actions.mergeBranches.outputs.failed -ne $null",
+            "parameters": {
+                "isWarning": "$params.depth -eq 0",
+                "message": "$($params.target) has incoming conflicts from $($actions.mergeBranches.outputs.failed). Resolve them before continuing."
+            }
+        },
+        {
+            "id": "iterationResult",
+            "type": "evaluate",
+            "parameters": {
+                "result": {
+                    "hasChanges": "$actions.mergeBranches.outputs.hasChanges",
+                    "hasFailures": "$actions.mergeBranches.outputs.failed -ne $null",
+                    "push": {
+                        "$params.target": "$actions.mergeBranches.outputs['commit']"
+                    },
+                    "override": {
+                        "$($config.remote ? ($config.remote + '/') : '')$($params.target)": "$actions.mergeBranches.outputs['commit']"
+                    },
+                    "track": "$params.target",
+                    "failures": {
+                        "$params.target": "$actions.mergeBranches.outputs.failed"
+                    }
+                }
+            }
+        },
+        {
+            "id": "nextFullResult",
+            "type": "evaluate",
+            "parameters": {
+                "result": {
+                    "hasChanges": "$recursionContext.result.hasChanges -OR $actions.iterationResult.outputs.hasChanges",
+                    "hasFailures": "$recursionContext.result.hasFailures -OR $actions.iterationResult.outputs.hasFailures",
+                    "push": "$actions.mergeBranches.outputs.hasChanges ? ($recursionContext.result.push + $actions.iterationResult.outputs.push) : $recursionContext.result.push",
+                    "override": "$actions.mergeBranches.outputs.hasChanges ? ($recursionContext.result.override + $actions.iterationResult.outputs.override) : $recursionContext.result.override",
+                    "track": "$recursionContext.result.track + $actions.iterationResult.outputs.track",
+                    "failures": "$recursionContext.result.failures + $actions.iterationResult.outputs.failures"
+                }
+            }
+        },
+        {
+            "type": "evaluate",
+            "parameters": {
+                "result": "$recursionContext.result = $actions.nextFullResult.outputs"
+            }
+        }
+    ]
+}

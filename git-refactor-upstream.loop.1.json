@@ -1,0 +1,25 @@
+{
+    "recursion": {
+        "paramScript": ["@()"],
+        "init": "$recursionContext.result = @{ changes = @{} }",
+        "reduceToOutput": "$recursionContext.result.changes",
+        "actCondition": "$true"
+    },
+    "prepare": [],
+    "act": [
+        {
+            "id": "filter",
+            "type": "filter-branches",
+            "parameters": {
+                "include": ["$params.upstream", "$params.target"],
+                "exclude": ["$params.source", "$params.current"]
+            }
+        },
+        {
+            "type": "evaluate",
+            "parameters": {
+                "result": "$recursionContext.result.changes[$params.current] = ([string[]]($params.upstream) -contains $params.source) ? $actions.filter.outputs : $params.upstream"
+            }
+        }
+    ]
+}

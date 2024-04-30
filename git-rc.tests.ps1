@@ -1,25 +1,3 @@
-BeforeAll {
-    . "$PSScriptRoot/utils/testing.ps1"
-    Import-Module -Scope Local "$PSScriptRoot/utils/framework.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/utils/query-state.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/utils/git.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/config/git/Select-Branches.mocks.psm1"
-    Import-Module -Scope Local "$PSScriptRoot/config/git/Set-MultipleUpstreamBranches.mocks.psm1"
-
-    Initialize-QuietMergeBranches
-
-    # User-interface commands are a bit noisy; TODO: add quiet option and test it by making this throw
-    Mock -CommandName Write-Host {}
-
-    Lock-SetMultipleUpstreamBranches
-
-    Mock -CommandName Invoke-PreserveBranch {
-        & $scriptBlock
-        & $cleanup
-    }
-}
-
-
 Describe 'git-rc' {
     BeforeAll {
         . "$PSScriptRoot/utils/testing.ps1"

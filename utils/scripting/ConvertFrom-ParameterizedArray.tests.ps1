@@ -13,27 +13,31 @@ Describe 'ConvertFrom-ParameterizedArray' {
 
     It 'can evaluate single parameters' {
         $params = @{ foo = 'bar' }
-        $result = ConvertFrom-ParameterizedArray @('foo', '$($params.foo)', 'baz') -config @{} -params $params -actions @{} -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
+        $variables = @{ config=@{}; params=$params; actions=@{} }
+        $result = ConvertFrom-ParameterizedArray @('foo', '$($params.foo)', 'baz') -variables $variables -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
         $result.result | Should -Be @('foo', 'bar', 'baz')
         $result.fail | Should -Be $false
     }
 
     It 'can evaluate array parameters' {
         $params = @{ foo = @('bar', 'baz') }
-        $result = ConvertFrom-ParameterizedArray @('foo', '$($params.foo -join ",")') -config @{} -params $params -actions @{} -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
+        $variables = @{ config=@{}; params=$params; actions=@{} }
+        $result = ConvertFrom-ParameterizedArray @('foo', '$($params.foo -join ",")') -variables $variables -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
         $result.result | Should -Be @('foo', 'bar', 'baz')
         $result.fail | Should -Be $false
     }
 
     It 'reports errors' {
         $params = @{ foo = @('bar', 'baz') }
-        $result = ConvertFrom-ParameterizedArray @('foo', '$($config.upstreamBranch)') -config @{} -params $params -actions @{} -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
+        $variables = @{ config=@{}; params=$params; actions=@{} }
+        $result = ConvertFrom-ParameterizedArray @('foo', '$($config.upstreamBranch)') -variables $variables -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
         $result.fail | Should -Be $true
     }
 
     It 'reports warnings if diagnostics are provided' {
         $params = @{ foo = @('bar', 'baz') }
-        $result = ConvertFrom-ParameterizedArray @('foo', '$($config.upstreamBranch)') -config @{} -params $params -actions @{} -diagnostics $diag -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
+        $variables = @{ config=@{}; params=$params; actions=@{} }
+        $result = ConvertFrom-ParameterizedArray @('foo', '$($config.upstreamBranch)') -variables $variables -diagnostics $diag -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
         $result.fail | Should -Be $true
 
         $output = Register-Diagnostics -throwInsteadOfExit
@@ -43,7 +47,8 @@ Describe 'ConvertFrom-ParameterizedArray' {
 
     It 'reports errors if diagnostics are provided and flagged to fail on error' {
         $params = @{ foo = @('bar', 'baz') }
-        $result = ConvertFrom-ParameterizedArray @('foo', '$($config.upstreamBranch)') -config @{} -params $params -actions @{} -diagnostics $diag -failOnError -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
+        $variables = @{ config=@{}; params=$params; actions=@{} }
+        $result = ConvertFrom-ParameterizedArray @('foo', '$($config.upstreamBranch)') -variables $variables -diagnostics $diag -failOnError -convertFromParameterized ${function:ConvertFrom-ParameterizedString}
         $result.fail | Should -Be $true
 
         $output = Register-Diagnostics -throwInsteadOfExit

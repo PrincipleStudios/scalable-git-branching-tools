@@ -64,4 +64,27 @@ Describe 'Select-AllUpstreamBranches' {
             Invoke-VerifyMock $mocks -Times 1
         }
     }
+
+    Describe 'at an alternate commit' {
+        BeforeEach {
+            Initialize-ToolConfiguration
+        }
+
+        It 'handles deep folders' {
+            $mocks = Initialize-AllUpstreamBranches @{
+                'rc/1.1.0' = @("feature/FOO-123", "feature/XYZ-1-services")
+                'feature/XYZ-1-services' = @("infra/some-service")
+                'infra/some-service' = @("line/1.0")
+            }
+            $overrideUpstreams = @{
+                'feature/FOO-123' = @("line/1.0")
+                'infra/some-service' = @('main')
+            };
+
+            (Select-AllUpstreamBranches -overrideUpstreams $overrideUpstreams)['feature/FOO-123'] | Should -Be @("line/1.0")
+            (Select-AllUpstreamBranches -overrideUpstreams $overrideUpstreams)['feature/XYZ-1-services'] | Should -Be @("infra/some-service")
+            (Select-AllUpstreamBranches -overrideUpstreams $overrideUpstreams)['infra/some-service'] | Should -Be @("main")
+            Invoke-VerifyMock $mocks -Times 1
+        }
+    }
 }

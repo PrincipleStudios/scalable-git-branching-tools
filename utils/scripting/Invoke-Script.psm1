@@ -17,11 +17,18 @@ function Invoke-Script(
 
         for ($i = 0; $i -lt $script.local.Count; $i++) {
             $name = $script.local[$i].id ?? "#$($i + 1) (1-based)";
-            $local = ConvertFrom-ParameterizedAnything -script $script.local[$i] -config $config -params $params -actions $actions -diagnostics $diagnostics
+            $variables = @{ config=$config; params=$params; actions=$actions }
+            if ($script.local[$i].condition) {
+                $condition = ConvertFrom-ParameterizedAnything -script $script.local[$i].condition -variables $variables -diagnostics $diagnostics
+                if (-not $condition.fail -AND -not $condition.result) {
+                    continue;
+                }
+            }
+            $local = ConvertFrom-ParameterizedAnything -script $script.local[$i] -variables $variables -diagnostics $diagnostics
             if ($local.fail) {
                 Add-ErrorDiagnostic $diagnostics "Could not apply parameters to local action $name; see above errors. Evaluation below:"
                 Add-ErrorDiagnostic $diagnostics "$(ConvertTo-Json $local.result -Depth 10)"
-                break
+                Assert-Diagnostics $diagnostics
             }
             try {
                 $outputs = Invoke-LocalAction $local.result -diagnostics $diagnostics
@@ -33,16 +40,12 @@ function Invoke-Script(
                 Add-ErrorDiagnostic $diagnostics "$(ConvertTo-Json $local.result -Depth 10)"
                 Add-ErrorException $diagnostics $_
             }
-            if (Get-HasErrorDiagnostic $diagnostics) {
-                # Don't bother continuing if anything failed; this leads to lots of noise in failed applied parameters
-                break
-            }
+            Assert-Diagnostics $diagnostics
         }
 
-        Assert-Diagnostics $diagnostics
-        
         if ($script.finalize) {
-            $allFinalize = ConvertFrom-ParameterizedAnything -script $script.finalize -config $config -params $params -actions $actions -diagnostics $diagnostics
+            $variables = @{ config=$config; params=$params; actions=$actions }
+            $allFinalize = ConvertFrom-ParameterizedAnything -script $script.finalize -variables $variables -diagnostics $diagnostics
             if ($allFinalize.fail) {
                 Add-ErrorDiagnostic $diagnostics "Could not apply parameters for finalize actions; see above errors."
                 Assert-Diagnostics $diagnostics
@@ -73,7 +76,8 @@ function Invoke-Script(
         }
         
         if ($null -ne $script.output -AND -not $dryRun) {
-            $allOutput = ConvertFrom-ParameterizedAnything -script $script.output -config $config -params $params -actions $actions -diagnostics $diagnostics
+            $variables = @{ config=$config; params=$params; actions=$actions }
+            $allOutput = ConvertFrom-ParameterizedAnything -script $script.output -variables $variables -diagnostics $diagnostics
             $allOutput.result | Write-Output
         }
     } catch {

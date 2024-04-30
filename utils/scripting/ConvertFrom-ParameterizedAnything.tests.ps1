@@ -11,7 +11,8 @@ Describe 'ConvertFrom-ParameterizedAnything' {
     It 'can evaluate parameters in objects nested in arrays' {
         $target = @('foo', @{ '$($params.foo)' = '$($params.baz)' })
         $params = @{ foo = 'bar'; baz = 'woot' }
-        $result = ConvertFrom-ParameterizedAnything $target -config @{} -params $params -actions @{} -failOnError
+        $variables = @{ config=@{}; params=$params; actions=@{} }
+        $result = ConvertFrom-ParameterizedAnything $target -variables $variables -failOnError
         $result.result.Count | Should -Be 2
         $result.result[0] | Should -Be 'foo'
         $result.result[1] | Assert-ShouldBeObject @{ 'bar'= 'woot' }
@@ -20,7 +21,8 @@ Describe 'ConvertFrom-ParameterizedAnything' {
     It 'can evaluate parameters in objects nested in arrays without extra syntax' {
         $target = @('foo', @{ '$params.foo' = '$params.baz' })
         $params = @{ foo = 'bar'; baz = 'woot' }
-        $result = ConvertFrom-ParameterizedAnything $target -config @{} -params $params -actions @{} -failOnError
+        $variables = @{ config=@{}; params=$params; actions=@{} }
+        $result = ConvertFrom-ParameterizedAnything $target -variables $variables -failOnError
         $result.result.Count | Should -Be 2
         $result.result[0] | Should -Be 'foo'
         $result.result[1] | Assert-ShouldBeObject @{ 'bar'= 'woot' }
@@ -29,35 +31,40 @@ Describe 'ConvertFrom-ParameterizedAnything' {
     It 'can evaluate parameters in arrays nested in objects' {
         $target = @{ 'foo' = @('$($params.foo -join ",")', '$($params.banter)'); 'baz' = '$($params.banter)' }
         $params = @{ foo = @('bar', 'baz'); banter = @('woot') }
-        $result = ConvertFrom-ParameterizedAnything $target -config @{} -params $params -actions @{} -failOnError
+        $variables = @{ config=@{}; params=$params; actions=@{} }
+        $result = ConvertFrom-ParameterizedAnything $target -variables $variables -failOnError
         $result.result | Assert-ShouldBeObject @{ 'foo' = @('bar', 'baz', 'woot'); 'baz' = 'woot' }
     }
     
     It 'can evaluate parameters in arrays nested in objects without extra syntax' {
         $target = @{ 'foo' = @('$params.foo', '$params.banter'); 'baz' = '$params.banter' }
         $params = @{ foo = @('bar', 'baz'); banter = @('woot') }
-        $result = ConvertFrom-ParameterizedAnything $target -config @{} -params $params -actions @{} -failOnError
+        $variables = @{ config=@{}; params=$params; actions=@{} }
+        $result = ConvertFrom-ParameterizedAnything $target -variables $variables -failOnError
         $result.result | Assert-ShouldBeObject @{ 'foo' = @('bar', 'baz', 'woot'); 'baz' = 'woot' }
     }
     
     It 'can evaluate parameters in single-element-arrays nested in objects without extra syntax' {
         $target = @{ 'foo' = @('$params.foo'); 'baz' = '$params.banter' }
         $params = @{ foo = @('bar'); banter = @('woot') }
-        $result = ConvertFrom-ParameterizedAnything $target -config @{} -params $params -actions @{} -failOnError
+        $variables = @{ config=@{}; params=$params; actions=@{} }
+        $result = ConvertFrom-ParameterizedAnything $target -variables $variables -failOnError
         $result.result | Assert-ShouldBeObject @{ 'foo' = @('bar'); 'baz' = 'woot' }
     }
     
     It 'can evaluate parameters in empty arrays nested in objects without extra syntax' {
         $target = @{ 'foo' = @('$params.foo'); 'baz' = '$params.banter' }
         $params = @{ foo = @(); banter = @('woot') }
-        $result = ConvertFrom-ParameterizedAnything $target -config @{} -params $params -actions @{} -failOnError
+        $variables = @{ config=@{}; params=$params; actions=@{} }
+        $result = ConvertFrom-ParameterizedAnything $target -variables $variables -failOnError
         $result.result | Assert-ShouldBeObject @{ 'foo' = @(); 'baz' = 'woot' }
     }
     
     It 'can evaluate single-element arrays as arrays' {
         $target = @('$params.foo')
         $params = @{ foo = @('bar'); banter = @('woot') }
-        $result = ConvertFrom-ParameterizedAnything $target -config @{} -params $params -actions @{} -failOnError
+        $variables = @{ config=@{}; params=$params; actions=@{} }
+        $result = ConvertFrom-ParameterizedAnything $target -variables $variables -failOnError
         $result.result.Count | Should -Be 1
         Should -ActualValue $result.result -Be @('bar')
     }
@@ -66,7 +73,8 @@ Describe 'ConvertFrom-ParameterizedAnything' {
         $target = '$($params.foo) and $($params.baz)'
         $target = $target | ConvertTo-Json | ConvertFrom-Json
         $params = @{ foo = 'bar'; baz = 'woot' }
-        $result = ConvertFrom-ParameterizedAnything $target -config @{} -params $params -actions @{} -failOnError
+        $variables = @{ config=@{}; params=$params; actions=@{} }
+        $result = ConvertFrom-ParameterizedAnything $target -variables $variables -failOnError
         $result.result | Should -Be 'bar and woot'
     }
     
@@ -74,14 +82,16 @@ Describe 'ConvertFrom-ParameterizedAnything' {
         $target = '$params.foo and $params.baz'
         $target = $target | ConvertTo-Json | ConvertFrom-Json
         $params = @{ foo = 'bar'; baz = 'woot' }
-        { ConvertFrom-ParameterizedAnything $target -config @{} -params $params -actions @{} -failOnError } | Should -Throw
+        $variables = @{ config=@{}; params=$params; actions=@{} }
+        { ConvertFrom-ParameterizedAnything $target -variables $variables -failOnError } | Should -Throw
     }
     
     It 'can evaluate basic strings' {
         $target = '$params.foo'
         $target = $target | ConvertTo-Json | ConvertFrom-Json
         $params = @{ foo = 'bar'; baz = 'woot' }
-        $result = ConvertFrom-ParameterizedAnything $target -config @{} -params $params -actions @{} -failOnError
+        $variables = @{ config=@{}; params=$params; actions=@{} }
+        $result = ConvertFrom-ParameterizedAnything $target -variables $variables -failOnError
         $result.result | Should -Be 'bar'
     }
     
@@ -89,7 +99,8 @@ Describe 'ConvertFrom-ParameterizedAnything' {
         $target = @('foo', @{ '$($params.foo)' = '$($params.baz)' })
         $target = $target | ConvertTo-Json | ConvertFrom-Json
         $params = @{ foo = 'bar'; baz = 'woot' }
-        $result = ConvertFrom-ParameterizedAnything $target -config @{} -params $params -actions @{} -failOnError
+        $variables = @{ config=@{}; params=$params; actions=@{} }
+        $result = ConvertFrom-ParameterizedAnything $target -variables $variables -failOnError
         $result.result.Count | Should -Be 2
         $result.result[0] | Should -Be 'foo'
         $result.result[1] | Assert-ShouldBeObject @{ 'bar'= 'woot' }
@@ -99,7 +110,8 @@ Describe 'ConvertFrom-ParameterizedAnything' {
         $target = @{ 'foo' = @('$($params.foo -join ",")', '$($params.banter)'); 'baz' = '$($params.banter)' }
         $target = $target | ConvertTo-Json | ConvertFrom-Json
         $params = @{ foo = @('bar', 'baz'); banter = @('woot') }
-        $result = ConvertFrom-ParameterizedAnything $target -config @{} -params $params -actions @{} -failOnError
+        $variables = @{ config=@{}; params=$params; actions=@{} }
+        $result = ConvertFrom-ParameterizedAnything $target -variables $variables -failOnError
         $result.result | Assert-ShouldBeObject @{ 'foo' = @('bar', 'baz', 'woot'); 'baz' = 'woot' }
     }
     
@@ -107,7 +119,8 @@ Describe 'ConvertFrom-ParameterizedAnything' {
         $target = @{ 'foo' = $true; 'bar' = $false }
         $target = $target | ConvertTo-Json | ConvertFrom-Json
         $params = @{ }
-        $result = ConvertFrom-ParameterizedAnything $target -config @{} -params $params -actions @{} -failOnError
+        $variables = @{ config=@{}; params=$params; actions=@{} }
+        $result = ConvertFrom-ParameterizedAnything $target -variables $variables -failOnError
         $result.result | Assert-ShouldBeObject @{ 'foo' = $true; 'bar' = $false }
     }
     

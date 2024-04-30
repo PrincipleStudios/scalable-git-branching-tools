@@ -2,11 +2,13 @@
 
 Usage:
 
-    git-release.ps1 [-sourceBranch] <string> [-target] <string> [-comment <string>] [-preserve <string[]>] [-dryRun] [-cleanupOnly]
+    git-release.ps1 [-source] <string> [-target] <string>
+        [-comment <string>] [-preserve <string[]>] [-cleanupOnly] [-force]
+        [-noFetch] [-dryRun] [-quiet]
 
 ## Parameters
 
-### `[-sourceBranch] <string>` (Mandatory)
+### `[-source] <string>` (Mandatory)
 
 The name of the branch to "release".
 
@@ -18,16 +20,34 @@ The name of the branch that will be updated with the released branch.
 
 _Aliases: -m, -message_
 
-If specified, overrides the commit message added to the upstream tracking branch.
+If specified, overrides the commit message added to the upstream tracking
+branch.
 
 ### `-preserve <string[]>` (Optional)
 
 A comma delimited list of branches to preserve in addition to those upstream
 
-### `[-dryRun]` (Optional)
+### `-cleanupOnly` (Optional)
 
-If specified, changes to branches will be displayed but no actual changes will be applied.
+Use this flag when the released branch (from `-branchName`) was already merged
+to the target branch (`-target`) to clean up the included branches.
 
-### `[-cleanupOnly]` (Optional)
+### `-force` (Optional)
 
-Use this flag when the released branch (from `-branchName`) was already merged to the target branch (`-target`) to clean up the included branches.
+Bypasses up-to-date checks for the source, target, and all branches being
+removed.
+
+## `-noFetch` (Optional)
+
+By default, all scripts fetch the latest before processing. To skip this (which
+was the old behavior), include `-noFetch`.
+
+### `-dryRun` (Optional)
+
+If specified, changes to branches will be displayed but no actual changes will
+be applied.
+
+## `-quiet` (Optional)
+
+Suppress unnecessary output. Useful when a tool is designed to consume the
+output of this script via git rather than via PowerShell.

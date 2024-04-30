@@ -59,12 +59,20 @@
             }
         },
         {
-            "id": "merge-branches",
+            "id": "mergeBranches",
             "type": "merge-branches",
             "parameters": {
                 "source": "$($params.target)",
                 "upstreamBranches": ["$actions['filtered-upstream'].outputs"],
                 "mergeMessageTemplate": "Merge '{}' to $($params.target)"
+            }
+        },
+        { 
+            "type": "add-diagnostic",
+            "condition": "$actions.mergeBranches.outputs.failed -ne $null",
+            "parameters": {
+                "isWarning": true,
+                "message": "$($params.target) has incoming conflicts from $($actions.mergeBranches.outputs.failed). Be sure to manually merge."
             }
         }
     ],
@@ -74,7 +82,7 @@
             "parameters": {
                 "branches": {
                     "$config.upstreamBranch": "$actions['set-upstream'].outputs['commit']",
-                    "$params.target": "$actions['merge-branches'].outputs['commit']"
+                    "$params.target": "$actions.mergeBranches.outputs['commit']"
                 }
             }
         },

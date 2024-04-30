@@ -8,20 +8,38 @@ function Register-LocalActionMergeBranches([PSObject] $localActions) {
         param(
             [string] $source,
             [string[]] $upstreamBranches,
-            [string] $mergeMessageTemplate,
+            [string] $mergeMessageTemplate = "Merge {}",
+            [hashtable] $commitMappingOverride = @{},
+
             [Parameter()][bool] $errorOnFailure = $false,
             [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
         )
 
         $config = Get-Configuration
         if ($null -ne $config.remote) {
-            $upstreamBranches = [string[]]$upstreamBranches | Foreach-Object { "$($config.remote)/$_" }
+            $upstreamBranches = [string[]]$upstreamBranches | Where-Object { $_ } | Foreach-Object { "$($config.remote)/$_" }
             if ($null -ne $source -AND '' -ne $source) {
                 $source = "$($config.remote)/$source"
             }
         }
 
-        $mergeResult = Invoke-MergeTogether -source $source -commitishes $upstreamBranches -messageTemplate $mergeMessageTemplate -diagnostics $diagnostics -asWarnings:$(-not $errorOnFailure)
+        if ($null -eq $upstreamBranches) {
+            # Nothing to merge
+            return @{
+                commit = $null;
+                hasChanges = $false;
+                failed = @();
+                successful = $();
+            }
+        }
+
+        $mergeResult = Invoke-MergeTogether `
+            -source $source `
+            -commitishes $upstreamBranches `
+            -messageTemplate $mergeMessageTemplate `
+            -commitMappingOverride $commitMappingOverride `
+            -diagnostics $diagnostics `
+            -noFailureMessages:$(-not $errorOnFailure)
         $commit = $mergeResult.result
         if ($null -eq $commit) {
             if ($source -notin $mergeResult.failed) {

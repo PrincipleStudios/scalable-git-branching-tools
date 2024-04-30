@@ -5,9 +5,7 @@ Import-Module -Scope Local "$PSScriptRoot/ConvertFrom-ParameterizedString.psm1"
 
 function ConvertFrom-ParameterizedObject(
     [Parameter(Mandatory)][PSObject] $script,
-    [Parameter(Mandatory)][PSObject] $config,
-    [Parameter(Mandatory)][PSObject] $params,
-    [Parameter(Mandatory)][PSObject] $actions,
+    [Parameter(Mandatory)][PSObject] $variables,
     [Parameter(Mandatory)][scriptblock] $convertFromParameterized,
     [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics,
     [switch] $failOnError
@@ -18,7 +16,7 @@ function ConvertFrom-ParameterizedObject(
 
     $converted = @{}
     foreach ($_ in $ht.Keys) {
-        $entry = & $convertFromParameterized -script $_ -config $config -params $params -actions $actions -diagnostics $diagnostics -failOnError:$failOnError
+        $entry = & $convertFromParameterized -script $_ -variables $variables -diagnostics $diagnostics -failOnError:$failOnError
         if ($entry.result -isnot [string]) {
             $fail = $true
             continue
@@ -26,7 +24,7 @@ function ConvertFrom-ParameterizedObject(
         $fail = $fail -or $entry.fail
 
         $target = $ht[$_]
-        $entryValue = & $convertFromParameterized -script $target -config $config -params $params -actions $actions -diagnostics $diagnostics -failOnError:$failOnError
+        $entryValue = & $convertFromParameterized -script $target -variables $variables -diagnostics $diagnostics -failOnError:$failOnError
         $fail = $fail -or $entryValue.fail
         
         $converted += @{ $entry.result = $entryValue.result }

@@ -7,12 +7,23 @@ Import-Module -Scope Local "$PSScriptRoot/Configuration.psm1"
 # allUpstreams is a hashmap where the key is the git working directory and 
 $allUpstreams = @{}
 
-function Select-AllUpstreamBranches([switch]$refresh) {
+function Select-Override(
+	[Parameter(Mandatory)][System.Collections.Hashtable] $first,
+	[Parameter(Mandatory)][System.Collections.Hashtable] $second) {
+
+	$result = $first + @{}
+	foreach ($key in $second.Keys) {
+		$result[$key] = $second[$key]
+	}
+	return $result
+}
+
+function Select-AllUpstreamBranches([switch]$refresh, [Parameter()][AllowNull()] $overrideUpstreams) {
 	$workDir = Invoke-ProcessLogs "git rev-parse --absolute-git-dir" {
 		git rev-parse --absolute-git-dir
 	} -allowSuccessOutput
 	if ($allUpstreams[$workDir] -AND -not $refresh) {
-		return $allUpstreams[$workDir]
+		return $overrideUpstreams ? (Select-Override -first $allUpstreams[$workDir] -second (ConvertTo-Hashtable $overrideUpstreams)) : $allUpstreams[$workDir]
 	}
 
 	$nodes = $allUpstreams[$workDir] = @{}
@@ -52,7 +63,7 @@ function Select-AllUpstreamBranches([switch]$refresh) {
 		}
 	}
 
-	return $nodes
+	return $overrideUpstreams ? (Select-Override -first $nodes -second (ConvertTo-Hashtable $overrideUpstreams)) : $nodes
 }
 
 function Clear-AllUpstreamBranchCache([string] $workDir) {

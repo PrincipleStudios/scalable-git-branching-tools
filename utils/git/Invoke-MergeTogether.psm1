@@ -6,8 +6,13 @@ function Invoke-MergeTogether(
     [Parameter()][AllowNull()][string] $source = $null,
     [Parameter()][string] $messageTemplate = "Merge {}",
     [Parameter(Mandatory)][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics,
-    [switch] $asWarnings
+    [Parameter()][hashtable] $commitMappingOverride = @{},
+    [switch] $asWarnings,
+    [switch] $noFailureMessages
 ) {
+    function ResolveCommit($commitish) {
+        return Get-BranchCommit $commitish -commitMappingOverride:$commitMappingOverride
+    }
 
     [String[]]$remaining = $commitishes
     [String[]]$failed = @()
@@ -18,10 +23,8 @@ function Invoke-MergeTogether(
     if ($null -ne $source -AND '' -ne $source) {
         $target = $source
 
-        $currentCommit = Invoke-ProcessLogs "git rev-parse --verify $target" {
-            git rev-parse --verify $target
-        } -allowSuccessOutput
-        if ($global:LASTEXITCODE -ne 0) {
+        $currentCommit = ResolveCommit $target
+        if ($null -eq $currentCommit) {
             $remaining = $remaining | Where-Object { $_ -ne $target }
             $failed += $target
             Add-ErrorDiagnostic $diagnostics "Could not resolve '$($target)' for source of merge"
@@ -39,10 +42,8 @@ function Invoke-MergeTogether(
     while ($remaining.Count -gt 0) {
         $target = $remaining[0]
         if ($null -eq $currentCommit) {
-            $parsedCommitish = Invoke-ProcessLogs "git rev-parse --verify $target" {
-                git rev-parse --verify $target
-            } -allowSuccessOutput
-            if ($global:LASTEXITCODE -eq 0) {
+            $parsedCommitish = ResolveCommit $target
+            if ($null -ne $parsedCommitish) {
                 $currentCommit = $parsedCommitish
                 $remaining = $remaining | Where-Object { $_ -ne $target }
                 $parentCommits += $currentCommit
@@ -50,7 +51,9 @@ function Invoke-MergeTogether(
             } else {
                 $remaining = $remaining | Where-Object { $_ -ne $target }
                 $failed += $target
-                if ($asWarnings) {
+                if ($noFailureMessages) {
+                    # Intentionally blank
+                } elseif ($asWarnings) {
                     Add-WarningDiagnostic $diagnostics "Could not resolve '$($target)'"
                 } else {
                     Add-ErrorDiagnostic $diagnostics "Could not resolve '$($target)'"
@@ -60,14 +63,14 @@ function Invoke-MergeTogether(
             $allFailed = $true
             for ($i = 0; $i -lt $remaining.Count; $i++) {
                 $target = $remaining[$i]
-                $targetCommit = Invoke-ProcessLogs "git rev-parse --verify $target" {
-                    git rev-parse --verify $target
-                } -allowSuccessOutput
-                if ($global:LASTEXITCODE -ne 0) {
+                $targetCommit = ResolveCommit $target
+                if ($null -eq $targetCommit) {
                     # If we can't resolve the commit, it'll never resolve
                     $remaining = $remaining | Where-Object { $_ -ne $target }
                     $failed += $target
-                    if ($asWarnings) {
+                    if ($noFailureMessages) {
+                        # Intentionally blank
+                    } elseif ($asWarnings) {
                         Add-WarningDiagnostic $diagnostics "Could not resolve '$($target)'"
                     } else {
                         Add-ErrorDiagnostic $diagnostics "Could not resolve '$($target)'"
@@ -96,15 +99,17 @@ function Invoke-MergeTogether(
 
                     $currentCommit = $resultCommit
                     $parentCommits += $targetCommit
+                    $successful += $target
                 }
                 $allFailed = $false
                 $i--
                 $remaining = $remaining | Where-Object { $_ -ne $target }
-                $successful += $target
                 break;
             }
             if ($allFailed -AND $remaining.Count -gt 0) {
-                if ($asWarnings) {
+                if ($noFailureMessages) {
+                    # Intentionally blank
+                } elseif ($asWarnings) {
                     Add-WarningDiagnostic $diagnostics "Could not merge the following branches: $remaining"
                 } else {
                     Add-ErrorDiagnostic $diagnostics "Could not merge the following branches: $remaining"

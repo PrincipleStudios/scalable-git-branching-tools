@@ -172,7 +172,7 @@ Describe 'local action "merge-branches"' {
                 }
             }' | ConvertFrom-Json) -diagnostics $diag
             { Assert-Diagnostics $diag } | Should -Not -Throw
-            $output | Should -contain 'WARN: Could not merge the following branches: barbaz'
+            $output | Should -BeNullOrEmpty
             $result | Assert-ShouldBeObject @{
                 commit = 'new-COMMIT'
                 hasChanges = $false
@@ -210,7 +210,7 @@ Describe 'local action "merge-branches"' {
                 }
             }' | ConvertFrom-Json) -diagnostics $diag
             { Assert-Diagnostics $diag } | Should -Not -Throw
-            $output | Should -contain 'WARN: Could not merge the following branches: origin/barbaz'
+            $output | Should -BeNullOrEmpty
             $result | Assert-ShouldBeObject @{
                 commit = 'new-COMMIT'
                 hasChanges = $false
@@ -236,7 +236,7 @@ Describe 'local action "merge-branches"' {
                 }
             }' | ConvertFrom-Json) -diagnostics $diag
             { Assert-Diagnostics $diag } | Should -Not -Throw
-            $output | Should -contain 'WARN: Could not merge the following branches: origin/barbaz'
+            $output | Should -BeNullOrEmpty
             $result | Assert-ShouldBeObject @{
                 commit = 'new-COMMIT'
                 hasChanges = $false
