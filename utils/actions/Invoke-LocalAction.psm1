@@ -20,7 +20,7 @@ $localActions['add-diagnostic'] = ${function:Invoke-AddDiagnosticLocalAction}
 $localActions['assert-existence'] = ${function:Invoke-AssertBranchExistenceLocalAction}
 $localActions['assert-pushed'] = ${function:Invoke-AssertBranchPushedLocalAction}
 $localActions['assert-updated'] = ${function:Invoke-AssertBranchUpToDateLocalAction}
-Register-LocalActionEvaluate $localActions
+$localActions['evaluate'] = ${function:Invoke-EvaluateLocalAction}
 $localActions['filter-branches'] = ${function:Invoke-FilterBranchesLocalAction}
 $localActions['get-all-upstreams'] = ${function:Invoke-GetAllUpstreamsLocalAction}
 $localActions['get-downstream'] = ${function:Invoke-GetDownstreamLocalAction}
