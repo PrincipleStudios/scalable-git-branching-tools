@@ -4,7 +4,10 @@ Import-Module -Scope Local "$PSScriptRoot/../../query-state.psm1"
 
 function Register-LocalActionUpstreamsUpdated([PSObject] $localActions) {
     # Checks to see if the upstreams are up-to-date
-    $localActions['upstreams-updated'] = {
+    $localActions['upstreams-updated'] = ${function:Get-UpstreamUpdatedStatus}
+ }
+ 
+ function Get-UpstreamUpdatedStatus {
         param(
             [Parameter()][AllowEmptyCollection()][string[]] $branches,
             [Parameter()][AllowNull()] $overrideUpstreams,
@@ -46,7 +49,6 @@ function Register-LocalActionUpstreamsUpdated([PSObject] $localActions) {
             needsUpdate = $needsUpdate
             isUpdated = $isUpdated
         }
-    }
 }
 
 Export-ModuleMember -Function Register-LocalActionUpstreamsUpdated

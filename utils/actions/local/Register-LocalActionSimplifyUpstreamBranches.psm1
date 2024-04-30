@@ -4,7 +4,10 @@ Import-Module -Scope Local "$PSScriptRoot/../../input.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../query-state.psm1"
 
 function Register-LocalActionSimplifyUpstreamBranches([PSObject] $localActions) {
-    $localActions['simplify-upstream'] = {
+    $localActions['simplify-upstream'] = ${function:Invoke-SimplifyUpstream}
+}
+
+function Invoke-SimplifyUpstream {
         param(
             [Parameter(Mandatory)][AllowEmptyCollection()][AllowEmptyString()][string[]] $upstreamBranches,
             [Parameter()][AllowNull()] $overrideUpstreams,
@@ -29,7 +32,6 @@ function Register-LocalActionSimplifyUpstreamBranches([PSObject] $localActions) 
 
         $result = Compress-UpstreamBranches $upstreamBranches -diagnostics:$diagnostics -overrideUpstreams:$overrideUpstreams -branchName:$branchName
         return $result
-    }
 }
 
 Export-ModuleMember -Function Register-LocalActionSimplifyUpstreamBranches

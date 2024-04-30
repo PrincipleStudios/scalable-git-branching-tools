@@ -4,7 +4,11 @@ Import-Module -Scope Local "$PSScriptRoot/../../git.psm1"
 
 # TODO: this assumes all branches are remotes (if remote is specified)
 function Register-LocalActionMergeBranches([PSObject] $localActions) {
-    $localActions['merge-branches'] = {
+    $localActions['merge-branches'] = ${function:Invoke-MergeBranches}
+}
+
+function Invoke-MergeBranches
+{
         param(
             [string] $source,
             [string[]] $upstreamBranches,
@@ -68,7 +72,6 @@ function Register-LocalActionMergeBranches([PSObject] $localActions) {
             # [string[]] list of branches that would merge without errors (but may have no changes)
             successful = $successful
         }
-    }
 }
 
 Export-ModuleMember -Function Register-LocalActionMergeBranches

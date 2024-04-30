@@ -4,7 +4,10 @@ Import-Module -Scope Local "$PSScriptRoot/../../query-state.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../git.psm1"
 
 function Register-LocalActionSetUpstream([PSObject] $localActions) {
-    $localActions['set-upstream'] = {
+    $localActions['set-upstream'] = ${function:Invoke-SetUpstream}
+}
+
+function Invoke-SetUpstream {
         param(
             [PSObject] $upstreamBranches,
             [string] $message,
@@ -24,7 +27,6 @@ function Register-LocalActionSetUpstream([PSObject] $localActions) {
         return @{
             commit = $commit
         }
-    }
 }
 
 Export-ModuleMember -Function Register-LocalActionSetUpstream
