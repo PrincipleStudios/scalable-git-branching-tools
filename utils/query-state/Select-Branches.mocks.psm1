@@ -1,15 +1,16 @@
-Import-Module -Scope Local "$PSScriptRoot/../../utils/testing.psm1"
-Import-Module -Scope Local "$PSScriptRoot/../../utils/query-state.psm1"
+Import-Module -Scope Local "$PSScriptRoot/../testing.psm1"
+Import-Module -Scope Local "$PSScriptRoot/Configuration.psm1"
 Import-Module -Scope Local "$PSScriptRoot/Select-Branches.psm1"
 
 function Invoke-MockGit([string] $gitCli, [object] $MockWith) {
     return Invoke-MockGitModule -ModuleName 'Select-Branches' @PSBoundParameters
 }
 
-function Initialize-SelectBranches($branches) {
+function Initialize-SelectBranches([string[]] $branches) {
     $remote = $(Get-Configuration).remote
     if ($remote -ne $nil) {
-        Invoke-MockGit 'branch -r' -MockWith $branches
+        $result = ($branches | ForEach-Object { "$remote/$_" })
+        Invoke-MockGit 'branch -r' -MockWith $result
     } else {
         Invoke-MockGit 'branch' -MockWith $branches
     }

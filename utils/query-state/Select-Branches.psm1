@@ -1,9 +1,10 @@
-Import-Module -Scope Local "$PSScriptRoot/../../utils/query-state.psm1"
+Import-Module -Scope Local "$PSScriptRoot/Configuration.psm1"
 
 function Select-Branches() {
     $remote = $(Get-Configuration).remote
-    $temp = $remote -eq $nil ? (git branch) : (git branch -r)
-    return $temp | Foreach-Object { $_.split("`n") } | Foreach-Object {
+    [string[]]$temp = $remote -eq $nil ? (git branch) : (git branch -r)
+    return $temp | Foreach-Object {
+        if ($null -eq $temp) { return $null }
         if ($remote -eq $nil) {
             $branchName = $_.Trim()
         } else {
@@ -17,7 +18,7 @@ function Select-Branches() {
             }
         }
 
-        return @{ remote = $remote; branch = $branchName }
+        return $branchName
     } | Where-Object { $_ -ne $nil }
 }
 Export-ModuleMember -Function Select-Branches
