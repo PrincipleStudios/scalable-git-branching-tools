@@ -3,6 +3,7 @@ Import-Module -Scope Local "$PSScriptRoot/../../input.mocks.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../query-state.mocks.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../query-state.psm1"
 Import-Module -Scope Local "$PSScriptRoot/Register-FinalizeActionSetBranches.psm1"
+Import-Module -Scope Local "$PSScriptRoot/Register-FinalizeActionSetBranches.helpers.psm1"
 
 function Invoke-MockGit([string] $gitCli, [object] $MockWith) {
     return Invoke-MockGitModule -ModuleName 'Register-FinalizeActionSetBranches' @PSBoundParameters

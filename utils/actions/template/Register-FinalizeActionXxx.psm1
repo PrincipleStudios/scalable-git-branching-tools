@@ -4,15 +4,13 @@ Import-Module -Scope Local "$PSScriptRoot/../../input.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../query-state.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../git.psm1"
 
-function Register-FinalizeActionXxx([PSObject] $finalizeActions) {
-    $finalizeActions['xxx'] = {
-        param(
-            # TODO: add parameters
-            [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
-        )
+function Invoke-XxxFinalizeAction {
+    param(
+        # TODO: add parameters
+        [Parameter()][AllowNull()][AllowEmptyCollection()][System.Collections.ArrayList] $diagnostics
+    )
 
-        return @{}
-    }
+    return @{}
 }
 
-Export-ModuleMember -Function Register-FinalizeActionXxx
+Export-ModuleMember -Function Invoke-XxxFinalizeAction
