@@ -2,7 +2,7 @@ Import-Module -Scope Local "$PSScriptRoot/../../core.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../framework.psm1"
 Import-Module -Scope Local "$PSScriptRoot/../../query-state.psm1"
 
-function Register-LocalActionXxx([PSObject] $localActions) {
+function Invoke-XxxLocalAction([PSObject] $localActions) {
     $localActions['xxx'] = {
         param(
             # TODO: add parameters
@@ -13,4 +13,4 @@ function Register-LocalActionXxx([PSObject] $localActions) {
     }
 }
 
-Export-ModuleMember -Function Register-LocalActionXxx
+Export-ModuleMember -Function Invoke-XxxLocalAction

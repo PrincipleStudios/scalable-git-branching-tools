@@ -8,8 +8,11 @@ git config alias.tool-config "!$dir/git-tool-config.ps1"
 # Allow self-updating on the current branch
 git config alias.tool-update "!$dir/git-tool-update.ps1"
 
-# Check the tool configuration for issues
-git config alias.tool-audit "!$dir/git-tool-audit.ps1"
+# Check the upstream branch configuration for branches that no longer exist
+git config alias.tool-audit-prune "!$dir/git-tool-audit-prune.ps1"
+
+# Check the upstream branch configuration for references to deeper upstreams and simplify
+git config alias.tool-audit-simplify "!$dir/git-tool-audit-simplify.ps1"
 
 # Create a new branch
 git config alias.new "!$dir/git-new.ps1"
@@ -29,9 +32,6 @@ git config alias.add-upstream "!$dir/git-add-upstream.ps1"
 # Build a release candidate from other branches
 git config alias.rc "!$dir/git-rc.ps1"
 
-# Build a release candidate from other branches using interactive prompts
-git config alias.rci "!$dir/git-rci.ps1"
-
 # Rebuild a branch from its upstreams
 git config alias.rebuild-rc "!$dir/git-rebuild-rc.ps1"
 
@@ -45,7 +45,8 @@ git config alias.refactor-upstream "!$dir/git-refactor-upstream.ps1"
 git config alias.release "!$dir/git-release.ps1"
 
 # Get the git version and warn about older versions
-[double]$ver = ((((git version) -split ' ')[2]) -split '\.',3 | Select-Object -First 2) -join '.'
+$fullVersion = git version
+[double]$ver = ((($fullVersion -split ' ')[2]) -split '\.',3 | Select-Object -First 2) -join '.'
 if ($ver -lt 2.41) {
-    throw 'Git version installed should be at least 2.41; unexpected issues may occur. Please update git.'
+    throw "Git version installed should be at least 2.41 (found '$fullVersion'); unexpected issues may occur. Please update git."
 }

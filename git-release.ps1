@@ -69,7 +69,7 @@ if (-not $force) {
 
 # For all branches:
 #    1. Replace $toRemove branches with $target
-#    2. Simplify (new)
+#    2. Simplify
 
 $originalUpstreams = Invoke-LocalAction @commonParams @{
     type = 'get-all-upstreams'
