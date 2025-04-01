@@ -27,7 +27,7 @@ function Invoke-SetBranchesFinalizeAction {
             return
         }
         Invoke-ProcessLogs "git push $($config.remote) $atomicPart $forcePart $branchList --no-verify" {
-            git push $config.remote @atomicPart @forcePart @branchList
+            git push $config.remote @atomicPart @forcePart @branchList --no-verify
         }
         if ($global:LASTEXITCODE -ne 0) {
             Add-ErrorDiagnostic $diagnostics "Unable to push updates to $($config.remote)"
