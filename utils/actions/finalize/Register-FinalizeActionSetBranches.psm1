@@ -26,7 +26,7 @@ function Invoke-SetBranchesFinalizeAction {
             "git push $($config.remote) $atomicPart $forcePart $branchList"
             return
         }
-        Invoke-ProcessLogs "git push $($config.remote) $atomicPart $forcePart $branchList" {
+        Invoke-ProcessLogs "git push $($config.remote) $atomicPart $forcePart $branchList --no-verify" {
             git push $config.remote @atomicPart @forcePart @branchList
         }
         if ($global:LASTEXITCODE -ne 0) {
